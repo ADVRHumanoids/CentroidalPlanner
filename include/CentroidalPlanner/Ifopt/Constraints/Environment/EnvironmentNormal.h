@@ -3,10 +3,9 @@
 #include <ifopt/cost_term.h>
 #include <Eigen/Geometry> 
 
+namespace cpl { namespace solver { namespace Environment {
 
-namespace ifopt { namespace Constraints { namespace Environment {
-
-class Environment_Normal : public ConstraintSet {
+class EnvironmentNormal : public ifopt::ConstraintSet {
     
 public:
 
@@ -16,6 +15,4 @@ private:
     
 };
 
-}
-}
-}
+} } }

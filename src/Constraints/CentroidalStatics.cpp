@@ -1,8 +1,8 @@
-#include <IFOPT/constraints/centroidal_statics.h>
+#include <CentroidalPlanner/Ifopt/Constraints/CentroidalStatics.h>
 
-using namespace ifopt::Constraints;
+using namespace cpl::solver;
 
-CentroidalStatics::CentroidalStatics(const std::map<std::string, Contact_Var_Name>& contacts_map):
+CentroidalStatics::CentroidalStatics(const std::map<std::string, ContactVarName>& contacts_map):
     ConstraintSet(6, "CentroidalStatics"),
     _contacts_map(contacts_map)
 {
@@ -34,7 +34,7 @@ Eigen::VectorXd CentroidalStatics::GetValues() const
     for(auto& elem: _contacts_map)
     {
         std::string key_ = elem.first;
-        Contact_Var_Name _struct = elem.second;
+        ContactVarName _struct = elem.second;
         
         Eigen::Vector3d _Fi = GetVariables()->GetComponent(_struct.force_name)->GetValues();      
         Eigen::Vector3d _pi = GetVariables()->GetComponent(_struct.position_name)->GetValues(); 
@@ -56,7 +56,7 @@ ifopt::Composite::VecBound CentroidalStatics::GetBounds() const
     VecBound b(GetRows());
     for(int i = 0; i < 6; i++)
     {            
-        b.at(i) = Bounds(.0, .0);  
+        b.at(i) = ifopt::Bounds(.0, .0);  
     }
        
     return b;
@@ -70,7 +70,7 @@ void CentroidalStatics::FillJacobianBlock (std::string var_set, ifopt::Composite
     for(auto& elem: _contacts_map)
     {
         std::string key_ = elem.first;
-        Contact_Var_Name _struct = elem.second;
+        ContactVarName _struct = elem.second;
         
         if(var_set == _struct.force_name)
         {
@@ -110,7 +110,7 @@ void CentroidalStatics::FillJacobianBlock (std::string var_set, ifopt::Composite
         {
             
             std::string key_ = elem.first;
-            Contact_Var_Name _struct = elem.second;
+            ContactVarName _struct = elem.second;
                 
             Eigen::Vector3d _Fi = GetVariables()->GetComponent(_struct.force_name)->GetValues(); 
     

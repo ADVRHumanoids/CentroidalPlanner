@@ -32,8 +32,6 @@ include_directories(include
                     ${XCM_INCLUDE_DIRS}
                     )
 
-
-
 # C++ 11
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -52,13 +50,13 @@ catkin_package(
 )
 
 
-SET(IFOPT_SOURCES src/constraints/centroidal_statics.cpp
-                  src/constraints/friction_cone.cpp
-                  src/constraints/environment_constraints.cpp
-                  src/minimize_variables.cpp
+SET(IFOPT_SOURCES src/Constraints/CentroidalStatics.cpp
+                  src/Constraints/FrictionCone.cpp
+                  src/Constraints/EnvironmentConstraint.cpp
+                  src/MinimizeCentroidalVariables.cpp
                   )
                   
-SET(ENVIRONMENT_SOURCES src/environments/superquadric.cpp
+SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
                   )                  
                   
 ADD_LIBRARY(Centroidal SHARED

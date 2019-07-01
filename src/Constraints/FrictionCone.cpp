@@ -1,8 +1,8 @@
-#include <IFOPT/constraints/friction_cone.h>
+#include <CentroidalPlanner/Ifopt/Constraints/FrictionCone.h>
 
-using namespace ifopt::Constraints;
+using namespace cpl::solver;
 
-FrictionCone::FrictionCone(const Contact_Var_Name& contact_var_name):
+FrictionCone::FrictionCone(const ContactVarName& contact_var_name):
     ConstraintSet(2, "FrictionCone" + contact_var_name.force_name),
     _contact_var_name(contact_var_name)
 {
@@ -45,7 +45,7 @@ ifopt::Composite::VecBound FrictionCone::GetBounds() const
     
     for(int i = 0; i < 2; i++)
     {            
-         b.at(i) = BoundSmallerZero;               
+         b.at(i) = ifopt::BoundSmallerZero;               
     }        
                         
     return b;

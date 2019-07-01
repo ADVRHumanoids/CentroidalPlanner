@@ -1,8 +1,8 @@
-#include<IFOPT/minimize_centroidal_variables.h>
+#include <CentroidalPlanner/Ifopt/MinimizeCentroidalVariables.h>
 
-using namespace ifopt;
+using namespace cpl::solver;
 
-MinimizeCentroidalVariables::MinimizeCentroidalVariables(const std::map<std::string, Contact_Var_Name>& contacts_map):
+MinimizeCentroidalVariables::MinimizeCentroidalVariables(const std::map<std::string, ContactVarName>& contacts_map):
       CostTerm("minimize_variables_cost"),
       _contacts_map(contacts_map)
 {
@@ -42,7 +42,7 @@ double MinimizeCentroidalVariables::GetCost() const
     for(auto& elem: _contacts_map)
     {
         std::string key_ = elem.first;
-        Contact_Var_Name _struct = elem.second;
+        ContactVarName _struct = elem.second;
         
         Eigen::Vector3d _Fi = GetVariables()->GetComponent(_struct.force_name)->GetValues();      
         Eigen::Vector3d _pi = GetVariables()->GetComponent(_struct.position_name)->GetValues(); 
@@ -64,7 +64,7 @@ void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set, Jacobi
     for(auto& elem: _contacts_map)
     {
         std::string key_ = elem.first;
-        Contact_Var_Name _struct = elem.second;
+        ContactVarName _struct = elem.second;
         
         if(var_set == _struct.force_name)
         {
