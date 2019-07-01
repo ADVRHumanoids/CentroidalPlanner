@@ -9,8 +9,11 @@ void Ground::getEnvironmentValue(const Eigen::Vector3d& p, double& environment_V
 
 }
 
-void Ground::getEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& environment_Jacobian)
+void Ground::getEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vector3d& environment_Jacobian)
 {
+    
+    environment_Jacobian.setZero();
+    environment_Jacobian.z() = 1.0;
 
 }
 
@@ -26,5 +29,7 @@ void Ground::getNormalValue(const Eigen::Vector3d& p, Eigen::Vector3d& normal_Va
 
 void Ground::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& normal_Jacobian)
 {
+    
+    normal_Jacobian.setZero(3,3);
 
 }

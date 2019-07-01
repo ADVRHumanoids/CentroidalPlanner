@@ -2,25 +2,26 @@
 
 using namespace cpl::solver;
 
-FrictionCone::FrictionCone(const ContactVarName& contact_var_name):
+FrictionCone::FrictionCone(const ContactVarName& contact_var_name, cpl::env::EnvironmentClass::Ptr& env):
     ConstraintSet(2, "FrictionCone" + contact_var_name.force_name),
+    _env(env),
     _contact_var_name(contact_var_name)
 {
    
   _F = GetVariables()->GetComponent(_contact_var_name.force_name)->GetValues();      
   _n = GetVariables()->GetComponent(_contact_var_name.normal_name)->GetValues(); 
-  
-  _mu = 1.0; 
+ 
+  _mu = _env->GetMu(); 
   _force_thr = 0.0; 
   
 }
     
-void FrictionCone::setMu(const double& mu)
+void FrictionCone::SetMu(const double& mu)
 {
     _mu = mu;
 }
 
-void FrictionCone::setForceThreshold(const double& force_thr)
+void FrictionCone::SetForceThreshold(const double& force_thr)
 {
     _force_thr = force_thr;
 }

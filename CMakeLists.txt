@@ -53,10 +53,13 @@ catkin_package(
 SET(IFOPT_SOURCES src/Constraints/CentroidalStatics.cpp
                   src/Constraints/FrictionCone.cpp
                   src/Constraints/EnvironmentConstraint.cpp
+                  src/Constraints/EnvironmentNormal.cpp
                   src/MinimizeCentroidalVariables.cpp
+                  src/Variable3D.cpp
                   )
                   
 SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
+                        src/Ground.cpp
                   )                  
                   
 ADD_LIBRARY(Centroidal SHARED
