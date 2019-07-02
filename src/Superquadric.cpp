@@ -2,6 +2,16 @@
 
 using namespace cpl::env;
 
+Superquadric::Superquadric(const Eigen::Vector3d& C, const Eigen::Vector3d& R, const Eigen::Vector3d& P)
+{
+
+    _C = C;
+    _R = R;
+    _P = P;
+    
+}
+
+
 void Superquadric::getEnvironmentValue(const Eigen::Vector3d& p, double& environment_Value)
 {
     
@@ -57,8 +67,9 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     double t19 = pow(_R.z(),t10);
     double t20 = pow(_R.y(),t6);
     
-    normal_Jacobian(0,0) = _P.x()*pow(_R.x(),-_P.x())*pow(t2,_P.x())*t4*t5*t8*t9*t12*(_P.x()-1.0)*1.0/pow(t5*t8*t13*t15+t9*t12*t16*t18+(_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(t2,_P.x()*2.0)*t4,3.0/2.0)*((_C.y()*_C.y())*t16*t18*t20+(_C.z()*_C.z())*t13*t15*t19+(p.y()*p.y())*t16*t18*t20
-                               +(p.z()*p.z())*t13*t15*t19-_C.y()*p.y()*t16*t18*t20*2.0-_C.z()*p.z()*t13*t15*t19*2.0);
+    normal_Jacobian(0,0) = _P.x()*pow(_R.x(),-_P.x())*pow(t2,_P.x())*t4*t5*t8*t9*t12*(_P.x()-1.0)*1.0/pow(t5*t8*t13*t15+t9*t12*t16*t18+(_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*
+                           pow(t2,_P.x()*2.0)*t4,3.0/2.0)*((_C.y()*_C.y())*t16*t18*t20+(_C.z()*_C.z())*t13*t15*t19+(p.y()*p.y())*t16*t18*t20 +(p.z()*p.z())*t13*t15*t19-_C.y()*
+                           p.y()*t16*t18*t20*2.0-_C.z()*p.z()*t13*t15*t19*2.0);
     
     t2 = _P.y()*2.0;
     t3 = -_C.x()+p.x();
@@ -67,7 +78,8 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     t6 = t2-2.0;
     t7 = pow(_R.y(),-t2);
         
-    normal_Jacobian(0,1) = _P.x()*pow(_R.x(),-_P.x())*pow(t3,_P.x()-1.0)*t4*pow(t5,t2-3.0)*t6*t7*1.0/pow((_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(-_C.z()+p.z(),_P.z()*2.0-2.0)+(_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(t3,_P.x()*2.0-2.0)+t4*pow(t5,t6)*t7,3.0/2.0)*(-1.0/2.0);
+    normal_Jacobian(0,1) = _P.x()*pow(_R.x(),-_P.x())*pow(t3,_P.x()-1.0)*t4*pow(t5,t2-3.0)*t6*t7*1.0/pow((_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(-_C.z()+p.z(),_P.z()*2.0-2.0)
+                           +(_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(t3,_P.x()*2.0-2.0)+t4*pow(t5,t6)*t7,3.0/2.0)*(-1.0/2.0);
     
     t2 = _P.z()*2.0;   
     t3 = -_C.x()+p.x();
@@ -76,7 +88,8 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     t6 = t2-2.0;   
     t7 = pow(_R.z(),-t2);  
     
-    normal_Jacobian(0,2) =  _P.x()*pow(_R.x(),-_P.x())*pow(t3,_P.x()-1.0)*t4*pow(t5,t2-3.0)*t6*t7*1.0/pow((_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(-_C.y()+p.y(),_P.y()*2.0-2.0)+(_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(t3,_P.x()*2.0-2.0)+t4*pow(t5,t6)*t7,3.0/2.0)*(-1.0/2.0);                              
+    normal_Jacobian(0,2) =  _P.x()*pow(_R.x(),-_P.x())*pow(t3,_P.x()-1.0)*t4*pow(t5,t2-3.0)*t6*t7*1.0/pow((_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(-_C.y()+p.y(),_P.y()*2.0-2.0)
+                            +(_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(t3,_P.x()*2.0-2.0)+t4*pow(t5,t6)*t7,3.0/2.0)*(-1.0/2.0);                              
     
     t2 = _P.x()*2.0;
     t3 = _P.x()*_P.x();
@@ -85,7 +98,8 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     t6 = -_C.y()+p.y();
     t7 = pow(_R.x(),-t2);
     
-    normal_Jacobian(1,0) = _P.y()*pow(_R.y(),-_P.y())*t3*pow(t4,t2-3.0)*t5*pow(t6,_P.y()-1.0)*t7*1.0/pow((_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(-_C.z()+p.z(),_P.z()*2.0-2.0)+(_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(t6,_P.y()*2.0-2.0)+t3*pow(t4,t5)*t7,3.0/2.0)*(-1.0/2.0);
+    normal_Jacobian(1,0) = _P.y()*pow(_R.y(),-_P.y())*t3*pow(t4,t2-3.0)*t5*pow(t6,_P.y()-1.0)*t7*1.0/pow((_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(-_C.z()+p.z(),_P.z()*2.0-2.0)
+                            +(_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(t6,_P.y()*2.0-2.0)+t3*pow(t4,t5)*t7,3.0/2.0)*(-1.0/2.0);
     
     t3 = _P.x()*2.0;
     t2 = pow(_R.x(),-t3);
@@ -107,8 +121,9 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     t19 = pow(_R.z(),t10);
     t20 = pow(_R.x(),t3);
     
-    normal_Jacobian(1,1) = _P.y()*pow(_R.y(),-_P.y())*t2*t5*pow(t6,_P.y())*t8*t9*t12*(_P.y()-1.0)*1.0/pow(t2*t5*t13*t15+t9*t12*t16*t18+(_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(t6,_P.y()*2.0)*t8,3.0/2.0)*((_C.x()*_C.x())*t16*t18*t20+(_C.z()*_C.z())*t13*t15*t19
-                               +(p.x()*p.x())*t16*t18*t20+(p.z()*p.z())*t13*t15*t19-_C.x()*p.x()*t16*t18*t20*2.0-_C.z()*p.z()*t13*t15*t19*2.0);
+    normal_Jacobian(1,1) = _P.y()*pow(_R.y(),-_P.y())*t2*t5*pow(t6,_P.y())*t8*t9*t12*(_P.y()-1.0)*1.0/pow(t2*t5*t13*t15+t9*t12*t16*t18+(_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*
+                           pow(t6,_P.y()*2.0)*t8,3.0/2.0)*((_C.x()*_C.x())*t16*t18*t20+(_C.z()*_C.z())*t13*t15*t19+(p.x()*p.x())*t16*t18*t20+(p.z()*p.z())*t13*t15*t19-_C.x()*p.x()
+                           *t16*t18*t20*2.0-_C.z()*p.z()*t13*t15*t19*2.0);
 
     t2 = _P.z()*2.0;
     t3 = -_C.y()+p.y();
@@ -117,7 +132,8 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     t6 = t2-2.0;
     t7 = pow(_R.z(),-t2);
     
-    normal_Jacobian(1,2) = _P.y()*pow(_R.y(),-_P.y())*pow(t3,_P.y()-1.0)*t4*pow(t5,t2-3.0)*t6*t7*1.0/pow((_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(-_C.x()+p.x(),_P.x()*2.0-2.0)+(_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(t3,_P.y()*2.0-2.0)+t4*pow(t5,t6)*t7,3.0/2.0)*(-1.0/2.0);
+    normal_Jacobian(1,2) = _P.y()*pow(_R.y(),-_P.y())*pow(t3,_P.y()-1.0)*t4*pow(t5,t2-3.0)*t6*t7*1.0/pow((_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(-_C.x()+p.x(),_P.x()*2.0-2.0)
+                           +(_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(t3,_P.y()*2.0-2.0)+t4*pow(t5,t6)*t7,3.0/2.0)*(-1.0/2.0);
 
     t2 = _P.x()*2.0;
     t3 = _P.x()*_P.x();
@@ -126,7 +142,8 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     t6 = -_C.z()+p.z();
     t7 = pow(_R.x(),-t2);
     
-    normal_Jacobian(2,0) = _P.z()*pow(_R.z(),-_P.z())*t3*pow(t4,t2-3.0)*t5*pow(t6,_P.z()-1.0)*t7*1.0/pow((_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(-_C.y()+p.y(),_P.y()*2.0-2.0)+(_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(t6,_P.z()*2.0-2.0)+t3*pow(t4,t5)*t7,3.0/2.0)*(-1.0/2.0);
+    normal_Jacobian(2,0) = _P.z()*pow(_R.z(),-_P.z())*t3*pow(t4,t2-3.0)*t5*pow(t6,_P.z()-1.0)*t7*1.0/pow((_P.y()*_P.y())*pow(_R.y(),_P.y()*-2.0)*pow(-_C.y()+p.y(),_P.y()*2.0-2.0)
+                           +(_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(t6,_P.z()*2.0-2.0)+t3*pow(t4,t5)*t7,3.0/2.0)*(-1.0/2.0);
 
     t2 = _P.y()*2.0;
     t3 = _P.y()*_P.y();
@@ -135,7 +152,8 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     t6 = -_C.z()+p.z();
     t7 = pow(_R.y(),-t2);
  
-    normal_Jacobian(2,1) = _P.z()*pow(_R.z(),-_P.z())*t3*pow(t4,t2-3.0)*t5*pow(t6,_P.z()-1.0)*t7*1.0/pow((_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(-_C.x()+p.x(),_P.x()*2.0-2.0)+(_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(t6,_P.z()*2.0-2.0)+t3*pow(t4,t5)*t7,3.0/2.0)*(-1.0/2.0);
+    normal_Jacobian(2,1) = _P.z()*pow(_R.z(),-_P.z())*t3*pow(t4,t2-3.0)*t5*pow(t6,_P.z()-1.0)*t7*1.0/pow((_P.x()*_P.x())*pow(_R.x(),_P.x()*-2.0)*pow(-_C.x()+p.x(),_P.x()*2.0-2.0)
+                           +(_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(t6,_P.z()*2.0-2.0)+t3*pow(t4,t5)*t7,3.0/2.0)*(-1.0/2.0);
 
     t3 = _P.x()*2.0;
     t2 = pow(_R.x(),-t3);
@@ -157,10 +175,9 @@ void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& 
     t19 = pow(_R.y(),t7);
     t20 = pow(_R.x(),t3);
      
-    normal_Jacobian(2,2) = _P.z()*pow(_R.z(),-_P.z())*t2*t5*t6*t9*pow(t10,_P.z())*t12*(_P.z()-1.0)*1.0/pow(t2*t5*t13*t15+t6*t9*t16*t18+(_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*pow(t10,_P.z()*2.0)*t12,3.0/2.0)*((_C.x()*_C.x())*t16*t18*t20+(_C.y()*_C.y())*t13*t15*t19
-                               +(p.x()*p.x())*t16*t18*t20+(p.y()*p.y())*t13*t15*t19-_C.x()*p.x()*t16*t18*t20*2.0-_C.y()*p.y()*t13*t15*t19*2.0);
+    normal_Jacobian(2,2) = _P.z()*pow(_R.z(),-_P.z())*t2*t5*t6*t9*pow(t10,_P.z())*t12*(_P.z()-1.0)*1.0/pow(t2*t5*t13*t15+t6*t9*t16*t18+(_P.z()*_P.z())*pow(_R.z(),_P.z()*-2.0)*
+                           pow(t10,_P.z()*2.0)*t12,3.0/2.0)*((_C.x()*_C.x())*t16*t18*t20+(_C.y()*_C.y())*t13*t15*t19+(p.x()*p.x())*t16*t18*t20+(p.y()*p.y())*t13*t15*t19-_C.x()*
+                           p.x()*t16*t18*t20*2.0-_C.y()*p.y()*t13*t15*t19*2.0);
     
-                      
-
 }
 

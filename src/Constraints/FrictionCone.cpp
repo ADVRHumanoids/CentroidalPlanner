@@ -2,14 +2,15 @@
 
 using namespace cpl::solver;
 
-FrictionCone::FrictionCone(const ContactVarName& contact_var_name, cpl::env::EnvironmentClass::Ptr& env):
-    ConstraintSet(2, "FrictionCone" + contact_var_name.force_name),
-    _env(env),
-    _contact_var_name(contact_var_name)
+FrictionCone::FrictionCone(std::string contact_name, CPLSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+    ConstraintSet(2, "FrictionCone" + contact_name),
+    _contact_name(contact_name),
+    _contact_vars(contact_vars),
+    _env(env)
 {
    
-  _F = GetVariables()->GetComponent(_contact_var_name.force_name)->GetValues();      
-  _n = GetVariables()->GetComponent(_contact_var_name.normal_name)->GetValues(); 
+  _F = _contact_vars.force_var->GetValues();    
+  _n = _contact_vars.normal_var->GetValues();
  
   _mu = _env->GetMu(); 
   _force_thr = 0.0; 
@@ -68,7 +69,7 @@ void FrictionCone::FillJacobianBlock (std::string var_set, ifopt::Composite::Jac
    double t6 = _F.y()*_n.y();
    double t7 = _F.z()*_n.z();
    
-   if(var_set == _contact_var_name.force_name)
+   if(var_set == "F_" + _contact_name)
    {     
        
         jac_block.coeffRef(0, 0) = -_n.x();
@@ -82,7 +83,7 @@ void FrictionCone::FillJacobianBlock (std::string var_set, ifopt::Composite::Jac
    }
    
 
-   if(var_set == _contact_var_name.normal_name)
+   if(var_set == "n_" + _contact_name)
    {     
         jac_block.coeffRef(0, 0) = -_F.x();
         jac_block.coeffRef(0, 1) = -_F.y();

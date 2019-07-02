@@ -3,6 +3,9 @@
 
 namespace cpl { namespace env {
 
+/**
+* @brief Superquadric function
+*/
 class Superquadric : public EnvironmentClass {
     
 public:    

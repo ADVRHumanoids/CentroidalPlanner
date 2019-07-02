@@ -3,21 +3,18 @@
 #include <ifopt/cost_term.h>
 #include <Eigen/Geometry> 
 #include <CentroidalPlanner/Environment/Environment.h>
+#include <CentroidalPlanner/Ifopt/CPLSolver.h>
 
 namespace cpl { namespace solver {
 
+/**
+* @brief Non linear friction cone constraint
+*/      
 class FrictionCone : public ifopt::ConstraintSet {
     
 public:
   
-    struct ContactVarName
-    {
-        std::string force_name;
-        std::string position_name;
-        std::string normal_name;            
-    };
-
-    FrictionCone(const ContactVarName& contact_var_name, cpl::env::EnvironmentClass::Ptr& env);
+    FrictionCone(std::string contact_name, CPLSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env);
 
     void SetMu(const double& mu);
 
@@ -32,7 +29,8 @@ private:
     VecBound GetBounds() const override;
     void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override;
 
-    ContactVarName _contact_var_name;
+    std::string _contact_name; 
+    CPLSolver::ContactVars _contact_vars;
     double _mu, _force_thr;
     Eigen::Vector3d _F, _n;
     

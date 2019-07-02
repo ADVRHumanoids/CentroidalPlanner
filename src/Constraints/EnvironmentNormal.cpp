@@ -2,14 +2,15 @@
 
 using namespace cpl::solver::Environment;
 
-EnvironmentNormal::EnvironmentNormal(const ContactVarName& contact_var_name, cpl::env::EnvironmentClass::Ptr& env):
-    ConstraintSet(3, "EnvironmentNormal"),
-    _contact_var_name(contact_var_name),
+EnvironmentNormal::EnvironmentNormal(std::string contact_name, CPLSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+    ConstraintSet(3, "EnvironmentNormal" + contact_name),
+    _contact_name(contact_name),
+    _contact_vars(contact_vars),
     _env(env)
 {
     
-    _p = GetVariables()->GetComponent(_contact_var_name.position_name)->GetValues();
-    _n = GetVariables()->GetComponent(_contact_var_name.normal_name)->GetValues();
+    _p = _contact_vars.position_var->GetValues();
+    _n = _contact_vars.normal_var->GetValues();
     
 }
 
@@ -50,7 +51,7 @@ void EnvironmentNormal::FillJacobianBlock (std::string var_set, ifopt::Composite
     Eigen::MatrixXd jac;
     _env->getNormalJacobian(_p, jac);   
     
-    if(var_set == _contact_var_name.normal_name)
+    if(var_set == "n_" + _contact_name)
     {
         
         jac_block.coeffRef(0, 0) = 1.0;
@@ -59,7 +60,7 @@ void EnvironmentNormal::FillJacobianBlock (std::string var_set, ifopt::Composite
         
     }
     
-    if(var_set == _contact_var_name.position_name)
+    if(var_set == "p_" + _contact_name)
     {
         
         jac_block.coeffRef(0, 0) = jac(0, 0);

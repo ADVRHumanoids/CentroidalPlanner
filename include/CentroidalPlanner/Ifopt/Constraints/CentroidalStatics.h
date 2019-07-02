@@ -2,21 +2,19 @@
 #include <ifopt/constraint_set.h>
 #include <ifopt/cost_term.h>
 #include <Eigen/Geometry> 
+#include <CentroidalPlanner/Ifopt/Variable3D.h>
+#include <CentroidalPlanner/Ifopt/CPLSolver.h>
 
 namespace cpl { namespace solver {
 
+/**
+* @brief Centroidal statics constraint
+*/    
 class CentroidalStatics : public ifopt::ConstraintSet {
     
 public:
-    
-    struct ContactVarName
-    {
-        std::string force_name;
-        std::string position_name;
-        std::string normal_name;            
-    };
 
-    CentroidalStatics(const std::map<std::string, ContactVarName>& contacts_map);
+    CentroidalStatics(std::map<std::string, CPLSolver::ContactVars> contact_vars_map);
 
     void setMass(const double& m);
     void setManipulationWrench(const Eigen::VectorXd& wrench_manip);
@@ -27,7 +25,7 @@ private:
     VecBound GetBounds() const override;
     void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override;
 
-    std::map<std::string, ContactVarName> _contacts_map;
+    std::map<std::string, CPLSolver::ContactVars> _contact_vars_map;  
 
     Eigen::Vector3d _CoM, _mg;
     Eigen::VectorXd _wrench_manip;

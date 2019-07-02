@@ -38,6 +38,17 @@ void Variable3D::SetBounds(const Eigen::Vector3d& lower, const Eigen::Vector3d& 
     
 }
 
+Eigen::VectorXd Variable3D::GetValues() const
+{
+
+    Eigen::VectorXd temp; 
+    temp.setZero(3);
+    temp << _x0, _x1, _x2;
+        
+    return temp;
+    
+}
+
 
 ifopt::Composite::VecBound Variable3D::GetBounds() const
 {

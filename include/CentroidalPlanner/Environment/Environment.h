@@ -3,6 +3,9 @@
 
 namespace cpl { namespace env {
 
+/**
+* @brief Environment class
+*/
 class EnvironmentClass {
     
 protected:

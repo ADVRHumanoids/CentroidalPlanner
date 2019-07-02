@@ -3,21 +3,18 @@
 #include <ifopt/cost_term.h>
 #include <Eigen/Geometry> 
 #include <CentroidalPlanner/Environment/Environment.h>
+#include <CentroidalPlanner/Ifopt/CPLSolver.h>
 
 namespace cpl { namespace solver { namespace Environment {
 
+/**
+* @brief Environment normal constraint
+*/    
 class EnvironmentNormal : public ifopt::ConstraintSet {
     
 public:
     
-    struct ContactVarName
-    {
-        std::string force_name;
-        std::string position_name;
-        std::string normal_name;            
-    };    
-
-    EnvironmentNormal(const ContactVarName& contact_var_name, cpl::env::EnvironmentClass::Ptr& env);
+    EnvironmentNormal(std::string contact_name, CPLSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env);
     
 private:
     
@@ -27,7 +24,8 @@ private:
     VecBound GetBounds() const override;
     void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override;
   
-    ContactVarName _contact_var_name;  
+    std::string _contact_name; 
+    CPLSolver::ContactVars _contact_vars;
     
     Eigen::Vector3d _p, _n;
     

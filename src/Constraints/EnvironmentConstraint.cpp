@@ -2,13 +2,14 @@
 
 using namespace cpl::solver::Environment;
 
-EnvironmentConstraint::EnvironmentConstraint(const ContactVarName& contact_var_name, cpl::env::EnvironmentClass::Ptr& env):
-    ConstraintSet(1, "EnvironmentConstraint"),
-    _contact_var_name(contact_var_name),
+EnvironmentConstraint::EnvironmentConstraint(std::string contact_name, CPLSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+    ConstraintSet(1, "EnvironmentConstraint" + contact_name),
+    _contact_name(contact_name),
+    _contact_vars(contact_vars),
     _env(env)
 {
     
-    _p = GetVariables()->GetComponent(_contact_var_name.position_name)->GetValues();
+    _p = _contact_vars.position_var->GetValues();
     
 }
 
@@ -43,7 +44,7 @@ void EnvironmentConstraint::FillJacobianBlock (std::string var_set, ifopt::Compo
     Eigen::Vector3d jac;
     _env->getEnvironmentJacobian(_p, jac);   
     
-    if(var_set == _contact_var_name.position_name)
+    if(var_set == "p_" + _contact_name)
     {
         
         jac_block.coeffRef(0, 0) = jac.x();

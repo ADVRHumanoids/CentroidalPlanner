@@ -56,15 +56,21 @@ SET(IFOPT_SOURCES src/Constraints/CentroidalStatics.cpp
                   src/Constraints/EnvironmentNormal.cpp
                   src/MinimizeCentroidalVariables.cpp
                   src/Variable3D.cpp
+                  src/SimpleProblem.cpp
                   )
                   
 SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
                         src/Ground.cpp
-                  )                  
+                        )   
+                  
+SET(CPL_SOURCES src/CentroidalPlanner.cpp
+                ) 
                   
 ADD_LIBRARY(Centroidal SHARED
                        ${IFOPT_SOURCES}
-                       ${ENVIRONMENT_SOURCES})
+                       ${ENVIRONMENT_SOURCES}
+                       ${CPL_SOURCES}
+                       )
                     
 TARGET_LINK_LIBRARIES(Centroidal PUBLIC
                                  ${OpenSoT_LIBRARIES}

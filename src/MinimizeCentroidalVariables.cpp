@@ -2,9 +2,9 @@
 
 using namespace cpl::solver;
 
-MinimizeCentroidalVariables::MinimizeCentroidalVariables(const std::map<std::string, ContactVarName>& contacts_map):
+MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, CPLSolver::ContactVars> contact_vars_map):
       CostTerm("minimize_variables_cost"),
-      _contacts_map(contacts_map)
+      _contact_vars_map(contact_vars_map)
 {
     
   _CoM = GetVariables()->GetComponent("CoM")->GetValues();  
@@ -39,13 +39,13 @@ double MinimizeCentroidalVariables::GetCost() const
 {    
     double value = 0;
    
-    for(auto& elem: _contacts_map)
+    for(auto& elem: _contact_vars_map)
     {
         std::string key_ = elem.first;
-        ContactVarName _struct = elem.second;
+        CPLSolver::ContactVars _struct = elem.second;
         
-        Eigen::Vector3d _Fi = GetVariables()->GetComponent(_struct.force_name)->GetValues();      
-        Eigen::Vector3d _pi = GetVariables()->GetComponent(_struct.position_name)->GetValues(); 
+        Eigen::Vector3d _Fi = _struct.force_var->GetValues();     
+        Eigen::Vector3d _pi = _struct.position_var->GetValues();
         
         value += 0.5*_W_p*(_pi).squaredNorm() + 0.5*_W_F*_Fi.squaredNorm();
     }  
@@ -61,23 +61,23 @@ void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set, Jacobi
     jac.setZero();
     
     
-    for(auto& elem: _contacts_map)
+    for(auto& elem: _contact_vars_map)
     {
         std::string key_ = elem.first;
-        ContactVarName _struct = elem.second;
+        CPLSolver::ContactVars _struct = elem.second;
         
-        if(var_set == _struct.force_name)
+        if(var_set == "F_" + key_)
         {
-            Eigen::Vector3d _Fi = GetVariables()->GetComponent(_struct.force_name)->GetValues();
+            Eigen::Vector3d _Fi = _struct.force_var->GetValues(); 
             
             jac.coeffRef(0, 0) = _W_F*_Fi.x();
             jac.coeffRef(0, 1) = _W_F*_Fi.y();
             jac.coeffRef(0, 2) = _W_F*_Fi.z();
         }
         
-        if(var_set == _struct.position_name)
+        if(var_set == "p_" + key_)
         {
-            Eigen::Vector3d _pi = GetVariables()->GetComponent(_struct.position_name)->GetValues();
+            Eigen::Vector3d _pi = _struct.position_var->GetValues(); 
             
             jac.coeffRef(0, 0) = _W_p*(_pi.x());
             jac.coeffRef(0, 1) = _W_p*(_pi.y());
