@@ -4,19 +4,26 @@
 namespace cpl { namespace env {
 
 /**
-* @brief (x,y) plane, z=0
+* @brief (x,y) plane
 */
 class Ground : public EnvironmentClass {
     
-public:    
+public:   
     
-    Ground(){};
+    typedef std::shared_ptr<Ground> Ptr;
     
-    virtual void getEnvironmentValue(const Eigen::Vector3d& p, double& environment_Value) = 0; 
-    virtual void getEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vector3d& environment_Jacobian) = 0; 
-    virtual void getNormalValue(const Eigen::Vector3d& p, Eigen::Vector3d& normal_Value) = 0; 
-    virtual void getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& normal_Jacobian) = 0;    
+    Ground();
     
+    void SetGroundZ(const double& ground_z);
+    
+    virtual void GetEnvironmentValue(const Eigen::Vector3d& p, double& environment_Value); 
+    virtual void GetEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vector3d& environment_Jacobian); 
+    virtual void GetNormalValue(const Eigen::Vector3d& p, Eigen::Vector3d& normal_Value); 
+    virtual void GetNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& normal_Jacobian);    
+    
+private:
+
+    double _ground_z; 
 };
 
 } }

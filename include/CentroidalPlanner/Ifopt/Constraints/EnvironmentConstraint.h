@@ -3,9 +3,9 @@
 #include <ifopt/cost_term.h>
 #include <Eigen/Geometry> 
 #include <CentroidalPlanner/Environment/Environment.h>
-#include <CentroidalPlanner/Ifopt/CPLSolver.h>
+#include <CentroidalPlanner/Ifopt/CplSolver.h>
 
-namespace cpl { namespace solver { namespace Environment {
+namespace cpl { namespace solver {
 
 /**
 * @brief Environment continuous function constraint
@@ -14,7 +14,7 @@ class EnvironmentConstraint : public ifopt::ConstraintSet {
     
 public:  
 
-    EnvironmentConstraint(std::string contact_name, CPLSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env);
+    EnvironmentConstraint(std::string contact_name, CplSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env);
     
 private:
     
@@ -25,10 +25,8 @@ private:
     void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override;
   
     std::string _contact_name; 
-    CPLSolver::ContactVars _contact_vars;
-    
-    Eigen::Vector3d _p;
+    CplSolver::ContactVars _contact_vars;    
     
 };
 
-} } }
+} } 

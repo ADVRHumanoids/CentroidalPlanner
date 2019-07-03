@@ -2,7 +2,16 @@
 
 using namespace cpl::env;
 
-Superquadric::Superquadric(const Eigen::Vector3d& C, const Eigen::Vector3d& R, const Eigen::Vector3d& P)
+Superquadric::Superquadric()
+{
+
+    _C <<  0.0,  0.0, 10.0;
+    _R << 10.0, 10.0, 10.0;
+    _P << 10.0, 10.0, 10.0;
+    
+}
+
+void Superquadric::SetParameters(const Eigen::Vector3d& C, const Eigen::Vector3d& R, const Eigen::Vector3d& P)
 {
 
     _C = C;
@@ -11,18 +20,19 @@ Superquadric::Superquadric(const Eigen::Vector3d& C, const Eigen::Vector3d& R, c
     
 }
 
-
-void Superquadric::getEnvironmentValue(const Eigen::Vector3d& p, double& environment_Value)
+void Superquadric::GetEnvironmentValue(const Eigen::Vector3d& p, double& environment_Value)
 {
     
     for(int i = 0; i < 3; i++)
     {            
         environment_Value += pow((p(i)-_C(i))/_R(i),_P(i));
     }
+    
+    environment_Value -= 1.0;
 
 }
 
-void Superquadric::getEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vector3d& environment_Jacobian)
+void Superquadric::GetEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vector3d& environment_Jacobian)
 {
     
     environment_Jacobian.x() = _P.x()/pow(_R.x(),_P.x()) * pow(p.x()-_C.x(),_P.x()-1);
@@ -32,17 +42,20 @@ void Superquadric::getEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vecto
 }
 
 
-void Superquadric::getNormalValue(const Eigen::Vector3d& p, Eigen::Vector3d& normal_Value)
+void Superquadric::GetNormalValue(const Eigen::Vector3d& p, Eigen::Vector3d& normal_Value)
 {
     
-    normal_Value.x() = _P.x()/pow(_R.x(),_P.x()) * pow(p.x()-_C.x(),_P.x()-1);
-    normal_Value.y() = _P.y()/pow(_R.y(),_P.y()) * pow(p.y()-_C.y(),_P.y()-1);
-    normal_Value.z() = _P.z()/pow(_R.z(),_P.z()) * pow(p.z()-_C.z(),_P.z()-1);  
+    Eigen::Vector3d _jac;
+    GetEnvironmentJacobian(p, _jac);
+    
+    normal_Value.x() = -_jac.x()/_jac.norm();
+    normal_Value.y() = -_jac.y()/_jac.norm();
+    normal_Value.z() = -_jac.z()/_jac.norm();  
 
 }
 
 
-void Superquadric::getNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& normal_Jacobian)
+void Superquadric::GetNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& normal_Jacobian)
 {
     
     normal_Jacobian.setZero(3,3);

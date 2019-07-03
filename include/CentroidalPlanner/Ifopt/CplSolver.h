@@ -11,11 +11,11 @@ namespace cpl { namespace solver {
 /**
 * @brief Solver for CentroidalPlanner problems
 */      
-class CPLSolver : public ifopt::Solver {
+class CplSolver : public ifopt::IpoptSolver {
     
 public:
     
-    typedef std::shared_ptr<CPLSolver> Ptr;
+    typedef std::shared_ptr<CplSolver> Ptr;
     
     struct ContactVars
     {
@@ -23,8 +23,7 @@ public:
         cpl::solver::Variable3D::Ptr position_var;
         cpl::solver::Variable3D::Ptr normal_var;            
     };
-
-
+    
 };
     
 } }

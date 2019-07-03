@@ -1,26 +1,30 @@
 #include <CentroidalPlanner/Ifopt/Constraints/EnvironmentNormal.h>
 
-using namespace cpl::solver::Environment;
+using namespace cpl::solver;
 
-EnvironmentNormal::EnvironmentNormal(std::string contact_name, CPLSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
-    ConstraintSet(3, "EnvironmentNormal" + contact_name),
+EnvironmentNormal::EnvironmentNormal(std::string contact_name, CplSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+    ConstraintSet(3, "Environment normal: " + contact_name),
     _contact_name(contact_name),
     _contact_vars(contact_vars),
     _env(env)
 {
-    
-    _p = _contact_vars.position_var->GetValues();
-    _n = _contact_vars.normal_var->GetValues();
     
 }
 
 Eigen::VectorXd EnvironmentNormal::GetValues() const 
 {
     
-    Eigen::Vector3d value;    
-    _env->getNormalValue(_p, value); 
+    Eigen::Vector3d value; 
+    value.setZero();
     
-    value += _n;
+    Eigen::Vector3d env_normal;
+        
+    Eigen::Vector3d p = _contact_vars.position_var->GetValues();
+    Eigen::Vector3d n = _contact_vars.normal_var->GetValues();
+    
+    _env->GetNormalValue(p, env_normal); 
+    
+    value = n - env_normal;
     
     return value;
  
@@ -48,15 +52,17 @@ void EnvironmentNormal::FillJacobianBlock (std::string var_set, ifopt::Composite
     
     jac_block.setZero();
     
+    Eigen::Vector3d p = _contact_vars.position_var->GetValues();
+    
     Eigen::MatrixXd jac;
-    _env->getNormalJacobian(_p, jac);   
+    _env->GetNormalJacobian(p, jac);   
     
     if(var_set == "n_" + _contact_name)
     {
         
         jac_block.coeffRef(0, 0) = 1.0;
-        jac_block.coeffRef(0, 1) = 1.0;
-        jac_block.coeffRef(0, 2) = 1.0;
+        jac_block.coeffRef(1, 1) = 1.0;
+        jac_block.coeffRef(2, 2) = 1.0;
         
     }
     

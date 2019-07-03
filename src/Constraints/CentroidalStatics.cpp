@@ -2,25 +2,26 @@
 
 using namespace cpl::solver;
 
-CentroidalStatics::CentroidalStatics(std::map<std::string, CPLSolver::ContactVars> contact_vars_map):
-    ConstraintSet(6, "CentroidalStatics"),
-    _contact_vars_map(contact_vars_map)
+CentroidalStatics::CentroidalStatics(std::map<std::string, CplSolver::ContactVars> contact_vars_map, Variable3D::Ptr com_var):
+    ConstraintSet(6, "Centroidal statics constraint"),
+    _contact_vars_map(contact_vars_map),
+    _com_var(com_var)
 {
-  
-     _CoM = GetVariables()->GetComponent("CoM")->GetValues();  
      
      _wrench_manip.setZero(6);
-     _mg << 0.0, 0.0, -1000;
+     
+     _m = 100.0;
+     _g << 0.0, 0.0, -9.81;
     
 }
 
 
-void CentroidalStatics::setMass(const double& m)
+void CentroidalStatics::SetMass(const double& m)
 {
-    _mg[2] = -m*9.81;
+    _m = m;
 }
 
-void CentroidalStatics::setManipulationWrench(const Eigen::VectorXd& wrench_manip)
+void CentroidalStatics::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
 {
      _wrench_manip =  wrench_manip;
 }
@@ -31,20 +32,22 @@ Eigen::VectorXd CentroidalStatics::GetValues() const
     Eigen::VectorXd value(6);
     value.setZero();
     
+    Eigen::Vector3d CoM = _com_var->GetValues();
+    
     for(auto& elem: _contact_vars_map)
     {
-        std::string key_ = elem.first;
-        CPLSolver::ContactVars _struct = elem.second;
+
+        CplSolver::ContactVars _struct = elem.second;
         
         Eigen::Vector3d _Fi = _struct.force_var->GetValues();   
         Eigen::Vector3d _pi = _struct.position_var->GetValues(); 
         
         value.head<3>() += _Fi;
-        value.tail<3>() += (_pi-_CoM).cross(_Fi);
+        value.tail<3>() += (_pi-CoM).cross(_Fi);
     }  
     
     value -= _wrench_manip;
-    value.head<3>() += _mg;
+    value.head<3>() += _m*_g;
   
     return value;
     
@@ -67,32 +70,32 @@ void CentroidalStatics::FillJacobianBlock (std::string var_set, ifopt::Composite
     
     jac_block.setZero();
     
+    Eigen::Vector3d CoM = _com_var->GetValues();
+      
     for(auto& elem: _contact_vars_map)
     {
-        std::string key_ = elem.first;
-        CPLSolver::ContactVars _struct = elem.second;
+
+        CplSolver::ContactVars _struct = elem.second;
+        Eigen::Vector3d _pi = _struct.position_var->GetValues();
+        Eigen::Vector3d _Fi = _struct.force_var->GetValues();
         
-        if(var_set == "F_" + key_)
+        if(var_set == "F_" + elem.first)
         {
             
             jac_block.coeffRef(0, 0) = 1.0;
             jac_block.coeffRef(1, 1) = 1.0;
-            jac_block.coeffRef(2, 2) = 1.0;
+            jac_block.coeffRef(2, 2) = 1.0;       
+            jac_block.coeffRef(3, 1) = -(_pi.z() - CoM.z());
+            jac_block.coeffRef(3, 2) =   _pi.y() - CoM.y();
+            jac_block.coeffRef(4, 0) =   _pi.z() - CoM.z();
+            jac_block.coeffRef(4, 2) = -(_pi.x() - CoM.x());
+            jac_block.coeffRef(5, 0) = -(_pi.y() - CoM.y());
+            jac_block.coeffRef(5, 1) =   _pi.x() - CoM.x();
             
-            Eigen::Vector3d _pi = _struct.position_var->GetValues();
-            
-            jac_block.coeffRef(3, 1) = -(_pi.z()-_CoM.z());
-            jac_block.coeffRef(3, 2) =   _pi.y()-_CoM.y();
-            jac_block.coeffRef(4, 0) =   _pi.z()-_CoM.z();
-            jac_block.coeffRef(4, 2) = -(_pi.x()-_CoM.x());
-            jac_block.coeffRef(5, 0) = -(_pi.y()-_CoM.y());
-            jac_block.coeffRef(5, 1) =   _pi.x()-_CoM.x();
         }
         
-        if(var_set == "p_" + key_)
+        if(var_set == "p_" + elem.first)
         {
-            
-            Eigen::Vector3d _Fi = _struct.force_var->GetValues(); 
             
             jac_block.coeffRef(3, 1) =  _Fi.z();
             jac_block.coeffRef(3, 2) = -_Fi.y();
@@ -100,6 +103,7 @@ void CentroidalStatics::FillJacobianBlock (std::string var_set, ifopt::Composite
             jac_block.coeffRef(4, 2) =  _Fi.x();
             jac_block.coeffRef(5, 0) =  _Fi.y();
             jac_block.coeffRef(5, 1) = -_Fi.x();
+            
         }   
     }  
     
@@ -108,9 +112,8 @@ void CentroidalStatics::FillJacobianBlock (std::string var_set, ifopt::Composite
     { 
         for(auto& elem: _contact_vars_map)
         {
-            
-            std::string key_ = elem.first;
-            CPLSolver::ContactVars _struct = elem.second;
+           
+            CplSolver::ContactVars _struct = elem.second;
                 
             Eigen::Vector3d _Fi = _struct.force_var->GetValues(); 
     

@@ -1,6 +1,8 @@
-#include <CentroidalPlanner/Environment/Environment.h>
-#include <CentroidalPlanner/Ifopt/CPLSolver.h>
-#include <CentroidalPlanner/Ifopt/SimpleProblem.h>
+#include <CentroidalPlanner/Ifopt/CplSolver.h>
+#include <CentroidalPlanner/Ifopt/CplProblem.h>
+#include <CentroidalPlanner/Environment/Superquadric.h>
+#include <CentroidalPlanner/Environment/Ground.h>
+#include <iostream>
 
 namespace cpl { 
  
@@ -12,6 +14,8 @@ class CentroidalPlanner
 {
     
 public:
+    
+    typedef std::shared_ptr<CentroidalPlanner> Ptr;
        
     struct WorkspaceBounds
     {       
@@ -20,17 +24,16 @@ public:
     };
     
     CentroidalPlanner(std::vector<std::string> contact_names,
-                      double robot_mass);
+                      double robot_mass,
+                      cpl::env::EnvironmentClass::Ptr env);
     
-    void setContactPosition(std::string, Eigen::Vector3d);
+    void SetContactPosition(std::string, Eigen::Vector3d);
     
 private:
-    
-    ifopt::Solver::Ptr _lcm_problem;
-    ifopt::Solver::Ptr _ctr_problem;
-    
-    cpl::solver::SimpleProblem::Ptr _simple_problem;
-    
+      
+    cpl::solver::CplProblem::Ptr _cpl_problem;
+    cpl::solver::CplSolver _cpl_solver;
+    cpl::env::EnvironmentClass::Ptr _env;   
     std::vector<std::string> _contact_names;
     double _robot_mass;   
     

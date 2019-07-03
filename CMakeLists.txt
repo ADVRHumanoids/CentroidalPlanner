@@ -49,14 +49,13 @@ catkin_package(
    INCLUDE_DIRS include 
 )
 
-
 SET(IFOPT_SOURCES src/Constraints/CentroidalStatics.cpp
                   src/Constraints/FrictionCone.cpp
                   src/Constraints/EnvironmentConstraint.cpp
                   src/Constraints/EnvironmentNormal.cpp
                   src/MinimizeCentroidalVariables.cpp
                   src/Variable3D.cpp
-                  src/SimpleProblem.cpp
+                  src/CplProblem.cpp
                   )
                   
 SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
@@ -80,3 +79,8 @@ TARGET_LINK_LIBRARIES(Centroidal PUBLIC
                                  ${cartesian_interface_LIBRARIES}  
                                  ifopt::ifopt_ipopt)
 
+
+option(BUILD_TESTS FALSE)
+if(${BUILD_TESTS})
+    add_subdirectory(tests/)
+endif()
