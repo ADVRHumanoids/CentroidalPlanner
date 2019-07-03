@@ -1,4 +1,5 @@
 #include <CentroidalPlanner/Ifopt/CplProblem.h>
+#include <iostream>
 
 using namespace cpl::solver;
 
@@ -57,3 +58,56 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
     AddCostSet(_cost);
       
 }
+
+
+void CplProblem::GetSolution(Solution& sol)
+{
+    
+    sol.com_sol = _com_var->GetValues();
+    
+    for(auto& elem: _contact_vars_map)
+    {
+        
+        CplSolver::ContactVars _tmp = elem.second;
+        _tmp.force_var->GetValues();
+        
+        ContactVarsSol _struct;
+  
+        _struct.force_sol = _tmp.force_var->GetValues();
+        _struct.position_sol = _tmp.position_var->GetValues();
+        _struct.normal_sol = _tmp.normal_var->GetValues();
+
+        sol.contact_vars_sol_map[elem.first] = _struct;
+
+    }
+
+}
+
+namespace cpl { namespace solver {
+    
+    std::ostream& operator<<(std::ostream& os, const CplProblem::Solution& sol)
+    {
+        os << "CoM: "<< sol.com_sol.transpose() << "\n";
+    
+        for(auto& elem: sol.contact_vars_sol_map)
+        {      
+            auto _struct = elem.second; 
+            os << "F_" + elem.first + ": " << _struct.force_sol.transpose() << "\n";       
+        }
+        
+        for(auto& elem: sol.contact_vars_sol_map)
+        {       
+            auto _struct = elem.second;    
+            os << "p_" + elem.first + ": " << _struct.position_sol.transpose() << "\n";
+        }
+        
+        for(auto& elem: sol.contact_vars_sol_map)
+        {        
+            auto _struct = elem.second;     
+            os << "n_" + elem.first + ": " << _struct.normal_sol.transpose() << "\n";        
+        }
+        
+        return os;
+    }
+
+}  }

@@ -74,18 +74,18 @@ void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set, Jacobi
         {
             Eigen::Vector3d _Fi = _struct.force_var->GetValues(); 
             
-            jac.coeffRef(0, 0) = _W_F*_Fi.x();
-            jac.coeffRef(0, 1) = _W_F*_Fi.y();
-            jac.coeffRef(0, 2) = _W_F*_Fi.z();
+            jac.coeffRef(0, 0) = _W_F * _Fi.x();
+            jac.coeffRef(0, 1) = _W_F * _Fi.y();
+            jac.coeffRef(0, 2) = _W_F * _Fi.z();
         }
         
         if(var_set == "p_" + key_)
         {
             Eigen::Vector3d _pi = _struct.position_var->GetValues(); 
             
-            jac.coeffRef(0, 0) = _W_p*(_pi.x());
-            jac.coeffRef(0, 1) = _W_p*(_pi.y());
-            jac.coeffRef(0, 2) = _W_p*(_pi.z());
+            jac.coeffRef(0, 0) = _W_p * (_pi.x());
+            jac.coeffRef(0, 1) = _W_p * (_pi.y());
+            jac.coeffRef(0, 2) = _W_p * (_pi.z());
             
         }
     }  
@@ -93,9 +93,9 @@ void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set, Jacobi
         
     if(var_set == "CoM")
     { 
-        jac.coeffRef(0, 0) = _W_CoM*(CoM.x() - _CoM_ref.x());
-        jac.coeffRef(0, 1) = _W_CoM*(CoM.y() - _CoM_ref.y());
-        jac.coeffRef(0, 2) = _W_CoM*(CoM.z() - _CoM_ref.z());
+        jac.coeffRef(0, 0) = _W_CoM * (CoM.x() - _CoM_ref.x());
+        jac.coeffRef(0, 1) = _W_CoM * (CoM.y() - _CoM_ref.y());
+        jac.coeffRef(0, 2) = _W_CoM * (CoM.z() - _CoM_ref.z());
     }       
    
 }
