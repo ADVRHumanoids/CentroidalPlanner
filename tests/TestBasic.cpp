@@ -49,7 +49,7 @@ TEST_F(TestBasic, testSimpleProblem)
     {       
         Fz_tot += elem.second.force_value.z();  
         
-        EXPECT_NEAR(elem.second.position_value.z(), ground_z, 1e-12);
+        EXPECT_NEAR(elem.second.position_value.z(), ground_z, 1e-8);
         EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-12);
         EXPECT_NEAR(elem.second.normal_value.z(), 1.0, 1e-12);
         
@@ -75,10 +75,12 @@ TEST_F(TestBasic, testGroundEnv)
     double ground_z = 0.1;
     auto ground_env = std::make_shared<cpl::env::Ground>();
     ground_env->SetGroundZ(ground_z);
-    ground_env->SetMu(0.5);
+    double mu = 0.5;
+    ground_env->SetMu(mu);
     
     auto cpl = std::make_shared<cpl::CentroidalPlanner>(contact_name, robot_mass, ground_env);
     cpl->SetCoMWeight(2.0);
+    cpl->SetForceWeight(0.0);
     
     Eigen::Vector3d p_lb, p_ub;
     p_lb  << -0.3, -0.3, 0.0;
@@ -112,6 +114,13 @@ TEST_F(TestBasic, testGroundEnv)
         EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-12);
         EXPECT_NEAR(elem.second.normal_value.z(), 1.0, 1e-12);
         
+        Eigen::Vector3d F_tmp, n_tmp;
+        F_tmp = elem.second.force_value;
+        n_tmp = elem.second.normal_value;
+        
+        EXPECT_TRUE((-F_tmp.dot(n_tmp)) <= 0.0);
+        EXPECT_TRUE(((F_tmp-(n_tmp.dot(F_tmp))*n_tmp).norm() - mu*(F_tmp.dot(n_tmp))) <= 0.0); 
+        
     }
     
     EXPECT_NEAR(F_sum.x(), manip_wrench[0], 1e-12);
@@ -138,7 +147,8 @@ TEST_F(TestBasic, testSuperquadricEnv)
     contact_name.push_back("contact4");
     
     auto superquadric_env = std::make_shared<cpl::env::Superquadric>();
-    superquadric_env->SetMu(0.5);
+    double mu = 0.5;
+    superquadric_env->SetMu(mu);
     Eigen::Vector3d C, R, P;
     C << 0.0, 0.0, 1.0;
     R << 0.3, 0.3, 10.0;
@@ -146,8 +156,6 @@ TEST_F(TestBasic, testSuperquadricEnv)
     superquadric_env->SetParameters(C,R,P);
     
     auto cpl = std::make_shared<cpl::CentroidalPlanner>(contact_name, robot_mass, superquadric_env);
-    cpl->SetCoMWeight(1.0);
-    cpl->SetPosWeight(1.0);
     cpl->SetForceWeight(0.0);
     
     Eigen::Vector3d p_lb, p_ub;
@@ -173,12 +181,33 @@ TEST_F(TestBasic, testSuperquadricEnv)
     F_sum.setZero();
     Torque_sum.setZero();
     
+    double superquadric = 0.0;
+    
     for (auto& elem: sol.contact_values_map)
     {       
         F_sum += elem.second.force_value;         
         Torque_sum += (elem.second.position_value - sol.com_sol).cross(elem.second.force_value);
         
-        EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-12);
+        superquadric = pow((elem.second.position_value.x()-C.x())/R.x(),P.x())+ 
+                       pow((elem.second.position_value.y()-C.y())/R.y(),P.y())+ 
+                       pow((elem.second.position_value.z()-C.z())/R.z(),P.z());
+                       
+        EXPECT_NEAR(superquadric, 1.0, 1e-4);               
+        EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-12);               
+        
+        Eigen::Vector3d F_tmp, n_tmp;
+        F_tmp = elem.second.force_value;
+        n_tmp = elem.second.normal_value;
+        
+        EXPECT_TRUE((-F_tmp.dot(n_tmp)) <= 0.0);
+        EXPECT_TRUE(((F_tmp-(n_tmp.dot(F_tmp))*n_tmp).norm() - mu*(F_tmp.dot(n_tmp))) <= 0.0); 
+                
+        EXPECT_TRUE((elem.second.position_value.x() - p_lb.x()) >= 0.0);
+        EXPECT_TRUE((elem.second.position_value.x() - p_ub.x()) <= 0.0); 
+        EXPECT_TRUE((elem.second.position_value.y() - p_lb.y()) >= 0.0);
+        EXPECT_TRUE((elem.second.position_value.y() - p_ub.y()) <= 0.0); 
+        EXPECT_TRUE((elem.second.position_value.z() - p_lb.z()) >= 0.0);
+        EXPECT_TRUE((elem.second.position_value.z() - p_ub.z()) <= 0.0); 
         
     }
     
