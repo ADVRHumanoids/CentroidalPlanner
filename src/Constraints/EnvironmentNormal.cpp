@@ -2,7 +2,7 @@
 
 using namespace cpl::solver;
 
-EnvironmentNormal::EnvironmentNormal(std::string contact_name, CplSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+EnvironmentNormal::EnvironmentNormal(std::string contact_name, ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
     ConstraintSet(3, "Environment normal: " + contact_name),
     _contact_name(contact_name),
     _contact_vars(contact_vars),

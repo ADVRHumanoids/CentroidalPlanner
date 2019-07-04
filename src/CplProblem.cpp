@@ -17,7 +17,7 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
     for(auto& elem: _contact_names)
     {
         
-         CplSolver::ContactVars _struct;
+         ContactVars _struct;
         
         _struct.force_var = std::make_shared<Variable3D> ("F_" + elem);
         _struct.position_var = std::make_shared<Variable3D> ("p_" + elem);
@@ -51,9 +51,6 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
     
     /* Cost */
     _cost = std::make_shared<MinimizeCentroidalVariables>(_contact_vars_map, _com_var);
-    Eigen::Vector3d com_ref;
-    com_ref << 0.0, 0.0 , 1.0;
-    _cost->SetCoMRef(com_ref);
     
     AddCostSet(_cost);
       
@@ -68,43 +65,100 @@ void CplProblem::GetSolution(Solution& sol)
     for(auto& elem: _contact_vars_map)
     {
         
-        CplSolver::ContactVars _tmp = elem.second;
+        ContactVars _tmp = elem.second;
         _tmp.force_var->GetValues();
         
-        ContactVarsSol _struct;
+        ContactValues _struct;
   
-        _struct.force_sol = _tmp.force_var->GetValues();
-        _struct.position_sol = _tmp.position_var->GetValues();
-        _struct.normal_sol = _tmp.normal_var->GetValues();
+        _struct.force_value = _tmp.force_var->GetValues();
+        _struct.position_value = _tmp.position_var->GetValues();
+        _struct.normal_value = _tmp.normal_var->GetValues();
 
-        sol.contact_vars_sol_map[elem.first] = _struct;
+        sol.contact_values_map[elem.first] = _struct;
 
     }
 
 }
 
+
+void CplProblem::SetPosBounds(std::string contact_name, const Eigen::Vector3d& pos_lb, const Eigen::Vector3d& pos_ub)
+{
+    
+    _contact_vars_map.at(contact_name).position_var->SetBounds(pos_lb, pos_ub);
+
+}
+
+
+void CplProblem::SetPosRef(std::string contact_name, const Eigen::Vector3d& pos_ref)
+{
+
+    _cost->SetPosRef(contact_name, pos_ref);
+    
+}
+
+
+void CplProblem::SetCoMRef(const Eigen::Vector3d& com_ref)
+{
+    
+    _cost->SetCoMRef(com_ref);
+
+}
+
+
+void CplProblem::SetCoMWeight(double W_CoM)
+{
+    
+    _cost->SetCoMWeight(W_CoM);
+
+}
+
+void CplProblem::SetPosWeight(double W_p)
+{
+    
+    _cost->SetPosWeight(W_p);
+
+}
+
+
+void CplProblem::SetForceWeight(double W_F)
+{
+    
+    _cost->SetForceWeight(W_F);
+
+}
+
+
+void CplProblem::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
+{
+
+    _centroidal_statics->SetManipulationWrench(wrench_manip);
+    
+}
+
+
+
 namespace cpl { namespace solver {
     
-    std::ostream& operator<<(std::ostream& os, const CplProblem::Solution& sol)
+    std::ostream& operator<<(std::ostream& os, const Solution& sol)
     {
         os << "CoM: "<< sol.com_sol.transpose() << "\n";
     
-        for(auto& elem: sol.contact_vars_sol_map)
+        for(auto& elem: sol.contact_values_map)
         {      
             auto _struct = elem.second; 
-            os << "F_" + elem.first + ": " << _struct.force_sol.transpose() << "\n";       
+            os << "F_" + elem.first + ": " << _struct.force_value.transpose() << "\n";       
         }
         
-        for(auto& elem: sol.contact_vars_sol_map)
+        for(auto& elem: sol.contact_values_map)
         {       
             auto _struct = elem.second;    
-            os << "p_" + elem.first + ": " << _struct.position_sol.transpose() << "\n";
+            os << "p_" + elem.first + ": " << _struct.position_value.transpose() << "\n";
         }
         
-        for(auto& elem: sol.contact_vars_sol_map)
+        for(auto& elem: sol.contact_values_map)
         {        
             auto _struct = elem.second;     
-            os << "n_" + elem.first + ": " << _struct.normal_sol.transpose() << "\n";        
+            os << "n_" + elem.first + ": " << _struct.normal_value.transpose() << "\n";        
         }
         
         return os;

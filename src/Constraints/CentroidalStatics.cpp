@@ -2,7 +2,7 @@
 
 using namespace cpl::solver;
 
-CentroidalStatics::CentroidalStatics(std::map<std::string, CplSolver::ContactVars> contact_vars_map, Variable3D::Ptr com_var):
+CentroidalStatics::CentroidalStatics(std::map<std::string, ContactVars> contact_vars_map, Variable3D::Ptr com_var):
     ConstraintSet(6, "Centroidal statics constraint"),
     _contact_vars_map(contact_vars_map),
     _com_var(com_var)
@@ -37,7 +37,7 @@ Eigen::VectorXd CentroidalStatics::GetValues() const
     for(auto& elem: _contact_vars_map)
     {
 
-        CplSolver::ContactVars _struct = elem.second;
+        ContactVars _struct = elem.second;
         
         Eigen::Vector3d _Fi = _struct.force_var->GetValues();   
         Eigen::Vector3d _pi = _struct.position_var->GetValues(); 
@@ -75,7 +75,7 @@ void CentroidalStatics::FillJacobianBlock (std::string var_set, ifopt::Composite
     for(auto& elem: _contact_vars_map)
     {
 
-        CplSolver::ContactVars _struct = elem.second;
+        ContactVars _struct = elem.second;
         Eigen::Vector3d _pi = _struct.position_var->GetValues();
         Eigen::Vector3d _Fi = _struct.force_var->GetValues();
         
@@ -113,7 +113,7 @@ void CentroidalStatics::FillJacobianBlock (std::string var_set, ifopt::Composite
         for(auto& elem: _contact_vars_map)
         {
            
-            CplSolver::ContactVars _struct = elem.second;
+            ContactVars _struct = elem.second;
                 
             Eigen::Vector3d _Fi = _struct.force_var->GetValues(); 
     

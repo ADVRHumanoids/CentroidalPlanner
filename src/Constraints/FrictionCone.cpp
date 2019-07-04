@@ -3,7 +3,7 @@
 
 using namespace cpl::solver;
 
-FrictionCone::FrictionCone(std::string contact_name, CplSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+FrictionCone::FrictionCone(std::string contact_name, ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
     ConstraintSet(2, "Friction cone: " + contact_name),
     _contact_name(contact_name),
     _contact_vars(contact_vars),

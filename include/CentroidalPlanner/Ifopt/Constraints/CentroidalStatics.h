@@ -2,8 +2,7 @@
 #include <ifopt/constraint_set.h>
 #include <ifopt/cost_term.h>
 #include <Eigen/Geometry> 
-#include <CentroidalPlanner/Ifopt/Variable3D.h>
-#include <CentroidalPlanner/Ifopt/CplSolver.h>
+#include <CentroidalPlanner/Ifopt/Types.h>
 
 namespace cpl { namespace solver {
 
@@ -16,7 +15,7 @@ public:
     
     typedef std::shared_ptr<CentroidalStatics> Ptr;
 
-    CentroidalStatics(std::map<std::string, CplSolver::ContactVars> contact_vars_map,
+    CentroidalStatics(std::map<std::string, ContactVars> contact_vars_map,
                       Variable3D::Ptr com_var);
 
     void SetMass(const double& m);
@@ -28,7 +27,7 @@ private:
     VecBound GetBounds() const override;
     void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override;
 
-    std::map<std::string, CplSolver::ContactVars> _contact_vars_map;  
+    std::map<std::string, ContactVars> _contact_vars_map;  
 
     double _m;
     Eigen::Vector3d _g;

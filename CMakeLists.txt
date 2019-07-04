@@ -65,13 +65,13 @@ SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
 SET(CPL_SOURCES src/CentroidalPlanner.cpp
                 ) 
                   
-ADD_LIBRARY(Centroidal SHARED
+ADD_LIBRARY(Cpl SHARED
                        ${IFOPT_SOURCES}
                        ${ENVIRONMENT_SOURCES}
                        ${CPL_SOURCES}
                        )
                     
-TARGET_LINK_LIBRARIES(Centroidal PUBLIC
+TARGET_LINK_LIBRARIES(Cpl PUBLIC
                                  ${OpenSoT_LIBRARIES}
                                  ${XBotInterface_LIBRARIES}
                                  ${catkin_LIBRARIES}
@@ -79,8 +79,12 @@ TARGET_LINK_LIBRARIES(Centroidal PUBLIC
                                  ${cartesian_interface_LIBRARIES}  
                                  ifopt::ifopt_ipopt)
 
+INSTALL(TARGETS Cpl 
+        DESTINATION lib)
 
 option(BUILD_TESTS FALSE)
 if(${BUILD_TESTS})
     add_subdirectory(tests/)
 endif()
+
+add_subdirectory(bindings/python/)

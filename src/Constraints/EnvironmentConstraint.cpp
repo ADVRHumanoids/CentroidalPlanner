@@ -2,7 +2,7 @@
 
 using namespace cpl::solver;
 
-EnvironmentConstraint::EnvironmentConstraint(std::string contact_name, CplSolver::ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+EnvironmentConstraint::EnvironmentConstraint(std::string contact_name, ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
     ConstraintSet(1, "Environment constraint: " + contact_name),
     _contact_name(contact_name),
     _contact_vars(contact_vars),

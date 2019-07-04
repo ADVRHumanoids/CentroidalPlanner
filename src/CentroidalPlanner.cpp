@@ -12,9 +12,9 @@ CentroidalPlanner::CentroidalPlanner(std::vector< std::string > contact_names, d
     
 }
 
-cpl::solver::CplProblem::Solution CentroidalPlanner::Solve()
+solver::Solution CentroidalPlanner::Solve()
 {
-    cpl::solver::CplProblem::Solution sol;
+    solver::Solution sol;
     
     _cpl_solver.SetOption("derivative_test", "first-order");
     _cpl_solver.Solve(*_cpl_problem); 
@@ -23,6 +23,61 @@ cpl::solver::CplProblem::Solution CentroidalPlanner::Solve()
     
     return sol;
      
+}
+
+
+void CentroidalPlanner::SetPosBounds(std::string contact_name, const Eigen::Vector3d& pos_lb, const Eigen::Vector3d& pos_ub)
+{
+    
+    _cpl_problem->SetPosBounds(contact_name, pos_lb, pos_ub);
 
 }
 
+
+
+void CentroidalPlanner::SetPosRef(std::string contact_name, const Eigen::Vector3d& pos_ref)
+{
+    
+    _cpl_problem->SetPosRef(contact_name, pos_ref);
+
+}
+
+
+void CentroidalPlanner::SetCoMRef(const Eigen::Vector3d& com_ref)
+{
+    
+    _cpl_problem->SetCoMRef(com_ref);
+
+}
+
+
+void CentroidalPlanner::SetCoMWeight(double W_CoM)
+{
+
+    _cpl_problem->SetCoMWeight(W_CoM);
+    
+}
+
+
+void CentroidalPlanner::SetPosWeight(double W_p)
+{
+    
+    _cpl_problem->SetPosWeight(W_p);
+
+}
+
+
+void CentroidalPlanner::SetForceWeight(double W_F)
+{
+    
+    _cpl_problem->SetForceWeight(W_F);
+
+}
+
+
+void CentroidalPlanner::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
+{
+    
+   _cpl_problem->SetManipulationWrench(wrench_manip); 
+
+}

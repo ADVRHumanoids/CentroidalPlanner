@@ -6,7 +6,7 @@
 #include <CentroidalPlanner/Ifopt/Constraints/EnvironmentNormal.h>
 #include <CentroidalPlanner/Ifopt/Constraints/FrictionCone.h>
 #include <CentroidalPlanner/Ifopt/MinimizeCentroidalVariables.h>
-#include <CentroidalPlanner/Ifopt/CplSolver.h>
+#include <CentroidalPlanner/Ifopt/Types.h>
 #include <CentroidalPlanner/Environment/Environment.h>
 
 namespace cpl { namespace solver {
@@ -20,33 +20,29 @@ public:
     
     typedef std::shared_ptr<CplProblem> Ptr;
       
-    struct ContactVarsSol
-    {
-        Eigen::Vector3d force_sol;
-        Eigen::Vector3d position_sol;
-        Eigen::Vector3d normal_sol;            
-    };    
-    
-    struct Solution
-    {
-       std::map<std::string, ContactVarsSol> contact_vars_sol_map;
-       Eigen::Vector3d com_sol;
-       
-       friend std::ostream& operator<<(std::ostream& os, const Solution& sol);
-    };
-       
     CplProblem(std::vector<std::string> contact_names,
                   double robot_mass,
-                  cpl::env::EnvironmentClass::Ptr env);
+                  env::EnvironmentClass::Ptr env);
     
     void GetSolution(Solution& sol);
     
+    void SetManipulationWrench(const Eigen::VectorXd& wrench_manip);
+    
+    void SetPosBounds(std::string contact_name, const Eigen::Vector3d& pos_lb, const Eigen::Vector3d& pos_ub);
+    
+    void SetPosRef(std::string contact_name, const Eigen::Vector3d& pos_ref);
+    void SetCoMRef(const Eigen::Vector3d& com_ref);
+    
+    void SetCoMWeight(double W_CoM);
+    void SetPosWeight(double W_p);
+    void SetForceWeight(double W_F);
+    
 private:
     
-    std::map<std::string, CplSolver::ContactVars> _contact_vars_map;  
+    std::map<std::string, ContactVars> _contact_vars_map;  
     std::vector<std::string> _contact_names;
     double _robot_mass;
-    cpl::env::EnvironmentClass::Ptr _env;  
+    env::EnvironmentClass::Ptr _env;  
     Variable3D::Ptr _com_var;
     CentroidalStatics::Ptr _centroidal_statics;
     EnvironmentConstraint::Ptr _env_const;
