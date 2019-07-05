@@ -50,13 +50,13 @@ TEST_F(TestBasic, testSimpleProblem)
     {       
         Fz_tot += elem.second.force_value.z();  
         
-        EXPECT_NEAR(elem.second.position_value.z(), ground_z, 1e-8);
-        EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-12);
-        EXPECT_NEAR(elem.second.normal_value.z(), 1.0, 1e-12);
+        EXPECT_NEAR(elem.second.position_value.z(), ground_z, 1e-6);
+        EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-6);
+        EXPECT_NEAR(elem.second.normal_value.z(), 1.0, 1e-6);
         
     }
 
-    EXPECT_NEAR(Fz_tot, -robot_mass*g, 1e-12);
+    EXPECT_NEAR(Fz_tot, -robot_mass*g, 1e-6);
     
 };
 
@@ -111,9 +111,9 @@ TEST_F(TestBasic, testGroundEnv)
         F_sum += elem.second.force_value;   
         Torque_sum += (elem.second.position_value - sol.com_sol).cross(elem.second.force_value);
         
-        EXPECT_NEAR(elem.second.position_value.z(), ground_z, 1e-12);
-        EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-12);
-        EXPECT_NEAR(elem.second.normal_value.z(), 1.0, 1e-12);
+        EXPECT_NEAR(elem.second.position_value.z(), ground_z, 1e-6);
+        EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-6);
+        EXPECT_NEAR(elem.second.normal_value.z(), 1.0, 1e-6);
         
         Eigen::Vector3d F_tmp, n_tmp;
         F_tmp = elem.second.force_value;
@@ -124,9 +124,9 @@ TEST_F(TestBasic, testGroundEnv)
         
     }
     
-    EXPECT_NEAR(F_sum.x(), manip_wrench[0], 1e-12);
-    EXPECT_NEAR(F_sum.y(), manip_wrench[1], 1e-12);
-    EXPECT_NEAR(F_sum.z(), -robot_mass*g + manip_wrench[2], 1e-12);
+    EXPECT_NEAR(F_sum.x(), manip_wrench[0], 1e-6);
+    EXPECT_NEAR(F_sum.y(), manip_wrench[1], 1e-6);
+    EXPECT_NEAR(F_sum.z(), -robot_mass*g + manip_wrench[2], 1e-6);
     EXPECT_NEAR(Torque_sum.x(), manip_wrench[3], 1e-5);
     EXPECT_NEAR(Torque_sum.y(), manip_wrench[4], 1e-5);
     EXPECT_NEAR(Torque_sum.z(), manip_wrench[5], 1e-5);
@@ -194,7 +194,7 @@ TEST_F(TestBasic, testSuperquadricEnv)
                        pow((elem.second.position_value.z()-C.z())/R.z(),P.z());
                        
         EXPECT_NEAR(superquadric, 1.0, 1e-4);               
-        EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-12);               
+        EXPECT_NEAR(elem.second.normal_value.norm(), 1.0, 1e-6);               
         
         Eigen::Vector3d F_tmp, n_tmp;
         F_tmp = elem.second.force_value;
@@ -212,9 +212,9 @@ TEST_F(TestBasic, testSuperquadricEnv)
         
     }
     
-    EXPECT_NEAR(F_sum.x(), manip_wrench[0], 1e-12);
-    EXPECT_NEAR(F_sum.y(), manip_wrench[1], 1e-12);
-    EXPECT_NEAR(F_sum.z(), -robot_mass*g + manip_wrench[2], 1e-12);
+    EXPECT_NEAR(F_sum.x(), manip_wrench[0], 1e-6);
+    EXPECT_NEAR(F_sum.y(), manip_wrench[1], 1e-6);
+    EXPECT_NEAR(F_sum.z(), -robot_mass*g + manip_wrench[2], 1e-6);
     EXPECT_NEAR(Torque_sum.x(), manip_wrench[3], 1e-4);
     EXPECT_NEAR(Torque_sum.y(), manip_wrench[4], 1e-4);
     EXPECT_NEAR(Torque_sum.z(), manip_wrench[5], 1e-4);
@@ -231,14 +231,25 @@ TEST_F(TestBasic, testCoMPlanner)
     std::vector<std::string> contact_name;
     contact_name.push_back("contact1");
     contact_name.push_back("contact2");
+    contact_name.push_back("contact3");
+    contact_name.push_back("contact4");
     
     auto cpl = std::make_shared<cpl::CoMPlanner>(contact_name, robot_mass);
     
     double mu = 0.5;
     cpl->SetMu(mu);
     
-    cpl->SetPosition("contact1",Eigen::Vector3d::Zero());
-    cpl->SetPosition("contact2",Eigen::Vector3d::Zero());
+    cpl->SetPosition("contact1", Eigen::Vector3d(1.0, 1.0, 0.0));
+    cpl->SetPosition("contact2", Eigen::Vector3d(-1.0, 1.0, 0.0));
+    cpl->SetPosition("contact3", Eigen::Vector3d(-1.0, -1.0, 0.0));
+    cpl->SetPosition("contact4", Eigen::Vector3d(1.0, -1.0, 0.0));
+    
+    for(auto c : contact_name)
+    {
+        cpl->SetForceThreshold(c, 20.0);
+    }
+    
+    cpl->SetLiftingContact("contact4");
      
     auto sol = cpl->Solve();
     
@@ -253,18 +264,21 @@ TEST_F(TestBasic, testCoMPlanner)
         F_sum += elem.second.force_value;         
         Torque_sum += (elem.second.position_value - sol.com_sol).cross(elem.second.force_value);             
         
-        Eigen::Vector3d F_tmp, n_tmp;
-        F_tmp = elem.second.force_value;
-        n_tmp = elem.second.normal_value;
+        Eigen::Vector3d F, n;
+        F = elem.second.force_value;
+        n = elem.second.normal_value;
         
-        EXPECT_TRUE((-F_tmp.dot(n_tmp)) <= 0.0);
-        EXPECT_TRUE(((F_tmp-(n_tmp.dot(F_tmp))*n_tmp).norm() - mu*(F_tmp.dot(n_tmp))) <= 0.0);                
+        std::cout << "F = " << F.transpose() << "\n";
+        std::cout << "n = " << n.transpose() << "\n";
+        
+        EXPECT_TRUE((-F.dot(n)) <= 0.0);
+        EXPECT_LE((F-(n.dot(F))*n).norm() - mu*(F.dot(n)), 0.0);
         
     }
     
-    EXPECT_NEAR(F_sum.x(), 0.0, 1e-12);
-    EXPECT_NEAR(F_sum.y(), 0.0, 1e-12);
-    EXPECT_NEAR(F_sum.z(), -robot_mass*g, 1e-12);
+    EXPECT_NEAR(F_sum.x(), 0.0, 1e-6);
+    EXPECT_NEAR(F_sum.y(), 0.0, 1e-6);
+    EXPECT_NEAR(F_sum.z(), -robot_mass*g, 1e-6);
     EXPECT_NEAR(Torque_sum.x(), 0.0, 1e-4);
     EXPECT_NEAR(Torque_sum.y(), 0.0, 1e-4);
     EXPECT_NEAR(Torque_sum.z(), 0.0, 1e-4);
