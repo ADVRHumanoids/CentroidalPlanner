@@ -4,6 +4,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
 #include <CentroidalPlanner/CentroidalPlanner.h>
+#include <CentroidalPlanner/CoMPlanner.h>
 
 namespace py = pybind11;
 using namespace cpl;
@@ -40,18 +41,17 @@ PYBIND11_MODULE(pycpl, m) {
                   double,
                   env::EnvironmentClass::Ptr>())
     .def("Solve", &CentroidalPlanner::Solve);
-//     .def(py::init<Eigen::Affine3d>())
-//     .def("copy", get_copy)
-//     .def("__repr__", repr)
-//     .def("setIdentity", &Eigen::Affine3d::setIdentity)
-//     .def("inverse", get_inverse)
-//     .def("matrix", get_matrix)
-//     .def(py::self * py::self)
-//     .def(py::self * Eigen::Vector3d())
-//     .def_property("quaternion", get_q, set_q)
-//     .def_property("linear", get_lin, set_lin)
-//     .def_property("translation", get_t, set_t)
-//     .def("linear_ref", get_lin_ref, py::return_value_policy::reference_internal)
-//     .def("translation_ref", get_t_ref, py::return_value_policy::reference_internal);
     
+    py::class_<CoMPlanner>(m, "CoMPlanner")
+    .def(py::init<std::vector<std::string>,
+                  double>())
+    .def("Solve", &CoMPlanner::Solve)
+    .def("SetLiftingContact", &CoMPlanner::SetLiftingContact)
+    .def("SetPosition", &CoMPlanner::SetPosition)
+    .def("SetNormal", &CoMPlanner::SetNormal)
+    .def("SetCoMRef", &CoMPlanner::SetCoMRef)
+    .def("ResetForceBounds", &CoMPlanner::ResetForceBounds)
+    .def("SetMu", &CoMPlanner::SetMu)
+    .def("SetForceThreshold", &CoMPlanner::SetForceThreshold)
+    ;
 }
