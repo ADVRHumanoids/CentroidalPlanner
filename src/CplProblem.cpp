@@ -98,75 +98,106 @@ void CplProblem::GetSolution(Solution& sol)
 }
 
 
-void CplProblem::SetForceBounds(std::string contact_name, const Eigen::Vector3d& force_lb, const Eigen::Vector3d& force_ub)
-{
-    
+void CplProblem::SetForceBounds(std::string contact_name, 
+                                const Eigen::Vector3d& force_lb, 
+                                const Eigen::Vector3d& force_ub)
+{   
     _contact_vars_map.at(contact_name).force_var->SetBounds(force_lb, force_ub);
-
 }
 
 
-void CplProblem::SetPosBounds(std::string contact_name, const Eigen::Vector3d& pos_lb, const Eigen::Vector3d& pos_ub)
-{
+void CplProblem::GetForceBounds(std::string contact_name, 
+                                Eigen::Vector3d& force_lb, 
+                                Eigen::Vector3d& force_ub) const
+{   
+    auto bounds = _contact_vars_map.at(contact_name).force_var->GetBounds();
     
+    for(int i = 0; i < 3; i++)
+    {
+        force_lb[i] = bounds.at(i).lower_;
+        force_ub[i] = bounds.at(i).upper_;
+    }
+}
+
+
+void CplProblem::SetPosBounds(std::string contact_name, 
+                              const Eigen::Vector3d& pos_lb, 
+                              const Eigen::Vector3d& pos_ub)
+{   
     _contact_vars_map.at(contact_name).position_var->SetBounds(pos_lb, pos_ub);
-
 }
 
 
-void CplProblem::SetNormalBounds(std::string contact_name, const Eigen::Vector3d& normal_lb, const Eigen::Vector3d& normal_ub)
-{
+void CplProblem::GetPosBounds(std::string contact_name, 
+                              Eigen::Vector3d& pos_lb, 
+                              Eigen::Vector3d& pos_ub) const
+{   
+    auto bounds = _contact_vars_map.at(contact_name).position_var->GetBounds();
     
+    for(int i = 0; i < 3; i++)
+    {
+        pos_lb[i] = bounds.at(i).lower_;
+        pos_ub[i] = bounds.at(i).upper_;
+    }
+}
+
+
+void CplProblem::SetNormalBounds(std::string contact_name, 
+                                 const Eigen::Vector3d& normal_lb,
+                                 const Eigen::Vector3d& normal_ub)
+{   
     _contact_vars_map.at(contact_name).normal_var->SetBounds(normal_lb, normal_ub);
-
 }
 
 
-void CplProblem::SetPosRef(std::string contact_name, const Eigen::Vector3d& pos_ref)
-{
-
-    _cost->SetPosRef(contact_name, pos_ref);
+void CplProblem::GetNormalBounds(std::string contact_name, 
+                                 Eigen::Vector3d& normal_lb, 
+                                 Eigen::Vector3d& normal_ub) const
+{   
+    auto bounds = _contact_vars_map.at(contact_name).normal_var->GetBounds();
     
+    for(int i = 0; i < 3; i++)
+    {
+        normal_lb[i] = bounds.at(i).lower_;
+        normal_ub[i] = bounds.at(i).upper_;
+    }
+}
+
+
+void CplProblem::SetPosRef(std::string contact_name, 
+                           const Eigen::Vector3d& pos_ref)
+{
+    _cost->SetPosRef(contact_name, pos_ref);   
 }
 
 
 void CplProblem::SetCoMRef(const Eigen::Vector3d& com_ref)
-{
-    
+{    
     _cost->SetCoMRef(com_ref);
-
 }
 
 
 void CplProblem::SetCoMWeight(double W_CoM)
-{
-    
+{   
     _cost->SetCoMWeight(W_CoM);
-
 }
 
 
 void CplProblem::SetPosWeight(double W_p)
-{
-    
+{   
     _cost->SetPosWeight(W_p);
-
 }
 
 
 void CplProblem::SetForceWeight(double W_F)
 {
-    
     _cost->SetForceWeight(W_F);
-
 }
 
 
 void CplProblem::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
 {
-
-    _centroidal_statics->SetManipulationWrench(wrench_manip);
-    
+    _centroidal_statics->SetManipulationWrench(wrench_manip);   
 }
 
 
@@ -185,7 +216,8 @@ void CplProblem::SetMu(double mu)
 }
 
 
-void CplProblem::SetForceThreshold(std::string contact_name, double F_thr)
+void CplProblem::SetForceThreshold(std::string contact_name, 
+                                   double F_thr)
 {
     _friction_cone_map.at(contact_name)->SetForceThreshold(F_thr);    
 }
