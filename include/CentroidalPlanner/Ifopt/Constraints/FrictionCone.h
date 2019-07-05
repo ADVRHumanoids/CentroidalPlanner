@@ -20,7 +20,9 @@ public:
     
     typedef std::shared_ptr<FrictionCone> Ptr;
   
-    FrictionCone(std::string contact_name, ContactVars contact_vars, env::EnvironmentClass::Ptr env);
+    FrictionCone(std::string contact_name, 
+                 ContactVars contact_vars, 
+                 env::EnvironmentClass::Ptr env);
 
     void SetForceThreshold(double F_thr);
 
@@ -35,7 +37,7 @@ private:
 
     std::string _contact_name; 
     ContactVars _contact_vars;
-    double _mu, _F_thr;
+    double _F_thr;
     
 };
 
