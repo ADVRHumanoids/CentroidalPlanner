@@ -18,7 +18,7 @@ public:
   
     FrictionCone(std::string contact_name, ContactVars contact_vars, env::EnvironmentClass::Ptr env);
 
-    void SetForceThreshold(const double& force_thr);
+    void SetForceThreshold(double F_thr);
 
   
 private:
@@ -31,7 +31,7 @@ private:
 
     std::string _contact_name; 
     ContactVars _contact_vars;
-    double _mu, _force_thr;
+    double _mu, _F_thr;
     
 };
 

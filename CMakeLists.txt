@@ -63,6 +63,7 @@ SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
                         )   
                   
 SET(CPL_SOURCES src/CentroidalPlanner.cpp
+                src/CoMPlanner.cpp
                 ) 
                   
 ADD_LIBRARY(Cpl SHARED

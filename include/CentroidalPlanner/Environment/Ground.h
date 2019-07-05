@@ -1,3 +1,7 @@
+#ifndef __GROUND__
+#define __GROUND__
+
+
 #include <CentroidalPlanner/Environment/Environment.h>
 #include <Eigen/Geometry>
 
@@ -27,3 +31,6 @@ private:
 };
 
 } }
+
+
+#endif

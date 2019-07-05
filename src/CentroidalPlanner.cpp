@@ -26,6 +26,14 @@ solver::Solution CentroidalPlanner::Solve()
 }
 
 
+void CentroidalPlanner::SetForceBounds(std::string contact_name, const Eigen::Vector3d& force_lb, const Eigen::Vector3d& force_ub)
+{
+    
+    _cpl_problem->SetForceBounds(contact_name, force_lb, force_ub);
+
+}
+
+
 void CentroidalPlanner::SetPosBounds(std::string contact_name, const Eigen::Vector3d& pos_lb, const Eigen::Vector3d& pos_ub)
 {
     
@@ -33,6 +41,13 @@ void CentroidalPlanner::SetPosBounds(std::string contact_name, const Eigen::Vect
 
 }
 
+
+void CentroidalPlanner::SetNormalBounds(std::string contact_name, const Eigen::Vector3d& normal_lb, const Eigen::Vector3d& normal_ub)
+{
+    
+    _cpl_problem->SetNormalBounds(contact_name, normal_lb, normal_ub);
+
+}
 
 
 void CentroidalPlanner::SetPosRef(std::string contact_name, const Eigen::Vector3d& pos_ref)
@@ -80,4 +95,19 @@ void CentroidalPlanner::SetManipulationWrench(const Eigen::VectorXd& wrench_mani
     
    _cpl_problem->SetManipulationWrench(wrench_manip); 
 
+}
+
+void  CentroidalPlanner::SetMu(double mu)
+{
+    
+    _cpl_problem->SetMu(mu);
+
+}
+
+
+void  CentroidalPlanner::SetForceThreshold(double F_thr)
+{
+
+    _cpl_problem->SetForceThreshold(F_thr);
+    
 }

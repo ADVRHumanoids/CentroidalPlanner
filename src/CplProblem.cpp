@@ -9,6 +9,8 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
     _env(env)
 {
     
+    _ground_fake = std::make_shared<cpl::env::Ground>();
+    
     /* Variables */
     _com_var = std::make_shared<Variable3D> ("CoM");
 
@@ -38,20 +40,33 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
      
     for(auto& elem: _contact_vars_map)
     {
+        if (_env == nullptr)
+        {
+            
+            _friction_cone = std::make_shared<FrictionCone> (elem.first, elem.second, _ground_fake);            
+            AddConstraintSet(_friction_cone);
+             
+        }
+        else
+        {
+            
+            _env_const = std::make_shared<EnvironmentConstraint> (elem.first, elem.second, _env);
+            AddConstraintSet(_env_const);
+             
+            _env_normal = std::make_shared<EnvironmentNormal> (elem.first, elem.second, _env); 
+            AddConstraintSet(_env_normal);
+            
+            _friction_cone = std::make_shared<FrictionCone> (elem.first, elem.second, _env);
+            AddConstraintSet(_friction_cone);
+            
+        }
         
-        _env_const = std::make_shared<EnvironmentConstraint> (elem.first, elem.second, _env);
-        _env_normal = std::make_shared<EnvironmentNormal> (elem.first, elem.second, _env);
-        _friction_cone = std::make_shared<FrictionCone> (elem.first, elem.second, _env);
-        
-        AddConstraintSet(_env_const);
-        AddConstraintSet(_env_normal);
-        AddConstraintSet(_friction_cone);
+        _friction_cone_map[elem.first]=_friction_cone;
         
     }
     
     /* Cost */
-    _cost = std::make_shared<MinimizeCentroidalVariables>(_contact_vars_map, _com_var);
-    
+    _cost = std::make_shared<MinimizeCentroidalVariables>(_contact_vars_map, _com_var);   
     AddCostSet(_cost);
       
 }
@@ -81,10 +96,26 @@ void CplProblem::GetSolution(Solution& sol)
 }
 
 
+void CplProblem::SetForceBounds(std::string contact_name, const Eigen::Vector3d& force_lb, const Eigen::Vector3d& force_ub)
+{
+    
+    _contact_vars_map.at(contact_name).force_var->SetBounds(force_lb, force_ub);
+
+}
+
+
 void CplProblem::SetPosBounds(std::string contact_name, const Eigen::Vector3d& pos_lb, const Eigen::Vector3d& pos_ub)
 {
     
     _contact_vars_map.at(contact_name).position_var->SetBounds(pos_lb, pos_ub);
+
+}
+
+
+void CplProblem::SetNormalBounds(std::string contact_name, const Eigen::Vector3d& normal_lb, const Eigen::Vector3d& normal_ub)
+{
+    
+    _contact_vars_map.at(contact_name).normal_var->SetBounds(normal_lb, normal_ub);
 
 }
 
@@ -135,6 +166,33 @@ void CplProblem::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
     
 }
 
+
+void CplProblem::SetMu(double mu)
+{
+    
+    if (_env == nullptr)
+    {
+        _ground_fake->SetMu(mu);
+    }
+    else
+    {
+        _env->SetMu(mu);
+    }
+
+}
+
+
+void CplProblem::SetForceThreshold(double F_thr)
+{
+
+    for(auto& elem: _contact_vars_map)
+    {
+        
+        _friction_cone_map.at(elem.first)->SetForceThreshold(F_thr);
+        
+    }
+    
+}
 
 
 namespace cpl { namespace solver {

@@ -10,15 +10,17 @@ FrictionCone::FrictionCone(std::string contact_name, ContactVars contact_vars, c
     _env(env)
 {
  
-  _mu = _env->GetMu(); 
-  _force_thr = 0.0; 
+
+    _mu = _env->GetMu();
+
+    _F_thr = 0.0; 
   
 }
  
  
-void FrictionCone::SetForceThreshold(const double& force_thr)
+void FrictionCone::SetForceThreshold(double F_thr)
 {
-    _force_thr = force_thr;
+    _F_thr = F_thr;
 }
 
 
@@ -31,7 +33,7 @@ Eigen::VectorXd FrictionCone::GetValues() const
     Eigen::Vector3d F = _contact_vars.force_var->GetValues();    
     Eigen::Vector3d n = _contact_vars.normal_var->GetValues();
      
-    value(0) = -F.dot(n) + _force_thr; 
+    value(0) = -F.dot(n) + _F_thr; 
     value(1) = (F-(n.dot(F))*n).norm() - _mu*(F.dot(n));               
 
     return value;
