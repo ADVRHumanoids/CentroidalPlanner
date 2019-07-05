@@ -3,7 +3,9 @@
 
 using namespace cpl::solver;
 
-CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_mass, cpl::env::EnvironmentClass::Ptr env) : 
+CplProblem::CplProblem(std::vector< std::string > contact_names, 
+                       double robot_mass, 
+                       cpl::env::EnvironmentClass::Ptr env) : 
     _contact_names(contact_names),
     _robot_mass(robot_mass),
     _env(env)
@@ -40,7 +42,7 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
      
     for(auto& elem: _contact_vars_map)
     {
-        if ( _env )
+        if(_env)
         {
  
             _env_const = std::make_shared<EnvironmentConstraint> (elem.first, elem.second, _env);
@@ -61,7 +63,7 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
             
         }
         
-        _friction_cone_map[elem.first]=_friction_cone;
+        _friction_cone_map[elem.first] = _friction_cone;
         
     }
     
@@ -185,9 +187,7 @@ void CplProblem::SetMu(double mu)
 
 void CplProblem::SetForceThreshold(std::string contact_name, double F_thr)
 {
-        
-        _friction_cone_map[contact_name]->SetForceThreshold(F_thr);    
-    
+    _friction_cone_map.at(contact_name)->SetForceThreshold(F_thr);    
 }
 
 

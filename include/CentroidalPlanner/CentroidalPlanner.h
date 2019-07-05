@@ -30,11 +30,25 @@ public:
     
     void SetManipulationWrench(const Eigen::VectorXd& wrench_manip);
     
-    void SetForceBounds(std::string contact_name, const Eigen::Vector3d& force_lb, const Eigen::Vector3d& force_ub);
-    void SetPosBounds(std::string contact_name, const Eigen::Vector3d& pos_lb, const Eigen::Vector3d& pos_ub);
-    void SetNormalBounds(std::string contact_name, const Eigen::Vector3d& normal_lb, const Eigen::Vector3d& normal_ub);
+    void SetForceBounds(std::string contact_name, 
+                        const Eigen::Vector3d& force_lb, 
+                        const Eigen::Vector3d& force_ub);
     
-    void SetPosRef(std::string contact_name, const Eigen::Vector3d& pos_ref);
+    void GetForceBounds(std::string contact_name, 
+                        Eigen::Vector3d& force_lb, 
+                        Eigen::Vector3d& force_ub) const;
+    
+    void SetPosBounds(std::string contact_name, 
+                      const Eigen::Vector3d& pos_lb, 
+                      const Eigen::Vector3d& pos_ub);
+    
+    void SetNormalBounds(std::string contact_name, 
+                         const Eigen::Vector3d& normal_lb, 
+                         const Eigen::Vector3d& normal_ub);
+    
+    void SetPosRef(std::string contact_name,
+                   const Eigen::Vector3d& pos_ref);
+    
     void SetCoMRef(const Eigen::Vector3d& com_ref);
     
     void SetCoMWeight(double W_CoM);
