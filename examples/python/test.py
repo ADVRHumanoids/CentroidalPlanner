@@ -29,10 +29,10 @@ def test_com_planner():
     com_pl.SetMu(mu)
 
     com_pl.SetCoMRef(com_ref)
-    com_pl.SetPosition('c_1', [1.0, 1.0, 0.0])
-    com_pl.SetPosition('c_2', [-1.0, 1.0, 0.0])
-    com_pl.SetPosition('c_3', [1.0, -1.0, 0.0])
-    com_pl.SetPosition('c_4', [-1.0, -1.0, 0.0])
+    com_pl.SetContactPosition('c_1', [1.0, 1.0, 0.0])
+    com_pl.SetContactPosition('c_2', [-1.0, 1.0, 0.0])
+    com_pl.SetContactPosition('c_3', [1.0, -1.0, 0.0])
+    com_pl.SetContactPosition('c_4', [-1.0, -1.0, 0.0])
 
     com_pl.SetLiftingContact('c_3')
     com_pl.SetLiftingContact('c_4')

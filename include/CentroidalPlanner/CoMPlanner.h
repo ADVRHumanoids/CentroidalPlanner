@@ -21,8 +21,8 @@ public:
     
     void SetLiftingContact(std::string contact_name);
       
-    void SetPosition(std::string contact_name, const Eigen::Vector3d& pos_ref);
-    void SetNormal(std::string contact_name, const Eigen::Vector3d& normal_ref);
+    void SetContactPosition(std::string contact_name, const Eigen::Vector3d& pos_ref);
+    void SetContactNormal(std::string contact_name, const Eigen::Vector3d& normal_ref);
     void SetCoMRef(const Eigen::Vector3d& com_ref);
     
     void ResetForceBounds(std::string contact_name);
