@@ -1,3 +1,7 @@
+#ifndef __MINIMIZE_CENTROIDAL_VARIABLES__
+#define __MINIMIZE_CENTROIDAL_VARIABLES__
+
+
 #include <ifopt/variable_set.h>
 #include <ifopt/constraint_set.h>
 #include <ifopt/cost_term.h>
@@ -41,4 +45,6 @@ private:
 };
 
 } }
-    
+
+
+#endif

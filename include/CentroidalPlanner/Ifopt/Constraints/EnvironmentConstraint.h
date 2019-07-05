@@ -1,3 +1,7 @@
+#ifndef __ENVIRONMENT_CONSTRAINT__
+#define __ENVIRONMENT_CONSTRAINT__
+
+
 #include <ifopt/variable_set.h>
 #include <ifopt/constraint_set.h>
 #include <ifopt/cost_term.h>
@@ -30,3 +34,6 @@ private:
 };
 
 } } 
+
+
+#endif

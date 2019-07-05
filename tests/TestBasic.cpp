@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <CentroidalPlanner/CentroidalPlanner.h>
+#include <CentroidalPlanner/CoMPlanner.h>
 
 class TestBasic: public ::testing::Test {
     
@@ -220,6 +221,55 @@ TEST_F(TestBasic, testSuperquadricEnv)
     
 };
 
+
+TEST_F(TestBasic, testCoMPlanner)
+{
+    
+    double robot_mass = 100.0;
+    double g = -9.81;
+    
+    std::vector<std::string> contact_name;
+    contact_name.push_back("contact1");
+    contact_name.push_back("contact2");
+    
+    auto cpl = std::make_shared<cpl::CoMPlanner>(contact_name, robot_mass);
+    
+    double mu = 0.5;
+    cpl->SetMu(mu);
+    
+    cpl->SetPosition("contact1",Eigen::Vector3d::Zero());
+    cpl->SetPosition("contact2",Eigen::Vector3d::Zero());
+     
+    auto sol = cpl->Solve();
+    
+    std::cout << sol << std::endl;
+    
+    Eigen::Vector3d F_sum, Torque_sum; 
+    F_sum.setZero();
+    Torque_sum.setZero();
+    
+    for (auto& elem: sol.contact_values_map)
+    {       
+        F_sum += elem.second.force_value;         
+        Torque_sum += (elem.second.position_value - sol.com_sol).cross(elem.second.force_value);             
+        
+        Eigen::Vector3d F_tmp, n_tmp;
+        F_tmp = elem.second.force_value;
+        n_tmp = elem.second.normal_value;
+        
+        EXPECT_TRUE((-F_tmp.dot(n_tmp)) <= 0.0);
+        EXPECT_TRUE(((F_tmp-(n_tmp.dot(F_tmp))*n_tmp).norm() - mu*(F_tmp.dot(n_tmp))) <= 0.0);                
+        
+    }
+    
+    EXPECT_NEAR(F_sum.x(), 0.0, 1e-12);
+    EXPECT_NEAR(F_sum.y(), 0.0, 1e-12);
+    EXPECT_NEAR(F_sum.z(), -robot_mass*g, 1e-12);
+    EXPECT_NEAR(Torque_sum.x(), 0.0, 1e-4);
+    EXPECT_NEAR(Torque_sum.y(), 0.0, 1e-4);
+    EXPECT_NEAR(Torque_sum.z(), 0.0, 1e-4);
+    
+};
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

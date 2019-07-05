@@ -105,9 +105,9 @@ void  CentroidalPlanner::SetMu(double mu)
 }
 
 
-void  CentroidalPlanner::SetForceThreshold(double F_thr)
+void  CentroidalPlanner::SetForceThreshold(std::string contact_name, double F_thr)
 {
 
-    _cpl_problem->SetForceThreshold(F_thr);
+    _cpl_problem->SetForceThreshold(contact_name, F_thr);
     
 }

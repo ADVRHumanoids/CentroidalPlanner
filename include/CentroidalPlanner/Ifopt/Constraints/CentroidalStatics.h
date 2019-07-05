@@ -1,3 +1,7 @@
+#ifndef __CENTROIDAL_STATICS__
+#define __CENTROIDAL_STATICS__
+
+
 #include <ifopt/variable_set.h>
 #include <ifopt/constraint_set.h>
 #include <ifopt/cost_term.h>
@@ -39,3 +43,6 @@ private:
 };
 
 } }
+
+
+#endif

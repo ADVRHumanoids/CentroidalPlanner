@@ -1,3 +1,7 @@
+#ifndef __SUPERQUADRIC__
+#define __SUPERQUADRIC__
+
+
 #include <CentroidalPlanner/Environment/Environment.h>
 #include <Eigen/Geometry>
 
@@ -31,3 +35,6 @@ Eigen::Vector3d _C, _P, _R;
 };
 
 } }
+
+
+#endif

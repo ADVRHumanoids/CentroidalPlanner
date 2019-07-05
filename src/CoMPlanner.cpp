@@ -28,17 +28,24 @@ CoMPlanner::CoMPlanner(std::vector< std::string > contact_names, double robot_ma
 solver::Solution CoMPlanner::Solve()
 {
     
-   _cpl_problem->Solve();
+    _cpl_problem->Solve();
 
 }
 
+void CoMPlanner::ResetForceBounds(std::string contact_name)
+{
+    
+    _cpl_problem->SetForceBounds(contact_name, -1e3*Eigen::Vector3d::Ones(), 1e3*Eigen::Vector3d::Ones());
+    
+}
 
 
 void CoMPlanner::SetLiftingContact(std::string contact_name)
 {
     
     _cpl_problem->SetForceBounds(contact_name, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
-
+    _cpl_problem->SetForceThreshold(contact_name, 0.0);    
+    
 }
 
 
@@ -74,10 +81,10 @@ void CoMPlanner::SetMu(double mu)
 }
 
 
-void CoMPlanner::SetForceThreshold(double F_thr)
+void CoMPlanner::SetForceThreshold(std::string contact_name, double F_thr)
 {
 
-    _cpl_problem->SetForceThreshold(F_thr);
+    _cpl_problem->SetForceThreshold(contact_name, F_thr);
     
 }
 

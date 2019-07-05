@@ -1,3 +1,7 @@
+#ifndef __FRICTION_CONE__
+#define __FRICTION_CONE__
+
+
 #include <ifopt/variable_set.h>
 #include <ifopt/constraint_set.h>
 #include <ifopt/cost_term.h>
@@ -36,3 +40,6 @@ private:
 };
 
 } }
+
+
+#endif

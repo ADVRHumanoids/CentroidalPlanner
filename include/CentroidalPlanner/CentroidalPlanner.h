@@ -1,3 +1,7 @@
+#ifndef __CENTROIDAL_PLANNER__
+#define __CENTROIDAL_PLANNER__
+
+
 #include <CentroidalPlanner/Ifopt/Types.h>
 #include <CentroidalPlanner/Ifopt/CplProblem.h>
 #include <CentroidalPlanner/Environment/Superquadric.h>
@@ -38,7 +42,7 @@ public:
     void SetForceWeight(double W_F);
     
     void SetMu(double mu);
-    void SetForceThreshold(double F_thr);
+    void SetForceThreshold(std::string contact_name, double F_thr);
     
 private:
     
@@ -51,3 +55,6 @@ private:
 };
     
 }
+
+
+#endif

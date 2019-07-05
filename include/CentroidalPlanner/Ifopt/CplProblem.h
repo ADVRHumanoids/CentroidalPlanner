@@ -1,3 +1,7 @@
+#ifndef __CPL_PROBLEM__
+#define __CPL_PROBLEM__
+
+
 #include <ifopt/problem.h>
 #include <Eigen/Geometry> 
 #include <CentroidalPlanner/Ifopt/Variable3D.h>
@@ -41,7 +45,7 @@ public:
     void SetForceWeight(double W_F);
     
     void SetMu(double mu);
-    void SetForceThreshold(double F_thr);
+    void SetForceThreshold(std::string contact_name, double F_thr);
     
 private:
     
@@ -63,3 +67,6 @@ private:
 
     
 } }
+
+
+#endif

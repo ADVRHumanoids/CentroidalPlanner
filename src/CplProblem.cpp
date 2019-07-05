@@ -40,16 +40,9 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
      
     for(auto& elem: _contact_vars_map)
     {
-        if (_env == nullptr)
+        if ( _env )
         {
-            
-            _friction_cone = std::make_shared<FrictionCone> (elem.first, elem.second, _ground_fake);            
-            AddConstraintSet(_friction_cone);
-             
-        }
-        else
-        {
-            
+ 
             _env_const = std::make_shared<EnvironmentConstraint> (elem.first, elem.second, _env);
             AddConstraintSet(_env_const);
              
@@ -57,6 +50,13 @@ CplProblem::CplProblem(std::vector< std::string > contact_names, double robot_ma
             AddConstraintSet(_env_normal);
             
             _friction_cone = std::make_shared<FrictionCone> (elem.first, elem.second, _env);
+            AddConstraintSet(_friction_cone);
+             
+        }
+        else
+        {
+            
+            _friction_cone = std::make_shared<FrictionCone> (elem.first, elem.second, _ground_fake);            
             AddConstraintSet(_friction_cone);
             
         }
@@ -143,6 +143,7 @@ void CplProblem::SetCoMWeight(double W_CoM)
 
 }
 
+
 void CplProblem::SetPosWeight(double W_p)
 {
     
@@ -170,27 +171,22 @@ void CplProblem::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
 void CplProblem::SetMu(double mu)
 {
     
-    if (_env == nullptr)
+    if ( _env )
     {
-        _ground_fake->SetMu(mu);
+       _env->SetMu(mu);
     }
     else
     {
-        _env->SetMu(mu);
+        _ground_fake->SetMu(mu);
     }
 
 }
 
 
-void CplProblem::SetForceThreshold(double F_thr)
+void CplProblem::SetForceThreshold(std::string contact_name, double F_thr)
 {
-
-    for(auto& elem: _contact_vars_map)
-    {
         
-        _friction_cone_map.at(elem.first)->SetForceThreshold(F_thr);
-        
-    }
+        _friction_cone_map[contact_name]->SetForceThreshold(F_thr);    
     
 }
 

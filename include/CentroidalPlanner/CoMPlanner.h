@@ -3,8 +3,8 @@
 namespace cpl { 
  
 /**
-* @brief The CoMPlanner class provides CoM position and contact forces 
-* given the contact positions, the contact normals and the lifting contact/s.
+* @brief The CoMPlanner class provides CoM position and contact forces for balancing
+* given contact positions, contact normals and the lifting contact/s.
 */    
 class CoMPlanner
 {
@@ -25,8 +25,10 @@ public:
     void SetNormal(std::string contact_name, const Eigen::Vector3d& normal_ref);
     void SetCoMRef(const Eigen::Vector3d& com_ref);
     
+    void ResetForceBounds(std::string contact_name);
+    
     void SetMu(double mu);
-    void SetForceThreshold(double F_thr);
+    void SetForceThreshold(std::string contact_name, double F_thr);
    
     
 private:
