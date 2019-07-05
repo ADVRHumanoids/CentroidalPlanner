@@ -239,18 +239,18 @@ TEST_F(TestBasic, testCoMPlanner)
     double mu = 0.5;
     cpl->SetMu(mu);
     
-    cpl->SetPosition("contact1", Eigen::Vector3d(1.0, 1.0, 0.0));
-    cpl->SetPosition("contact2", Eigen::Vector3d(-1.0, 1.0, 0.0));
-    cpl->SetPosition("contact3", Eigen::Vector3d(-1.0, -1.0, 0.0));
-    cpl->SetPosition("contact4", Eigen::Vector3d(1.0, -1.0, 0.0));
+    cpl->SetContactPosition("contact1", Eigen::Vector3d(1.0, 1.0, 0.0));
+    cpl->SetContactPosition("contact2", Eigen::Vector3d(-1.0, 1.0, 0.0));
+    cpl->SetContactPosition("contact3", Eigen::Vector3d(-1.0, -1.0, 0.0));
+    cpl->SetContactPosition("contact4", Eigen::Vector3d(1.0, -1.0, 0.0));
+    
+    cpl->SetLiftingContact("contact4");
     
     for(auto c : contact_name)
     {
         cpl->SetForceThreshold(c, 20.0);
     }
     
-    cpl->SetLiftingContact("contact4");
-     
     auto sol = cpl->Solve();
     
     std::cout << sol << std::endl;
@@ -267,10 +267,7 @@ TEST_F(TestBasic, testCoMPlanner)
         Eigen::Vector3d F, n;
         F = elem.second.force_value;
         n = elem.second.normal_value;
-        
-        std::cout << "F = " << F.transpose() << "\n";
-        std::cout << "n = " << n.transpose() << "\n";
-        
+       
         EXPECT_TRUE((-F.dot(n)) <= 0.0);
         EXPECT_LE((F-(n.dot(F))*n).norm() - mu*(F.dot(n)), 0.0);
         

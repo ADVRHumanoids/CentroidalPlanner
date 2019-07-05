@@ -42,9 +42,17 @@ public:
                       const Eigen::Vector3d& pos_lb, 
                       const Eigen::Vector3d& pos_ub);
     
+    void GetPosBounds(std::string contact_name, 
+                      Eigen::Vector3d& pos_lb, 
+                      Eigen::Vector3d& pos_ub) const;
+    
     void SetNormalBounds(std::string contact_name, 
                          const Eigen::Vector3d& normal_lb, 
                          const Eigen::Vector3d& normal_ub);
+    
+    void GetNormalBounds(std::string contact_name, 
+                         Eigen::Vector3d& normal_lb, 
+                         Eigen::Vector3d& normal_ub) const;
     
     void SetPosRef(std::string contact_name,
                    const Eigen::Vector3d& pos_ref);
@@ -52,11 +60,15 @@ public:
     void SetCoMRef(const Eigen::Vector3d& com_ref);
     
     void SetCoMWeight(double W_CoM);
+    
     void SetPosWeight(double W_p);
+    
     void SetForceWeight(double W_F);
     
     void SetMu(double mu);
-    void SetForceThreshold(std::string contact_name, double F_thr);
+    
+    void SetForceThreshold(std::string contact_name, 
+                           double F_thr);
     
 private:
     

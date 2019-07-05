@@ -10,7 +10,9 @@ CoMPlanner::CoMPlanner(std::vector< std::string > contact_names,
     
      env::EnvironmentClass::Ptr env = nullptr;
     
-     _cpl_problem = std::make_shared<cpl::CentroidalPlanner>(_contact_names, _robot_mass, env);
+     _cpl_problem = std::make_shared<cpl::CentroidalPlanner>(_contact_names, 
+                                                             _robot_mass, 
+                                                             env);
      
      _cpl_problem->SetPosWeight(0.0);
      _cpl_problem->SetForceWeight(0.0);  
@@ -20,7 +22,9 @@ CoMPlanner::CoMPlanner(std::vector< std::string > contact_names,
      
      for (auto& elem: contact_names)
      {        
-          _cpl_problem->SetNormalBounds(elem, normal_init, normal_init);        
+          _cpl_problem->SetNormalBounds(elem, 
+                                        normal_init, 
+                                        normal_init);        
      }
     
 }
@@ -32,31 +36,39 @@ solver::Solution CoMPlanner::Solve()
 }
 
 void CoMPlanner::ResetForceBounds(std::string contact_name)
-{
-    
-    _cpl_problem->SetForceBounds(contact_name, -1e3*Eigen::Vector3d::Ones(), 1e3*Eigen::Vector3d::Ones());
-    
+{   
+    _cpl_problem->SetForceBounds(contact_name, 
+                                 -1e3*Eigen::Vector3d::Ones(), 
+                                  1e3*Eigen::Vector3d::Ones());  
 }
 
 
 void CoMPlanner::SetLiftingContact(std::string contact_name)
-{
+{    
+    _cpl_problem->SetForceBounds(contact_name, 
+                                 Eigen::Vector3d::Zero(), 
+                                 Eigen::Vector3d::Zero());
     
-    _cpl_problem->SetForceBounds(contact_name, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
-    _cpl_problem->SetForceThreshold(contact_name, 0.0);    
-    
+    _cpl_problem->SetForceThreshold(contact_name, 
+                                    0.0);      
 }
 
 
-void CoMPlanner::SetPosition(std::string contact_name, const Eigen::Vector3d& pos_ref)
+void CoMPlanner::SetContactPosition(std::string contact_name, 
+                                    const Eigen::Vector3d& pos_ref)
 {
-    _cpl_problem->SetPosBounds(contact_name, pos_ref, pos_ref);
+    _cpl_problem->SetPosBounds(contact_name, 
+                               pos_ref, 
+                               pos_ref);
 }
 
 
-void CoMPlanner::SetNormal(std::string contact_name, const Eigen::Vector3d& normal_ref)
+void CoMPlanner::SetContactNormal(std::string contact_name, 
+                                  const Eigen::Vector3d& normal_ref)
 {
-    _cpl_problem->SetNormalBounds(contact_name, normal_ref, normal_ref);
+    _cpl_problem->SetNormalBounds(contact_name, 
+                                  normal_ref, 
+                                  normal_ref);
 }
 
 
@@ -72,10 +84,17 @@ void CoMPlanner::SetMu(double mu)
 }
 
 
-void CoMPlanner::SetForceThreshold(std::string contact_name, double F_thr)
+void CoMPlanner::SetForceThreshold(std::string contact_name, 
+                                   double F_thr)
 {
-    _cpl_problem->SetForceThreshold(contact_name,
-                                    F_thr);
+    Eigen::Vector3d force_lb, force_ub;
+    _cpl_problem->GetForceBounds(contact_name, force_lb, force_ub);
+    
+    if ( force_lb != Eigen::Vector3d::Zero() && force_ub != Eigen::Vector3d::Zero())
+    {
+        _cpl_problem->SetForceThreshold(contact_name,
+                                        F_thr);
+    }
 }
 
 
