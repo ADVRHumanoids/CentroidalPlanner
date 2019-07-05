@@ -28,16 +28,18 @@ public:
 
   
 private:
-    
-    env::EnvironmentClass::Ptr _env; // PTR -> POLYMORPHIC BEHAVIOR  
 
     Eigen::VectorXd GetValues() const override;
+    
     VecBound GetBounds() const override;
-    void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override;
+    
+    void FillJacobianBlock (std::string var_set, 
+                            Jacobian& jac_block) const override;
 
+    double _F_thr;
     std::string _contact_name; 
     ContactVars _contact_vars;
-    double _F_thr;
+    env::EnvironmentClass::Ptr _env; // PTR -> POLYMORPHIC BEHAVIOR  
     
 };
 

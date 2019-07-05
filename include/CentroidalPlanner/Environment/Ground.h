@@ -20,10 +20,18 @@ public:
     
     void SetGroundZ(const double& ground_z);
     
-    virtual void GetEnvironmentValue(const Eigen::Vector3d& p, double& environment_Value); 
-    virtual void GetEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vector3d& environment_Jacobian); 
-    virtual void GetNormalValue(const Eigen::Vector3d& p, Eigen::Vector3d& normal_Value); 
-    virtual void GetNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& normal_Jacobian);    
+    virtual void GetEnvironmentValue(const Eigen::Vector3d& p, 
+                                     double& environment_Value); 
+    
+    virtual void GetEnvironmentJacobian(const Eigen::Vector3d& p, 
+                                        Eigen::Vector3d& environment_Jacobian); 
+    
+    virtual void GetNormalValue(const Eigen::Vector3d& p, 
+                                Eigen::Vector3d& normal_Value); 
+    
+    virtual void GetNormalJacobian(const Eigen::Vector3d& p, 
+                                   Eigen::MatrixXd& normal_Jacobian);   
+    
     
 private:
 

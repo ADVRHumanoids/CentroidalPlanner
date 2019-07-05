@@ -25,7 +25,8 @@ void Variable3D::SetVariables(const Eigen::VectorXd& x)
 };
 
 
-void Variable3D::SetBounds(const Eigen::Vector3d& lower, const Eigen::Vector3d& upper)
+void Variable3D::SetBounds(const Eigen::Vector3d& lower, 
+                           const Eigen::Vector3d& upper)
 {
  
     _lb = lower;

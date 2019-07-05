@@ -3,7 +3,9 @@
 
 using namespace cpl::solver;
 
-FrictionCone::FrictionCone(std::string contact_name, ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+FrictionCone::FrictionCone(std::string contact_name, 
+                           ContactVars contact_vars, 
+                           cpl::env::EnvironmentClass::Ptr env):
     ConstraintSet(2, "Friction cone: " + contact_name),
     _contact_name(contact_name),
     _contact_vars(contact_vars),
@@ -49,7 +51,8 @@ ifopt::Composite::VecBound FrictionCone::GetBounds() const
     return b;
 }
 
-void FrictionCone::FillJacobianBlock (std::string var_set, ifopt::Composite::Jacobian& jac_block) const 
+void FrictionCone::FillJacobianBlock (std::string var_set, 
+                                      ifopt::Composite::Jacobian& jac_block) const 
 {
     
     double mu = _env->GetMu();

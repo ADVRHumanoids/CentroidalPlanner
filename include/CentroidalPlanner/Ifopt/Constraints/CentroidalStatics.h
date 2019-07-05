@@ -23,22 +23,23 @@ public:
                       Variable3D::Ptr com_var);
 
     void SetMass(const double& m);
+    
     void SetManipulationWrench(const Eigen::VectorXd& wrench_manip);
     
 private:
 
     Eigen::VectorXd GetValues() const override;
+    
     VecBound GetBounds() const override;
-    void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override;
-
-    std::map<std::string, ContactVars> _contact_vars_map;  
+    
+    void FillJacobianBlock (std::string var_set, 
+                            Jacobian& jac_block) const override;
 
     double _m;
     Eigen::Vector3d _g;
     Eigen::VectorXd _wrench_manip;
-    
     Variable3D::Ptr _com_var;
-
+    std::map<std::string, ContactVars> _contact_vars_map;  
 
 };
 

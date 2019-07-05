@@ -22,11 +22,15 @@ public:
     MinimizeCentroidalVariables(std::map<std::string, ContactVars> contact_vars_map,
                                 Variable3D::Ptr com_var);
   
-    void SetPosRef(std::string contact_name, const Eigen::Vector3d& pos_ref);
+    void SetPosRef(std::string contact_name, 
+                   const Eigen::Vector3d& pos_ref);
+    
     void SetCoMRef(const Eigen::Vector3d& CoM_ref);
     
     void SetCoMWeight(double W_CoM);
+    
     void SetPosWeight(double W_p);
+    
     void SetForceWeight(double W_F);
   
 private:

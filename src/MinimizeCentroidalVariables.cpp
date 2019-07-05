@@ -2,7 +2,8 @@
 
 using namespace cpl::solver;
 
-MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, ContactVars> contact_vars_map, Variable3D::Ptr com_var):
+MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, ContactVars> contact_vars_map, 
+                                                         Variable3D::Ptr com_var):
       CostTerm("Minimize centroidal variables"),
       _contact_vars_map(contact_vars_map),
       _com_var(com_var)
@@ -29,11 +30,10 @@ MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, C
 }
 
 
-void MinimizeCentroidalVariables::SetPosRef(std::string contact_name, const Eigen::Vector3d& pos_ref)
+void MinimizeCentroidalVariables::SetPosRef(std::string contact_name, 
+                                            const Eigen::Vector3d& pos_ref)
 {
-    
-    _contact_vars_ref_map.at(contact_name).position_value = pos_ref;
-    
+    _contact_vars_ref_map.at(contact_name).position_value = pos_ref;  
 }
 
 
@@ -84,7 +84,8 @@ double MinimizeCentroidalVariables::GetCost() const
     
 };
 
-void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set, Jacobian& jac) const 
+void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set, 
+                                                     Jacobian& jac) const 
 {
     jac.setZero();
     

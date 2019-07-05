@@ -4,23 +4,22 @@ using namespace cpl::env;
 
 Superquadric::Superquadric()
 {
-
     _C <<  0.0,  0.0, 10.0;
     _R << 10.0, 10.0, 10.0;
-    _P << 10.0, 10.0, 10.0;
-    
+    _P << 10.0, 10.0, 10.0;   
 }
 
-void Superquadric::SetParameters(const Eigen::Vector3d& C, const Eigen::Vector3d& R, const Eigen::Vector3d& P)
+void Superquadric::SetParameters(const Eigen::Vector3d& C, 
+                                 const Eigen::Vector3d& R, 
+                                 const Eigen::Vector3d& P)
 {
-
     _C = C;
     _R = R;
-    _P = P;
-    
+    _P = P; 
 }
 
-void Superquadric::GetEnvironmentValue(const Eigen::Vector3d& p, double& environment_Value)
+void Superquadric::GetEnvironmentValue(const Eigen::Vector3d& p, 
+                                       double& environment_Value)
 {
     
     for(int i = 0; i < 3; i++)
@@ -32,7 +31,8 @@ void Superquadric::GetEnvironmentValue(const Eigen::Vector3d& p, double& environ
 
 }
 
-void Superquadric::GetEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vector3d& environment_Jacobian)
+void Superquadric::GetEnvironmentJacobian(const Eigen::Vector3d& p, 
+                                          Eigen::Vector3d& environment_Jacobian)
 {
     
     environment_Jacobian.x() = _P.x()/pow(_R.x(),_P.x()) * pow(p.x()-_C.x(),_P.x()-1);
@@ -42,7 +42,8 @@ void Superquadric::GetEnvironmentJacobian(const Eigen::Vector3d& p, Eigen::Vecto
 }
 
 
-void Superquadric::GetNormalValue(const Eigen::Vector3d& p, Eigen::Vector3d& normal_Value)
+void Superquadric::GetNormalValue(const Eigen::Vector3d& p, 
+                                  Eigen::Vector3d& normal_Value)
 {
     
     Eigen::Vector3d _jac;
@@ -55,7 +56,8 @@ void Superquadric::GetNormalValue(const Eigen::Vector3d& p, Eigen::Vector3d& nor
 }
 
 
-void Superquadric::GetNormalJacobian(const Eigen::Vector3d& p, Eigen::MatrixXd& normal_Jacobian)
+void Superquadric::GetNormalJacobian(const Eigen::Vector3d& p, 
+                                     Eigen::MatrixXd& normal_Jacobian)
 {
     
     normal_Jacobian.setZero(3,3);

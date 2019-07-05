@@ -14,21 +14,27 @@ public:
     typedef std::shared_ptr<CoMPlanner> Ptr;
 
     CoMPlanner(std::vector<std::string> contact_names,
-                      double robot_mass);   
+               double robot_mass);   
     
     
     solver::Solution Solve();
     
     void SetLiftingContact(std::string contact_name);
       
-    void SetContactPosition(std::string contact_name, const Eigen::Vector3d& pos_ref);
-    void SetContactNormal(std::string contact_name, const Eigen::Vector3d& normal_ref);
+    void SetContactPosition(std::string contact_name, 
+                            const Eigen::Vector3d& pos_ref);
+    
+    void SetContactNormal(std::string contact_name, 
+                          const Eigen::Vector3d& normal_ref);
+    
     void SetCoMRef(const Eigen::Vector3d& com_ref);
     
     void ResetForceBounds(std::string contact_name);
     
     void SetMu(double mu);
-    void SetForceThreshold(std::string contact_name, double F_thr);
+    
+    void SetForceThreshold(std::string contact_name, 
+                           double F_thr);
    
     
 private:

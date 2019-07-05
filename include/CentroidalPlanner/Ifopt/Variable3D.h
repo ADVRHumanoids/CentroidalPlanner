@@ -21,8 +21,12 @@ public:
     Variable3D(const std::string& var_name);
     
     void SetVariables(const VectorXd& x) override;
-    void SetBounds(const Eigen::Vector3d& lower, const Eigen::Vector3d& upper);
+    
+    void SetBounds(const Eigen::Vector3d& lower, 
+                   const Eigen::Vector3d& upper);
+    
     VecBound GetBounds() const override;
+    
     Eigen::VectorXd GetValues() const override;
         
 private:

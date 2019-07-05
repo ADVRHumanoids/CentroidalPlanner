@@ -18,18 +18,22 @@ class EnvironmentNormal : public ifopt::ConstraintSet {
     
 public:
     
-    EnvironmentNormal(std::string contact_name, ContactVars contact_vars, env::EnvironmentClass::Ptr env);
+    EnvironmentNormal(std::string contact_name, 
+                      ContactVars contact_vars, 
+                      env::EnvironmentClass::Ptr env);
     
 private:
     
-    env::EnvironmentClass::Ptr _env; // PTR -> POLYMORPHIC BEHAVIOR
-    
     Eigen::VectorXd GetValues() const override;
+    
     VecBound GetBounds() const override;
-    void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override;
-  
+    
+    void FillJacobianBlock (std::string var_set, 
+                            Jacobian& jac_block) const override;
+    
     std::string _contact_name; 
     ContactVars _contact_vars;
+    env::EnvironmentClass::Ptr _env; 
     
 };
 

@@ -2,7 +2,8 @@
 
 using namespace cpl::solver;
 
-CentroidalStatics::CentroidalStatics(std::map<std::string, ContactVars> contact_vars_map, Variable3D::Ptr com_var):
+CentroidalStatics::CentroidalStatics(std::map<std::string, ContactVars> contact_vars_map, 
+                                     Variable3D::Ptr com_var):
     ConstraintSet(6, "Centroidal statics constraint"),
     _contact_vars_map(contact_vars_map),
     _com_var(com_var)
@@ -65,7 +66,8 @@ ifopt::Composite::VecBound CentroidalStatics::GetBounds() const
     return b;
 }
 
-void CentroidalStatics::FillJacobianBlock (std::string var_set, ifopt::Composite::Jacobian& jac_block) const 
+void CentroidalStatics::FillJacobianBlock (std::string var_set, 
+                                           ifopt::Composite::Jacobian& jac_block) const 
 {
     
     jac_block.setZero();

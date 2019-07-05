@@ -2,7 +2,9 @@
 
 using namespace cpl::solver;
 
-EnvironmentConstraint::EnvironmentConstraint(std::string contact_name, ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+EnvironmentConstraint::EnvironmentConstraint(std::string contact_name, 
+                                             ContactVars contact_vars, 
+                                             cpl::env::EnvironmentClass::Ptr env):
     ConstraintSet(1, "Environment constraint: " + contact_name),
     _contact_name(contact_name),
     _contact_vars(contact_vars),
@@ -37,7 +39,8 @@ ifopt::Composite::VecBound EnvironmentConstraint::GetBounds() const
 
 }
 
-void EnvironmentConstraint::FillJacobianBlock (std::string var_set, ifopt::Composite::Jacobian& jac_block) const 
+void EnvironmentConstraint::FillJacobianBlock (std::string var_set, 
+                                               ifopt::Composite::Jacobian& jac_block) const 
 {
     
     jac_block.setZero();

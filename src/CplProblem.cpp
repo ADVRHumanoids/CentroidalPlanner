@@ -36,7 +36,8 @@ CplProblem::CplProblem(std::vector< std::string > contact_names,
     }
     
     /* Constraints */
-    _centroidal_statics = std::make_shared<CentroidalStatics>(_contact_vars_map, _com_var);  
+    _centroidal_statics = std::make_shared<CentroidalStatics>(_contact_vars_map, 
+                                                              _com_var);  
     _centroidal_statics->SetMass(_robot_mass);
     AddConstraintSet(_centroidal_statics);
      
@@ -45,20 +46,28 @@ CplProblem::CplProblem(std::vector< std::string > contact_names,
         if(_env)
         {
  
-            _env_const = std::make_shared<EnvironmentConstraint> (elem.first, elem.second, _env);
+            _env_const = std::make_shared<EnvironmentConstraint> (elem.first, 
+                                                                  elem.second, 
+                                                                  _env);
             AddConstraintSet(_env_const);
              
-            _env_normal = std::make_shared<EnvironmentNormal> (elem.first, elem.second, _env); 
+            _env_normal = std::make_shared<EnvironmentNormal> (elem.first, 
+                                                               elem.second, 
+                                                               _env); 
             AddConstraintSet(_env_normal);
             
-            _friction_cone = std::make_shared<FrictionCone> (elem.first, elem.second, _env);
+            _friction_cone = std::make_shared<FrictionCone> (elem.first, 
+                                                             elem.second, 
+                                                             _env);
             AddConstraintSet(_friction_cone);
              
         }
         else
         {
             
-            _friction_cone = std::make_shared<FrictionCone> (elem.first, elem.second, _ground_fake);            
+            _friction_cone = std::make_shared<FrictionCone> (elem.first, 
+                                                             elem.second, 
+                                                             _ground_fake);            
             AddConstraintSet(_friction_cone);
             
         }
@@ -68,7 +77,8 @@ CplProblem::CplProblem(std::vector< std::string > contact_names,
     }
     
     /* Cost */
-    _cost = std::make_shared<MinimizeCentroidalVariables>(_contact_vars_map, _com_var);   
+    _cost = std::make_shared<MinimizeCentroidalVariables>(_contact_vars_map,
+                                                          _com_var);   
     AddCostSet(_cost);
       
 }

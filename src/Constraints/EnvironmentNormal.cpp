@@ -2,7 +2,9 @@
 
 using namespace cpl::solver;
 
-EnvironmentNormal::EnvironmentNormal(std::string contact_name, ContactVars contact_vars, cpl::env::EnvironmentClass::Ptr env):
+EnvironmentNormal::EnvironmentNormal(std::string contact_name, 
+                                     ContactVars contact_vars, 
+                                     cpl::env::EnvironmentClass::Ptr env):
     ConstraintSet(3, "Environment normal: " + contact_name),
     _contact_name(contact_name),
     _contact_vars(contact_vars),
@@ -47,7 +49,8 @@ ifopt::Composite::VecBound EnvironmentNormal::GetBounds() const
 
 }
 
-void EnvironmentNormal::FillJacobianBlock (std::string var_set, ifopt::Composite::Jacobian& jac_block) const 
+void EnvironmentNormal::FillJacobianBlock (std::string var_set, 
+                                           ifopt::Composite::Jacobian& jac_block) const 
 {
     
     jac_block.setZero();

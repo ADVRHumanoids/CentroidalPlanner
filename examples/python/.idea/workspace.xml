@@ -2,11 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cf6c56f5-3ea0-4d47-a8fb-9d1630a39d6b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../../bindings/python/pyCpl.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../bindings/python/pyCpl.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/CoMPlanner.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/CoMPlanner.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/CoMPlanner.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/CoMPlanner.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../tests/TestBasic.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../tests/TestBasic.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Environment.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Environment.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Ground.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Ground.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Superquadric.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Superquadric.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/CentroidalStatics.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/CentroidalStatics.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/EnvironmentConstraint.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/EnvironmentConstraint.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/EnvironmentNormal.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/EnvironmentNormal.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/FrictionCone.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/FrictionCone.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/MinimizeCentroidalVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/MinimizeCentroidalVariables.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Variable3D.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Variable3D.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/Constraints/CentroidalStatics.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Constraints/CentroidalStatics.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/Constraints/EnvironmentConstraint.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Constraints/EnvironmentConstraint.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/Constraints/EnvironmentNormal.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Constraints/EnvironmentNormal.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/Constraints/FrictionCone.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Constraints/FrictionCone.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/CplProblem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/CplProblem.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/Ground.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Ground.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/MinimizeCentroidalVariables.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/MinimizeCentroidalVariables.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/Superquadric.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Superquadric.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/Variable3D.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Variable3D.cpp" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -48,7 +62,7 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-3775" />
+    <option name="x" value="65" />
     <option name="y" value="1076" />
     <option name="width" value="1855" />
     <option name="height" value="1084" />
@@ -131,7 +145,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-3775" y="1076" width="1855" height="1084" extended-state="6" />
+    <frame x="65" y="1076" width="1855" height="1084" extended-state="6" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.18777293" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
