@@ -20,7 +20,14 @@ public:
     
     typedef std::shared_ptr<EnvironmentClass> Ptr;
     
-    void SetMu(const double& mu) { _mu = mu; }; 
+    void SetMu(const double& mu) 
+    {     
+        if (mu <= 0.0)
+            throw std::invalid_argument("Invalid friction coefficient");
+    
+        _mu = mu; 
+        
+    }; 
     
     const double GetMu() { return _mu; }; 
 

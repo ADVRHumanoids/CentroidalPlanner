@@ -13,6 +13,16 @@ void Superquadric::SetParameters(const Eigen::Vector3d& C,
                                  const Eigen::Vector3d& R, 
                                  const Eigen::Vector3d& P)
 {
+    if ( (R.x() <= 0.0) || (R.y() <= 0.0) || (R.z() <= 0.0) )
+    {
+        throw std::invalid_argument("Invalid superquadric axial radii");
+    }
+    
+    if ( (P.x() < 2.0) || (P.y() < 2.0) || (P.z() < 2.0) )
+    {
+        throw std::invalid_argument("Invalid superquadric axial curvatures: must be >= 2");
+    }
+    
     _C = C;
     _R = R;
     _P = P; 
@@ -20,39 +30,33 @@ void Superquadric::SetParameters(const Eigen::Vector3d& C,
 
 void Superquadric::GetEnvironmentValue(const Eigen::Vector3d& p, 
                                        double& environment_Value)
-{
-    
+{   
     for(int i = 0; i < 3; i++)
     {            
         environment_Value += pow((p(i)-_C(i))/_R(i),_P(i));
     }
     
     environment_Value -= 1.0;
-
 }
 
 void Superquadric::GetEnvironmentJacobian(const Eigen::Vector3d& p, 
                                           Eigen::Vector3d& environment_Jacobian)
-{
-    
+{   
     environment_Jacobian.x() = _P.x()/pow(_R.x(),_P.x()) * pow(p.x()-_C.x(),_P.x()-1);
     environment_Jacobian.y() = _P.y()/pow(_R.y(),_P.y()) * pow(p.y()-_C.y(),_P.y()-1);
     environment_Jacobian.z() = _P.z()/pow(_R.z(),_P.z()) * pow(p.z()-_C.z(),_P.z()-1);
-
 }
 
 
 void Superquadric::GetNormalValue(const Eigen::Vector3d& p, 
                                   Eigen::Vector3d& normal_Value)
-{
-    
+{    
     Eigen::Vector3d _jac;
     GetEnvironmentJacobian(p, _jac);
     
     normal_Value.x() = -_jac.x()/_jac.norm();
     normal_Value.y() = -_jac.y()/_jac.norm();
     normal_Value.z() = -_jac.z()/_jac.norm();  
-
 }
 
 
@@ -195,4 +199,3 @@ void Superquadric::GetNormalJacobian(const Eigen::Vector3d& p,
                            p.x()*t16*t18*t20*2.0-_C.y()*p.y()*t13*t15*t19*2.0);
     
 }
-
