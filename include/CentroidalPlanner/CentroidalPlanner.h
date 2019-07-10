@@ -70,6 +70,8 @@ public:
     void SetForceThreshold(std::string contact_name, 
                            double F_thr);
     
+    bool HasContact ( const std::string& contact_name ) const;
+    
 private:
     
     solver::CplProblem::Ptr _cpl_problem;
