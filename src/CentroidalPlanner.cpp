@@ -24,7 +24,7 @@ solver::Solution CentroidalPlanner::Solve()
     solver::Solution sol;
     
     _cpl_solver.SetOption("derivative_test", "first-order");
-//     _cpl_solver.SetOption("print_timing_statistics", "yes");
+    _cpl_solver.SetOption("print_timing_statistics", "no");
    
     _cpl_solver.Solve(*_cpl_problem);  
     _cpl_problem->GetSolution(sol);
@@ -103,7 +103,7 @@ void CentroidalPlanner::SetContactNormal(std::string contact_name,
     
     if ( normal.norm() != 1.0)
     {
-        throw std::invalid_argument("Invalid contact name: '" + contact_name + "' normal");
+        throw std::invalid_argument("Invalid contact normal");
     }
     
     if(_env)
@@ -210,7 +210,7 @@ void  CentroidalPlanner::SetForceThreshold(std::string contact_name,
     
     if (F_thr < 0.0)
     {
-        throw std::invalid_argument("Invalid '" + contact_name + "' force threshold");
+        throw std::invalid_argument("Invalid force threshold");
     }
     
     _cpl_problem->SetForceThreshold(contact_name, 
