@@ -46,9 +46,8 @@ public:
                       Eigen::Vector3d& pos_lb, 
                       Eigen::Vector3d& pos_ub) const;
     
-    void SetNormalBounds(std::string contact_name, 
-                         const Eigen::Vector3d& normal_lb, 
-                         const Eigen::Vector3d& normal_ub);
+    void SetContactNormal(std::string contact_name, 
+                         const Eigen::Vector3d& normal);
     
     void GetNormalBounds(std::string contact_name, 
                          Eigen::Vector3d& normal_lb, 

@@ -22,9 +22,8 @@ CoMPlanner::CoMPlanner(std::vector< std::string > contact_names,
      
      for (auto& elem: contact_names)
      {        
-          _cpl_problem->SetNormalBounds(elem, 
-                                        normal_init, 
-                                        normal_init);        
+          _cpl_problem->SetContactNormal(elem, 
+                                         normal_init);        
      }
     
 }
@@ -34,6 +33,7 @@ solver::Solution CoMPlanner::Solve()
 {
     return _cpl_problem->Solve();
 }
+
 
 void CoMPlanner::ResetForceBounds(std::string contact_name)
 {   
@@ -66,9 +66,8 @@ void CoMPlanner::SetContactPosition(std::string contact_name,
 void CoMPlanner::SetContactNormal(std::string contact_name, 
                                   const Eigen::Vector3d& normal_ref)
 {
-    _cpl_problem->SetNormalBounds(contact_name, 
-                                  normal_ref, 
-                                  normal_ref);
+    _cpl_problem->SetContactNormal(contact_name, 
+                                   normal_ref);
 }
 
 
@@ -96,8 +95,3 @@ void CoMPlanner::SetForceThreshold(std::string contact_name,
                                         F_thr);
     }
 }
-
-
-
-
-

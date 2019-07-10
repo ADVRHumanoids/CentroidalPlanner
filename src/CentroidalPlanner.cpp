@@ -9,7 +9,7 @@ CentroidalPlanner::CentroidalPlanner(std::vector< std::string > contact_names,
     _robot_mass(robot_mass),
     _env(env)
 {
-    if (robot_mass < 0.0)
+    if (robot_mass <= 0.0)
     {
         throw std::invalid_argument("Invalid robot mass");
     }
@@ -24,8 +24,9 @@ solver::Solution CentroidalPlanner::Solve()
     solver::Solution sol;
     
     _cpl_solver.SetOption("derivative_test", "first-order");
-    _cpl_solver.Solve(*_cpl_problem); 
-    
+//     _cpl_solver.SetOption("print_timing_statistics", "yes");
+   
+    _cpl_solver.Solve(*_cpl_problem);  
     _cpl_problem->GetSolution(sol);
     
     return sol;
@@ -92,23 +93,29 @@ void CentroidalPlanner::GetPosBounds(std::string contact_name,
 }
 
 
-void CentroidalPlanner::SetNormalBounds(std::string contact_name, 
-                                        const Eigen::Vector3d& normal_lb, 
-                                        const Eigen::Vector3d& normal_ub)
+void CentroidalPlanner::SetContactNormal(std::string contact_name, 
+                                        const Eigen::Vector3d& normal)
 {    
     if (!HasContact(contact_name))
     {
         throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
     }
     
-    if ( normal_lb.norm() != 1.0 || normal_ub.norm() != 1.0)
+    if ( normal.norm() != 1.0)
     {
-        throw std::invalid_argument("Invalid contact name: '" + contact_name + "' normal bound");
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "' normal");
     }
     
-    _cpl_problem->SetNormalBounds(contact_name, 
-                                  normal_lb, 
-                                  normal_ub);
+    if(_env)
+    {
+        throw std::invalid_argument("Contact normal can be set only if environment is a null pointer");
+    }
+    else
+    {
+        _cpl_problem->SetNormalBounds(contact_name, 
+                                      normal, 
+                                      normal);
+    }
 }
 
 
