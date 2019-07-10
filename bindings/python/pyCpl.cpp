@@ -40,7 +40,10 @@ PYBIND11_MODULE(pycpl, m) {
     .def(py::init<std::vector<std::string>,
                   double,
                   env::EnvironmentClass::Ptr>())
-    .def("Solve", &CentroidalPlanner::Solve);
+    .def("Solve", &CentroidalPlanner::Solve)
+    .def("SetCoMWeight", &CentroidalPlanner::SetCoMWeight)
+    .def("SetPosWeight", &CentroidalPlanner::SetPosWeight)
+    .def("SetForceWeight", &CentroidalPlanner::SetForceWeight);
     
     py::class_<CoMPlanner>(m, "CoMPlanner")
     .def(py::init<std::vector<std::string>,
@@ -53,5 +56,10 @@ PYBIND11_MODULE(pycpl, m) {
     .def("ResetForceBounds", &CoMPlanner::ResetForceBounds)
     .def("SetMu", &CoMPlanner::SetMu)
     .def("SetForceThreshold", &CoMPlanner::SetForceThreshold)
+    .def("GetContactPosition", &CoMPlanner::GetContactPosition)
+    .def("SetCoMWeight", &CoMPlanner::SetCoMWeight)
+    .def("SetPosWeight", &CoMPlanner::SetPosWeight)
+    .def("SetForceWeight", &CoMPlanner::SetForceWeight)
     ;
 }
+
