@@ -23,6 +23,8 @@ public:
       
     void SetContactPosition(std::string contact_name, 
                             const Eigen::Vector3d& pos_ref);
+
+    Eigen::Vector3d GetContactPosition(std::string contact_name) const;
     
     void SetContactNormal(std::string contact_name, 
                           const Eigen::Vector3d& normal_ref);
@@ -35,11 +37,16 @@ public:
     
     void SetForceThreshold(std::string contact_name, 
                            double F_thr);
-   
+
+    void SetCoMWeight(double W_CoM);
+
+    void SetPosWeight(double W_p);
+
+    void SetForceWeight(double W_F);
     
 private:
     
-    cpl::CentroidalPlanner::Ptr _cpl_problem;
+    cpl::CentroidalPlanner::Ptr _cpl;
     std::vector<std::string> _contact_names;
     double _robot_mass;   
     
