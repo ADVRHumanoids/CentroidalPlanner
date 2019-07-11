@@ -31,6 +31,9 @@ public:
     
     void SetPosWeight(double W_p);
     
+    void SetContactPosWeight(std::string contact_name,
+                             double W_p);
+    
     void SetForceWeight(double W_F);
   
 private:
@@ -40,6 +43,7 @@ private:
 
     std::map<std::string, ContactVars> _contact_vars_map;
     std::map<std::string, ContactValues> _contact_vars_ref_map;
+    std::map<std::string, double> _pos_weight_map;
 
     Eigen::Vector3d _CoM_ref;
     double _W_p, _W_F, _W_CoM;

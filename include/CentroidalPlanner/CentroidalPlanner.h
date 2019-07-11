@@ -6,6 +6,7 @@
 #include <CentroidalPlanner/Ifopt/CplProblem.h>
 #include <CentroidalPlanner/Environment/Superquadric.h>
 #include <CentroidalPlanner/Environment/Ground.h>
+#include <CentroidalPlanner/Utils.h>
 #include <ifopt/ipopt_solver.h>
 #include <iostream>
 
@@ -61,6 +62,9 @@ public:
     void SetCoMWeight(double W_CoM);
     
     void SetPosWeight(double W_p);
+    
+    void SetContactPosWeight(std::string contact_name,
+                             double W_p);
     
     void SetForceWeight(double W_F);
     

@@ -199,6 +199,13 @@ void CplProblem::SetPosWeight(double W_p)
 }
 
 
+void CplProblem::SetContactPosWeight(std::string contact_name,
+                                     double W_p)
+{   
+    _cost->SetContactPosWeight(contact_name, W_p);
+}
+
+
 void CplProblem::SetForceWeight(double W_F)
 {
     _cost->SetForceWeight(W_F);

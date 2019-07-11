@@ -10,8 +10,7 @@ MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, C
 {
     
   _CoM_ref << 0.0, 0.0, 1.0;
-  
-  _W_p   = 1.0;   
+    
   _W_CoM = 1.0;
   _W_F   = 1.0;   
   
@@ -24,7 +23,7 @@ MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, C
         _struct.normal_value.setZero();
         
         _contact_vars_ref_map[elem.first] = _struct;
-        
+        _pos_weight_map[elem.first] = 1.0; 
     }
   
 }
@@ -42,6 +41,7 @@ void MinimizeCentroidalVariables::SetCoMRef(const Eigen::Vector3d& CoM_ref)
     _CoM_ref = CoM_ref;
 }
 
+
 void MinimizeCentroidalVariables::SetCoMWeight(double W_CoM)
 {    
     _W_CoM = W_CoM;
@@ -50,7 +50,16 @@ void MinimizeCentroidalVariables::SetCoMWeight(double W_CoM)
 
 void MinimizeCentroidalVariables::SetPosWeight(double W_p)
 {
-    _W_p = W_p;
+    for(auto& elem: _contact_vars_map)
+    {
+         _pos_weight_map[elem.first] = W_p;
+    }
+}
+
+void MinimizeCentroidalVariables::SetContactPosWeight(std::string contact_name, 
+                                                      double W_p)
+{
+    _pos_weight_map.at(contact_name) = W_p;
 }
 
 
@@ -74,8 +83,9 @@ double MinimizeCentroidalVariables::GetCost() const
         Eigen::Vector3d _Fi = _struct.force_var->GetValues();     
         Eigen::Vector3d _pi = _struct.position_var->GetValues();
         Eigen::Vector3d _pi_ref = _contact_vars_ref_map.at(elem.first).position_value;
+        double W_p_i = _pos_weight_map.at(elem.first);
         
-        value += 0.5*_W_p*(_pi - _pi_ref).squaredNorm() + 0.5*_W_F*_Fi.squaredNorm();
+        value += 0.5*W_p_i*(_pi - _pi_ref).squaredNorm() + 0.5*_W_F*_Fi.squaredNorm();
     }  
         
     value += 0.5*_W_CoM*(CoM - _CoM_ref).squaredNorm();
@@ -109,10 +119,11 @@ void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set,
         {
             Eigen::Vector3d _pi = _struct.position_var->GetValues(); 
             Eigen::Vector3d _pi_ref = _contact_vars_ref_map.at(elem.first).position_value;
+            double W_p_i = _pos_weight_map.at(elem.first);
             
-            jac.coeffRef(0, 0) = _W_p * (_pi.x() - _pi_ref.x());
-            jac.coeffRef(0, 1) = _W_p * (_pi.y() - _pi_ref.y());
-            jac.coeffRef(0, 2) = _W_p * (_pi.z() - _pi_ref.z());
+            jac.coeffRef(0, 0) = W_p_i * (_pi.x() - _pi_ref.x());
+            jac.coeffRef(0, 1) = W_p_i * (_pi.y() - _pi_ref.y());
+            jac.coeffRef(0, 2) = W_p_i * (_pi.z() - _pi_ref.z());
             
         }
     }  

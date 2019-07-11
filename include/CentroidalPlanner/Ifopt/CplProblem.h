@@ -66,6 +66,9 @@ public:
     
     void SetPosWeight(double W_p);
     
+    void SetContactPosWeight(std::string contact_name, 
+                             double W_p);
+    
     void SetForceWeight(double W_F);
     
     void SetMu(double mu);

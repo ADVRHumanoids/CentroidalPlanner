@@ -173,6 +173,23 @@ void CentroidalPlanner::SetPosWeight(double W_p)
 }
 
 
+void CentroidalPlanner::SetContactPosWeight(std::string contact_name, 
+                                            double W_p)
+{   
+    if (!HasContact(contact_name))
+    {
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
+    }
+    
+    if (W_p < 0.0)
+    {
+        throw std::invalid_argument("Invalid weight");
+    }
+    
+    _cpl_problem->SetContactPosWeight(contact_name, W_p);
+}
+
+
 void CentroidalPlanner::SetForceWeight(double W_F)
 {   
     if (W_F < 0.0)
@@ -230,4 +247,3 @@ bool CentroidalPlanner::HasContact(const std::string& contact_name) const
     
     return valid_contact;
 }
-
