@@ -44,24 +44,22 @@ PYBIND11_MODULE(pycpl, m) {
     .def("Solve", &CentroidalPlanner::Solve)
     .def("SetCoMWeight", &CentroidalPlanner::SetCoMWeight)
     .def("SetPosWeight", &CentroidalPlanner::SetPosWeight)
-    .def("SetForceWeight", &CentroidalPlanner::SetForceWeight);
+    .def("SetForceWeight", &CentroidalPlanner::SetForceWeight)
+    .def("SetCoMRef", &CentroidalPlanner::SetCoMRef)
+    .def("ResetForceBounds", &CentroidalPlanner::ResetForceBounds)
+    .def("SetMu", &CentroidalPlanner::SetMu)
+    .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold);
     
-    py::class_<CoMPlanner>(m, "CoMPlanner")
+    
+    py::class_<CoMPlanner, CentroidalPlanner, std::shared_ptr<CoMPlanner>>(m, "CoMPlanner")
     .def(py::init<std::vector<std::string>,
                   double>())
-    .def("Solve", &CoMPlanner::Solve)
     .def("SetLiftingContact", &CoMPlanner::SetLiftingContact)
     .def("SetContactPosition", &CoMPlanner::SetContactPosition)
-    .def("SetContactNormal", &CoMPlanner::SetContactNormal)
-    .def("SetCoMRef", &CoMPlanner::SetCoMRef)
-    .def("ResetForceBounds", &CoMPlanner::ResetForceBounds)
-    .def("SetMu", &CoMPlanner::SetMu)
-    .def("SetForceThreshold", &CoMPlanner::SetForceThreshold)
     .def("GetContactPosition", &CoMPlanner::GetContactPosition)
-    .def("SetCoMWeight", &CoMPlanner::SetCoMWeight)
-    .def("SetPosWeight", &CoMPlanner::SetPosWeight)
-    .def("SetForceWeight", &CoMPlanner::SetForceWeight);
-    
+    .def("SetContactNormal", &CoMPlanner::SetContactNormal);
+
+
     py::class_<utils::SurfaceReacher>(m, "SurfaceReacher")
     .def(py::init<std::vector<std::string>>())
     .def("ReachSurface", &utils::SurfaceReacher::ReachSurface);

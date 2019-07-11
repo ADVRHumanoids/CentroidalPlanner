@@ -49,6 +49,14 @@ void CentroidalPlanner::SetForceBounds(std::string contact_name,
 }
 
 
+void CentroidalPlanner::ResetForceBounds(std::string contact_name)
+{   
+    SetForceBounds(contact_name,
+                   -1e3*Eigen::Vector3d::Ones(), 
+                    1e3*Eigen::Vector3d::Ones());  
+}
+
+
 void CentroidalPlanner::GetForceBounds(std::string contact_name,
                                        Eigen::Vector3d& force_lb, 
                                        Eigen::Vector3d& force_ub) const
@@ -93,29 +101,19 @@ void CentroidalPlanner::GetPosBounds(std::string contact_name,
 }
 
 
-void CentroidalPlanner::SetContactNormal(std::string contact_name, 
-                                        const Eigen::Vector3d& normal)
+void CentroidalPlanner::SetNormalBounds(std::string contact_name, 
+                                        const Eigen::Vector3d& normal_lb,
+                                        const Eigen::Vector3d& normal_ub)
 {    
     if (!HasContact(contact_name))
     {
         throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
     }
     
-    if ( normal.norm() != 1.0)
-    {
-        throw std::invalid_argument("Invalid contact normal");
-    }
     
-    if(_env)
-    {
-        throw std::invalid_argument("Contact normal can be set only if environment is a null pointer");
-    }
-    else
-    {
-        _cpl_problem->SetNormalBounds(contact_name, 
-                                      normal, 
-                                      normal);
-    }
+    _cpl_problem->SetNormalBounds(contact_name, 
+                                  normal_lb, 
+                                  normal_ub);
 }
 
 
@@ -230,8 +228,14 @@ void  CentroidalPlanner::SetForceThreshold(std::string contact_name,
         throw std::invalid_argument("Invalid force threshold");
     }
     
-    _cpl_problem->SetForceThreshold(contact_name, 
-                                    F_thr);  
+    Eigen::Vector3d force_lb, force_ub;
+    _cpl_problem->GetForceBounds(contact_name, force_lb, force_ub);
+    
+    if ( force_lb != Eigen::Vector3d::Zero() && force_ub != Eigen::Vector3d::Zero())
+    {
+        _cpl_problem->SetForceThreshold(contact_name, 
+                                        F_thr);
+    } 
 }
 
 

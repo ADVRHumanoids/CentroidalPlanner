@@ -6,8 +6,7 @@ namespace cpl {
 * @brief The CoMPlanner class provides CoM position and contact forces for balancing
 * given contact positions, contact normals and the lifting contact/s.
 */    
-class CoMPlanner
-{
+class CoMPlanner : public CentroidalPlanner {
     
 public:
     
@@ -15,9 +14,6 @@ public:
 
     CoMPlanner(std::vector<std::string> contact_names,
                double robot_mass);   
-    
-    
-    solver::Solution Solve();
     
     void SetLiftingContact(std::string contact_name);
       
@@ -27,29 +23,10 @@ public:
     Eigen::Vector3d GetContactPosition(std::string contact_name) const;
     
     void SetContactNormal(std::string contact_name, 
-                          const Eigen::Vector3d& normal_ref);
-    
-    void SetCoMRef(const Eigen::Vector3d& com_ref);
-    
-    void ResetForceBounds(std::string contact_name);
-    
-    void SetMu(double mu);
-    
-    void SetForceThreshold(std::string contact_name, 
-                           double F_thr);
+                          const Eigen::Vector3d& n_ref);
 
-    void SetCoMWeight(double W_CoM);
-
-    void SetPosWeight(double W_p);
-
-    void SetForceWeight(double W_F);
-    
-private:
-    
-    cpl::CentroidalPlanner::Ptr _cpl;
-    std::vector<std::string> _contact_names;
-    double _robot_mass;   
+    Eigen::Vector3d GetContactNormal(std::string contact_name) const;
     
 };
-    
-}
+
+} 

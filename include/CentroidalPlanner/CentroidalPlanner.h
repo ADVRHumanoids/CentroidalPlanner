@@ -35,6 +35,8 @@ public:
                         const Eigen::Vector3d& force_lb, 
                         const Eigen::Vector3d& force_ub);
     
+    void ResetForceBounds(std::string contact_name);
+    
     void GetForceBounds(std::string contact_name, 
                         Eigen::Vector3d& force_lb, 
                         Eigen::Vector3d& force_ub) const;
@@ -46,9 +48,6 @@ public:
     void GetPosBounds(std::string contact_name, 
                       Eigen::Vector3d& pos_lb, 
                       Eigen::Vector3d& pos_ub) const;
-    
-    void SetContactNormal(std::string contact_name, 
-                         const Eigen::Vector3d& normal);
     
     void GetNormalBounds(std::string contact_name, 
                          Eigen::Vector3d& normal_lb, 
@@ -75,6 +74,13 @@ public:
     
     bool HasContact ( const std::string& contact_name ) const;
     
+
+protected:
+    
+    void SetNormalBounds(std::string contact_name, 
+                         const Eigen::Vector3d& normal_lb,
+                         const Eigen::Vector3d& normal_ub);
+
 private:
     
     solver::CplProblem::Ptr _cpl_problem;

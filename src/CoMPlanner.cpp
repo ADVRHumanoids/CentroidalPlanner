@@ -3,67 +3,47 @@
 using namespace cpl;
 
 CoMPlanner::CoMPlanner(std::vector< std::string > contact_names, 
-                       double robot_mass) :
-    _contact_names(contact_names),
-    _robot_mass(robot_mass)
-{   
-     env::EnvironmentClass::Ptr env = nullptr;
-    
-     _cpl = std::make_shared<cpl::CentroidalPlanner>(_contact_names,
-                                                     _robot_mass, 
-                                                     env);
-     
-     _cpl->SetPosWeight(0.0);
-     _cpl->SetForceWeight(0.0);
+                         double robot_mass): 
+                         CentroidalPlanner(contact_names, robot_mass, nullptr)
+{
+     SetPosWeight(0.0);
+     SetForceWeight(0.0);
      
      Eigen::Vector3d normal_init;
      normal_init << 0.0, 0.0, 1.0;
      
-     for (auto& elem: contact_names)
+     for(auto& elem: contact_names)
      {        
-          _cpl->SetContactNormal(elem,
-                                 normal_init);        
+          SetContactNormal(elem,
+                           normal_init);        
      }   
-}
-
-
-solver::Solution CoMPlanner::Solve()
-{
-    return _cpl->Solve();
-}
-
-
-void CoMPlanner::ResetForceBounds(std::string contact_name)
-{   
-    _cpl->SetForceBounds(contact_name,
-                         -1e3*Eigen::Vector3d::Ones(), 
-                          1e3*Eigen::Vector3d::Ones());  
 }
 
 
 void CoMPlanner::SetLiftingContact(std::string contact_name)
 {    
-    _cpl->SetForceBounds(contact_name,
-                         Eigen::Vector3d::Zero(), 
-                         Eigen::Vector3d::Zero());
+    SetForceBounds(contact_name,
+                   Eigen::Vector3d::Zero(), 
+                   Eigen::Vector3d::Zero());
     
-    _cpl->SetForceThreshold(contact_name, 0.0);      
+    SetForceThreshold(contact_name, 
+                      0.0);      
 }
 
 
 void CoMPlanner::SetContactPosition(std::string contact_name, 
                                     const Eigen::Vector3d& pos_ref)
 {
-    _cpl->SetPosBounds(contact_name,
-                       pos_ref, 
-                       pos_ref);
+    SetPosBounds(contact_name,
+                 pos_ref, 
+                 pos_ref);
 }
 
 
 Eigen::Vector3d CoMPlanner::GetContactPosition(std::string contact_name) const
 {
     Eigen::Vector3d lb, ub;
-    _cpl->GetPosBounds(contact_name, lb, ub);
+    GetPosBounds(contact_name, lb, ub);
 
     if(lb != ub)
     {
@@ -74,52 +54,33 @@ Eigen::Vector3d CoMPlanner::GetContactPosition(std::string contact_name) const
 }
 
 
-void CoMPlanner::SetContactNormal(std::string contact_name, 
-                                  const Eigen::Vector3d& normal_ref)
+void CoMPlanner::SetContactNormal(std::string contact_name, const Eigen::Vector3d& n_ref)
 {
-    _cpl->SetContactNormal(contact_name,
-                           normal_ref);
-}
-
-
-void CoMPlanner::SetCoMRef(const Eigen::Vector3d& com_ref)
-{
-    _cpl->SetCoMRef(com_ref);
-}
-
-
-void CoMPlanner::SetMu(double mu)
-{
-    _cpl->SetMu(mu);
-}
-
-
-void CoMPlanner::SetForceThreshold(std::string contact_name, 
-                                   double F_thr)
-{
-    Eigen::Vector3d force_lb, force_ub;
-    _cpl->GetForceBounds(contact_name, force_lb, force_ub);
-    
-    if ( force_lb != Eigen::Vector3d::Zero() && force_ub != Eigen::Vector3d::Zero())
+    if (!HasContact(contact_name))
     {
-        _cpl->SetForceThreshold(contact_name, F_thr);
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
     }
+    
+    if ( n_ref.norm() != 1.0)
+    {
+        throw std::invalid_argument("Invalid contact normal");
+    }
+    
+    SetNormalBounds(contact_name, 
+                    n_ref, 
+                    n_ref);
 }
 
 
-void CoMPlanner::SetCoMWeight(double W_CoM)
+Eigen::Vector3d CoMPlanner::GetContactNormal(std::string contact_name) const
 {
-    _cpl->SetCoMWeight(W_CoM);
-}
+    Eigen::Vector3d lb, ub;
+    GetNormalBounds(contact_name, lb, ub);
 
+    if(lb != ub)
+    {
+        throw std::runtime_error("Contact normal for '" + contact_name + "' not set");
+    }
 
-void CoMPlanner::SetPosWeight(double W_p)
-{
-    _cpl->SetPosWeight(W_p);
-}
-
-
-void CoMPlanner::SetForceWeight(double W_F)
-{
-    _cpl->SetForceWeight(W_F);
+    return lb;
 }
