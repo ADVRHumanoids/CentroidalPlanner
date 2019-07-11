@@ -7,8 +7,7 @@ MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, C
       CostTerm("Minimize centroidal variables"),
       _contact_vars_map(contact_vars_map),
       _com_var(com_var)
-{
-    
+{   
   _CoM_ref << 0.0, 0.0, 1.0;
     
   _W_CoM = 1.0;
@@ -24,8 +23,7 @@ MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, C
         
         _contact_vars_ref_map[elem.first] = _struct;
         _pos_weight_map[elem.first] = 1.0; 
-    }
-  
+    } 
 }
 
 
@@ -55,6 +53,7 @@ void MinimizeCentroidalVariables::SetPosWeight(double W_p)
          _pos_weight_map[elem.first] = W_p;
     }
 }
+
 
 void MinimizeCentroidalVariables::SetContactPosWeight(std::string contact_name, 
                                                       double W_p)
@@ -90,9 +89,9 @@ double MinimizeCentroidalVariables::GetCost() const
         
     value += 0.5*_W_CoM*(CoM - _CoM_ref).squaredNorm();
             
-    return value;
-    
+    return value; 
 };
+
 
 void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set, 
                                                      Jacobian& jac) const 
@@ -127,13 +126,11 @@ void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set,
             
         }
     }  
-    
         
     if(var_set == "CoM")
     { 
         jac.coeffRef(0, 0) = _W_CoM * (CoM.x() - _CoM_ref.x());
         jac.coeffRef(0, 1) = _W_CoM * (CoM.y() - _CoM_ref.y());
         jac.coeffRef(0, 2) = _W_CoM * (CoM.z() - _CoM_ref.z());
-    }       
-   
+    }        
 }

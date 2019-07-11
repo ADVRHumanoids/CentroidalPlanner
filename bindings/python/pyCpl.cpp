@@ -5,6 +5,7 @@
 #include <pybind11/operators.h>
 #include <CentroidalPlanner/CentroidalPlanner.h>
 #include <CentroidalPlanner/CoMPlanner.h>
+#include <CentroidalPlanner/Utils.h>
 
 namespace py = pybind11;
 using namespace cpl;
@@ -59,7 +60,12 @@ PYBIND11_MODULE(pycpl, m) {
     .def("GetContactPosition", &CoMPlanner::GetContactPosition)
     .def("SetCoMWeight", &CoMPlanner::SetCoMWeight)
     .def("SetPosWeight", &CoMPlanner::SetPosWeight)
-    .def("SetForceWeight", &CoMPlanner::SetForceWeight)
-    ;
-}
+    .def("SetForceWeight", &CoMPlanner::SetForceWeight);
+    
+    py::class_<utils::SurfaceReacher>(m, "SurfaceReacher")
+    .def(py::init<std::vector<std::string>>())
+    .def("ReachSurface", &utils::SurfaceReacher::ReachSurface);
+    
+    m.def("GetAffineFromNormal", &utils::GetAffineFromNormal);
 
+}

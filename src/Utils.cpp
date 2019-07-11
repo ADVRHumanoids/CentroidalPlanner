@@ -34,7 +34,7 @@ void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string 
 
 cpl::utils::SurfaceReacher::SurfaceReacher(std::vector<std::string> contact_names)                                    
 {   
-    for(auto& elem: _contact_names)
+    for(auto& elem: contact_names)
     {
         auto sub_force = ros::NodeHandle("cartesian").subscribe<geometry_msgs::WrenchStamped>("force_estimation/" + elem, 1, boost::bind(on_force_recv, _1, elem));   
         _sub_force_map[elem] = sub_force;
@@ -47,7 +47,7 @@ cpl::utils::SurfaceReacher::SurfaceReacher(std::vector<std::string> contact_name
 }
 
 
-bool cpl::utils::SurfaceReacher::ReachSurface(XBot::Cartesian::RosImpl ci,
+bool cpl::utils::SurfaceReacher::ReachSurface(XBot::Cartesian::RosImpl& ci,
                                               std::string contact_name, 
                                               const Eigen::Vector3d contact_lin_vel, 
                                               double F_thr)

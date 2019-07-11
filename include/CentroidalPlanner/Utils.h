@@ -1,3 +1,7 @@
+#ifndef __UTILS__
+#define __UTILS__
+
+
 #include <ros/ros.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
@@ -17,14 +21,13 @@ public:
     
     SurfaceReacher(std::vector<std::string> contact_names); 
     
-    bool ReachSurface(XBot::Cartesian::RosImpl ci,
+    bool ReachSurface(XBot::Cartesian::RosImpl& ci,
                       std::string contact_name, 
                       const Eigen::Vector3d contact_lin_vel, 
                       double F_thr);
     
 private:
     
-    std::vector<std::string> _contact_names;
     std::map<std::string, ros::Subscriber> _sub_force_map;
     std::map<std::string, Eigen::Vector6d> _f_est_map;
     
@@ -32,3 +35,6 @@ private:
     
     
 } }
+
+
+#endif
