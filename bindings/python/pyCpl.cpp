@@ -37,7 +37,7 @@ PYBIND11_MODULE(pycpl, m) {
         .def_readonly("com", &solver::Solution::com_sol)
         .def_readonly("contact_values_map", &solver::Solution::contact_values_map);
 
-    py::class_<CentroidalPlanner>(m, "CentroidalPlanner")
+    auto base = py::class_<CentroidalPlanner>(m, "CentroidalPlanner")
     .def(py::init<std::vector<std::string>,
                   double,
                   env::EnvironmentClass::Ptr>())
@@ -51,7 +51,7 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold);
     
     
-    py::class_<CoMPlanner, CentroidalPlanner, std::shared_ptr<CoMPlanner>>(m, "CoMPlanner")
+    py::class_<CoMPlanner>(m, "CoMPlanner", base)
     .def(py::init<std::vector<std::string>,
                   double>())
     .def("SetLiftingContact", &CoMPlanner::SetLiftingContact)
