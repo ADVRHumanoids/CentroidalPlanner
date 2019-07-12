@@ -73,6 +73,8 @@ public:
     
     void SetMu(double mu);
     
+    double GetMu() const;
+    
     void SetForceThreshold(std::string contact_name, 
                            double F_thr);
     

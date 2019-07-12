@@ -232,6 +232,22 @@ void CplProblem::SetMu(double mu)
 
 }
 
+double CplProblem::GetMu() const
+{  
+    double mu;
+    
+    if ( _env )
+    {
+        mu = _env->GetMu();
+    }
+    else
+    {
+        mu = _ground_fake->GetMu();
+    }
+    
+    return mu;
+}
+
 
 void CplProblem::SetForceThreshold(std::string contact_name, 
                                    double F_thr)
