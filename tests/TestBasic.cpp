@@ -246,6 +246,13 @@ TEST_F(TestBasic, testCoMPlanner)
     
     cpl->SetLiftingContact("contact4");
     
+    auto lifting_contacts = cpl->GetLiftingContacts();
+    
+    for (auto& l : lifting_contacts)
+    {
+        std::cout << "Lifting: " << l << std::endl;
+    }
+  
     for(auto c : contact_name)
     {
         cpl->SetForceThreshold(c, 20.0);

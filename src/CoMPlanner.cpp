@@ -4,7 +4,8 @@ using namespace cpl;
 
 CoMPlanner::CoMPlanner(std::vector< std::string > contact_names, 
                          double robot_mass): 
-                         CentroidalPlanner(contact_names, robot_mass, nullptr)
+                         CentroidalPlanner(contact_names, robot_mass, nullptr),
+                         _contact_names(contact_names)
 {
      SetPosWeight(0.0);
      SetForceWeight(0.0);
@@ -28,6 +29,25 @@ void CoMPlanner::SetLiftingContact(std::string contact_name)
     
     SetForceThreshold(contact_name, 
                       0.0);      
+}
+
+
+std::vector<std::string> CoMPlanner::GetLiftingContacts() const
+{  
+    std::vector<std::string> lifting_contacts;
+    
+    for (auto& elem : _contact_names)
+    {     
+        Eigen::Vector3d force_lb, force_ub;
+        GetForceBounds(elem, force_lb, force_ub);
+    
+        if ( force_lb == Eigen::Vector3d::Zero() && force_ub == Eigen::Vector3d::Zero())
+        {          
+            lifting_contacts.push_back(elem);
+        }      
+    }
+    
+    return lifting_contacts;
 }
 
 
