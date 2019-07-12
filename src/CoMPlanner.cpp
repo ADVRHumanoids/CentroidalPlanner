@@ -6,7 +6,7 @@ CoMPlanner::CoMPlanner(std::vector< std::string > contact_names,
                          double robot_mass): 
                          CentroidalPlanner(contact_names, robot_mass, nullptr),
                          _contact_names(contact_names)
-{
+{   
      SetPosWeight(0.0);
      SetForceWeight(0.0);
      
@@ -103,4 +103,17 @@ Eigen::Vector3d CoMPlanner::GetContactNormal(std::string contact_name) const
     }
 
     return lb;
+}
+
+
+void CoMPlanner::SetMu(double mu)
+{
+    if (mu <= 0.0)
+    {
+        throw std::invalid_argument("Invalid friction coefficient");
+    }
+    
+    auto cpl_problem = GetCplProblem();
+    cpl_problem->SetMu(mu);
+    
 }

@@ -200,18 +200,14 @@ void CentroidalPlanner::SetForceWeight(double W_F)
 
 
 void CentroidalPlanner::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
-{  
-   _cpl_problem->SetManipulationWrench(wrench_manip); 
+{    
+    _cpl_problem->SetManipulationWrench(wrench_manip); 
 }
 
-void  CentroidalPlanner::SetMu(double mu)
-{  
-    if (mu <= 0.0)
-    {
-        throw std::invalid_argument("Invalid friction coefficient");
-    }
-    
-    _cpl_problem->SetMu(mu);
+
+double CentroidalPlanner::GetMu() const
+{
+    return _cpl_problem->GetMu();
 }
 
 
@@ -250,4 +246,10 @@ bool CentroidalPlanner::HasContact(const std::string& contact_name) const
     }
     
     return valid_contact;
+}
+
+
+solver::CplProblem::Ptr CentroidalPlanner::GetCplProblem() const
+{
+    return _cpl_problem;
 }

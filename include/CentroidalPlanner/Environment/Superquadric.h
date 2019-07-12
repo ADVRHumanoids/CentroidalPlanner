@@ -19,7 +19,12 @@ public:
     Superquadric();
     
     /**
-    * @brief Set superquadric parameters. C: center, R: axial radii, P axial curvatures
+    * @brief Set superquadric parameters. 
+    * @param C: center.
+    * @param R: axial radii.
+    * @param P: axial curvatures.
+    * @throw exception if axial radii <= 0.0
+    * @throw exception if axial curvatures < 2.0
     */
     void SetParameters(const Eigen::Vector3d& C, const Eigen::Vector3d& R, const Eigen::Vector3d& P);
     

@@ -47,7 +47,6 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetForceWeight", &CentroidalPlanner::SetForceWeight)
     .def("SetCoMRef", &CentroidalPlanner::SetCoMRef)
     .def("ResetForceBounds", &CentroidalPlanner::ResetForceBounds)
-    .def("SetMu", &CentroidalPlanner::SetMu)
     .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold);
     
     
@@ -57,7 +56,8 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetLiftingContact", &CoMPlanner::SetLiftingContact)
     .def("SetContactPosition", &CoMPlanner::SetContactPosition)
     .def("GetContactPosition", &CoMPlanner::GetContactPosition)
-    .def("SetContactNormal", &CoMPlanner::SetContactNormal);
+    .def("SetContactNormal", &CoMPlanner::SetContactNormal)
+    .def("SetMu", &CoMPlanner::SetMu);
 
 
     py::class_<utils::SurfaceReacher>(m, "SurfaceReacher")
