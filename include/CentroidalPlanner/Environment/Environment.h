@@ -8,13 +8,9 @@
 namespace cpl { namespace env {
 
 /**
-* @brief Environment class
+* @brief The EnvironmentClass provides a description of the environment as a continuous function.
 */
 class EnvironmentClass {
-    
-protected:
-
-    double _mu = 1.0;
    
 public:
     
@@ -45,6 +41,9 @@ public:
     
     virtual ~EnvironmentClass() = default; // polymorphic classes must have virtual destructor (good practice)
     
+protected:
+
+    double _mu = 1.0;     
     
 };
 

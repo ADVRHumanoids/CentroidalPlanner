@@ -33,6 +33,8 @@ public:
     
     void SetManipulationWrench(const Eigen::VectorXd& wrench_manip);
     
+    Eigen::VectorXd GetManipulationWrench() const; 
+    
     void SetForceBounds(std::string contact_name, 
                         const Eigen::Vector3d& force_lb, 
                         const Eigen::Vector3d& force_ub);
@@ -68,6 +70,8 @@ public:
     
     void SetContactPosWeight(std::string contact_name, 
                              double W_p);
+    
+    double GetContactPosWeight(std::string contact_name) const;
     
     void SetForceWeight(double W_F);
     

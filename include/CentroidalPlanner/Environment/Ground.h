@@ -8,7 +8,7 @@
 namespace cpl { namespace env {
 
 /**
-* @brief (x,y) plane
+* @brief This class models the environment as the (x,y) plane.
 */
 class Ground : public EnvironmentClass {
     
@@ -18,7 +18,9 @@ public:
     
     Ground();
     
-    void SetGroundZ(const double& ground_z);
+    void SetGroundZ(const double& ground_z);  
+    
+    double GetGroundZ() const;
     
     virtual void GetEnvironmentValue(const Eigen::Vector3d& p, 
                                      double& environment_Value); 
@@ -31,8 +33,7 @@ public:
     
     virtual void GetNormalJacobian(const Eigen::Vector3d& p, 
                                    Eigen::MatrixXd& normal_Jacobian);   
-    
-    
+      
 private:
 
     double _ground_z; 

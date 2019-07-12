@@ -171,6 +171,20 @@ void CentroidalPlanner::SetPosWeight(double W_p)
 }
 
 
+std::map<std::string, double> CentroidalPlanner::GetPosWeight() const
+{
+    std::map< std::string, double > pos_weight_map;
+    
+    for ( auto& elem: _contact_names)
+    {
+        pos_weight_map[elem] = _cpl_problem->GetContactPosWeight(elem);
+    }
+    
+    return pos_weight_map;
+}
+
+
+
 void CentroidalPlanner::SetContactPosWeight(std::string contact_name, 
                                             double W_p)
 {   
@@ -188,6 +202,18 @@ void CentroidalPlanner::SetContactPosWeight(std::string contact_name,
 }
 
 
+double CentroidalPlanner::GetContactPosWeight(std::string contact_name) const
+{
+    if (!HasContact(contact_name))
+    {
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
+    }
+    
+    return _cpl_problem->GetContactPosWeight(contact_name);
+}
+
+
+
 void CentroidalPlanner::SetForceWeight(double W_F)
 {   
     if (W_F < 0.0)
@@ -202,6 +228,12 @@ void CentroidalPlanner::SetForceWeight(double W_F)
 void CentroidalPlanner::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
 {    
     _cpl_problem->SetManipulationWrench(wrench_manip); 
+}
+
+
+Eigen::VectorXd CentroidalPlanner::GetManipulationWrench() const
+{
+    return _cpl_problem->GetManipulationWrench();
 }
 
 

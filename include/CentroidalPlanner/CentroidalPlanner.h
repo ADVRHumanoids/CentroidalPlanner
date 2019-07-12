@@ -35,7 +35,7 @@ public:
     */
     void SetManipulationWrench(const Eigen::VectorXd& wrench_manip);
     
-    Eigen::VectorXd GetManipulationWrench() const; //TODO
+    Eigen::VectorXd GetManipulationWrench() const; 
     
     /**
     * @throw exception if invalid contact name
@@ -106,7 +106,7 @@ public:
     */
     void SetPosWeight(double W_p);
     
-    double GetPosWeight() const; //TODO
+    std::map<std::string, double> GetPosWeight() const;
     
     /**
     * @brief Set the position weight for a specific contact.
@@ -119,7 +119,7 @@ public:
     /**
     * @throw exception if invalid contact name
     */  
-    double GetContactPosWeight(std::string contact_name) const; //TODO
+    double GetContactPosWeight(std::string contact_name) const; 
       
     /**
     * @brief Set the same force weight for every contact.

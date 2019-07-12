@@ -62,6 +62,12 @@ void MinimizeCentroidalVariables::SetContactPosWeight(std::string contact_name,
 }
 
 
+double MinimizeCentroidalVariables::GetContactPosWeight(std::string contact_name) const
+{
+    return _pos_weight_map.at(contact_name);
+}
+
+
 void MinimizeCentroidalVariables::SetForceWeight(double W_F)
 {
     _W_F = W_F;

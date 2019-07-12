@@ -8,7 +8,7 @@
 namespace cpl { namespace env {
 
 /**
-* @brief Superquadric function
+* @brief This class models the environment as a superquadric function.
 */
 class Superquadric : public EnvironmentClass {
     
@@ -27,6 +27,8 @@ public:
     * @throw exception if axial curvatures < 2.0
     */
     void SetParameters(const Eigen::Vector3d& C, const Eigen::Vector3d& R, const Eigen::Vector3d& P);
+
+    void GetParameters(Eigen::Vector3d& C, Eigen::Vector3d& R, Eigen::Vector3d& P);
     
     virtual void GetEnvironmentValue(const Eigen::Vector3d& p, 
                                      double& environment_Value); 
@@ -40,7 +42,6 @@ public:
     virtual void GetNormalJacobian(const Eigen::Vector3d& p, 
                                    Eigen::MatrixXd& normal_Jacobian); 
     
-
 private:
 
     Eigen::Vector3d _C, _P, _R;    

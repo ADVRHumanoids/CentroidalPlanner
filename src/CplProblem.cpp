@@ -206,6 +206,12 @@ void CplProblem::SetContactPosWeight(std::string contact_name,
 }
 
 
+double CplProblem::GetContactPosWeight(std::string contact_name) const
+{   
+    return _cost->GetContactPosWeight(contact_name);
+}
+
+
 void CplProblem::SetForceWeight(double W_F)
 {
     _cost->SetForceWeight(W_F);
@@ -215,6 +221,12 @@ void CplProblem::SetForceWeight(double W_F)
 void CplProblem::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
 {
     _centroidal_statics->SetManipulationWrench(wrench_manip);   
+}
+
+
+Eigen::VectorXd CplProblem::GetManipulationWrench() const
+{
+    return _centroidal_statics->GetManipulationWrench();
 }
 
 

@@ -28,6 +28,15 @@ void Superquadric::SetParameters(const Eigen::Vector3d& C,
     _P = P; 
 }
 
+
+void Superquadric::GetParameters(Eigen::Vector3d& C, Eigen::Vector3d& R, Eigen::Vector3d& P)
+{
+    C = _C;
+    R = _R;
+    P = _P; 
+}
+
+
 void Superquadric::GetEnvironmentValue(const Eigen::Vector3d& p, 
                                        double& environment_Value)
 {   

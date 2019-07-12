@@ -50,6 +50,9 @@ public:
     */
     Eigen::Vector3d GetContactNormal(std::string contact_name) const;
     
+    /**
+    * @throw exception if friction coefficient <= 0.0
+    */
     void SetMu(double mu);
     
     using CentroidalPlanner::Solve;

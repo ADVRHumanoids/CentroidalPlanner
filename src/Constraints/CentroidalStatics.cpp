@@ -28,6 +28,12 @@ void CentroidalStatics::SetManipulationWrench(const Eigen::VectorXd& wrench_mani
 }
 
 
+Eigen::VectorXd CentroidalStatics::GetManipulationWrench() const
+{
+    return _wrench_manip;
+}
+
+
 Eigen::VectorXd CentroidalStatics::GetValues() const 
 {
     Eigen::VectorXd value(6);

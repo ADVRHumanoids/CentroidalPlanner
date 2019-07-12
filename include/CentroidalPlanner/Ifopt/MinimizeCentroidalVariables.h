@@ -34,6 +34,8 @@ public:
     void SetContactPosWeight(std::string contact_name,
                              double W_p);
     
+    double GetContactPosWeight(std::string contact_name) const; 
+    
     void SetForceWeight(double W_F);
   
 private:

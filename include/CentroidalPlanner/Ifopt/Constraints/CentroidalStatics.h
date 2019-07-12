@@ -26,6 +26,8 @@ public:
     
     void SetManipulationWrench(const Eigen::VectorXd& wrench_manip);
     
+    Eigen::VectorXd GetManipulationWrench() const; 
+    
 private:
 
     Eigen::VectorXd GetValues() const override;
@@ -35,11 +37,11 @@ private:
     void FillJacobianBlock (std::string var_set, 
                             Jacobian& jac_block) const override;
 
+    std::map<std::string, ContactVars> _contact_vars_map;  
+    Variable3D::Ptr _com_var;
     double _m;
     Eigen::Vector3d _g;
     Eigen::VectorXd _wrench_manip;
-    Variable3D::Ptr _com_var;
-    std::map<std::string, ContactVars> _contact_vars_map;  
 
 };
 
