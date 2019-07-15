@@ -10,8 +10,7 @@ MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, C
 {   
   _CoM_ref << 0.0, 0.0, 1.0;
     
-  _W_CoM = 1.0;
-  _W_F   = 1.0;   
+  _W_CoM = 1.0;  
   
     for(auto& elem: _contact_vars_map)
     {
@@ -23,6 +22,7 @@ MinimizeCentroidalVariables::MinimizeCentroidalVariables(std::map<std::string, C
         
         _contact_vars_ref_map[elem.first] = _struct;
         _pos_weight_map[elem.first] = 1.0; 
+        _force_weight_map[elem.first] = 1.0;
     } 
 }
 
@@ -34,15 +34,46 @@ void MinimizeCentroidalVariables::SetPosRef(std::string contact_name,
 }
 
 
+Eigen::Vector3d MinimizeCentroidalVariables::GetPosRef(std::string contact_name) const
+{
+    return _contact_vars_ref_map.at(contact_name).position_value;
+}
+
+
+void MinimizeCentroidalVariables::SetForceRef(std::string contact_name, 
+                                              const Eigen::Vector3d& force_ref)
+{
+    _contact_vars_ref_map.at(contact_name).force_value = force_ref;  
+}
+
+
+Eigen::Vector3d MinimizeCentroidalVariables::GetForceRef(std::string contact_name) const
+{
+    return _contact_vars_ref_map.at(contact_name).force_value;
+}
+
+
 void MinimizeCentroidalVariables::SetCoMRef(const Eigen::Vector3d& CoM_ref)
 {    
     _CoM_ref = CoM_ref;
 }
 
 
+Eigen::Vector3d MinimizeCentroidalVariables::GetCoMRef() const
+{
+    return _CoM_ref;
+}
+
+
 void MinimizeCentroidalVariables::SetCoMWeight(double W_CoM)
 {    
     _W_CoM = W_CoM;
+}
+
+
+double MinimizeCentroidalVariables::GetCoMWeight() const
+{
+    return _W_CoM;
 }
 
 
@@ -70,7 +101,23 @@ double MinimizeCentroidalVariables::GetContactPosWeight(std::string contact_name
 
 void MinimizeCentroidalVariables::SetForceWeight(double W_F)
 {
-    _W_F = W_F;
+    for(auto& elem: _contact_vars_map)
+    {
+        _force_weight_map[elem.first] = W_F;
+    }
+}
+
+
+void MinimizeCentroidalVariables::SetContactForceWeight(std::string contact_name, 
+                                                        double W_F)
+{
+    _force_weight_map.at(contact_name) = W_F;
+}
+
+
+double MinimizeCentroidalVariables::GetContactForceWeight(std::string contact_name) const
+{
+    return _force_weight_map.at(contact_name);
 }
 
 
@@ -88,9 +135,11 @@ double MinimizeCentroidalVariables::GetCost() const
         Eigen::Vector3d _Fi = _struct.force_var->GetValues();     
         Eigen::Vector3d _pi = _struct.position_var->GetValues();
         Eigen::Vector3d _pi_ref = _contact_vars_ref_map.at(elem.first).position_value;
+        Eigen::Vector3d _Fi_ref = _contact_vars_ref_map.at(elem.first).force_value;
         double W_p_i = _pos_weight_map.at(elem.first);
+        double W_F_i = _force_weight_map.at(elem.first);
         
-        value += 0.5*W_p_i*(_pi - _pi_ref).squaredNorm() + 0.5*_W_F*_Fi.squaredNorm();
+        value += 0.5*W_p_i*(_pi - _pi_ref).squaredNorm() + 0.5*W_F_i*(_Fi - _Fi_ref).squaredNorm();
     }  
         
     value += 0.5*_W_CoM*(CoM - _CoM_ref).squaredNorm();
@@ -114,10 +163,12 @@ void MinimizeCentroidalVariables::FillJacobianBlock (std::string var_set,
         if(var_set == "F_" + elem.first)
         {
             Eigen::Vector3d _Fi = _struct.force_var->GetValues(); 
+            Eigen::Vector3d _Fi_ref = _contact_vars_ref_map.at(elem.first).force_value;
+            double W_F_i = _force_weight_map.at(elem.first);
             
-            jac.coeffRef(0, 0) = _W_F * _Fi.x();
-            jac.coeffRef(0, 1) = _W_F * _Fi.y();
-            jac.coeffRef(0, 2) = _W_F * _Fi.z();
+            jac.coeffRef(0, 0) = W_F_i * (_Fi.x() - _Fi_ref.x());
+            jac.coeffRef(0, 1) = W_F_i * (_Fi.y() - _Fi_ref.y());
+            jac.coeffRef(0, 2) = W_F_i * (_Fi.z() - _Fi_ref.z());
         }
         
         if(var_set == "p_" + elem.first)

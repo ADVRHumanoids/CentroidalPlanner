@@ -21,6 +21,12 @@ void FrictionCone::SetForceThreshold(double F_thr)
 }
 
 
+double FrictionCone::GetForceThreshold() const
+{
+    return _F_thr;
+}
+
+
 Eigen::VectorXd FrictionCone::GetValues() const 
 {
    

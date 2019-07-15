@@ -143,9 +143,49 @@ void CentroidalPlanner::SetPosRef(std::string contact_name,
 }
 
 
+Eigen::Vector3d CentroidalPlanner::GetPosRef(std::string contact_name) const
+{
+    if (!HasContact(contact_name))
+    {
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
+    }
+    
+    return _cpl_problem->GetPosRef(contact_name);
+}
+
+
+void CentroidalPlanner::SetForceRef(std::string contact_name, 
+                                    const Eigen::Vector3d& force_ref)
+{    
+    if (!HasContact(contact_name))
+    {
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
+    }
+    
+    _cpl_problem->SetForceRef(contact_name, force_ref);
+}
+
+
+Eigen::Vector3d CentroidalPlanner::GetForceRef(std::string contact_name) const
+{
+    if (!HasContact(contact_name))
+    {
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
+    }
+    
+    return _cpl_problem->GetForceRef(contact_name);
+}
+
+
 void CentroidalPlanner::SetCoMRef(const Eigen::Vector3d& com_ref)
 {    
     _cpl_problem->SetCoMRef(com_ref);
+}
+
+
+Eigen::Vector3d CentroidalPlanner::GetCoMRef() const
+{
+    return _cpl_problem->GetCoMRef();
 }
 
 
@@ -157,6 +197,12 @@ void CentroidalPlanner::SetCoMWeight(double W_CoM)
     }
     
     _cpl_problem->SetCoMWeight(W_CoM);   
+}
+
+
+double CentroidalPlanner::GetCoMWeight() const
+{
+    return _cpl_problem->GetCoMWeight();
 }
 
 
@@ -182,7 +228,6 @@ std::map<std::string, double> CentroidalPlanner::GetPosWeight() const
     
     return pos_weight_map;
 }
-
 
 
 void CentroidalPlanner::SetContactPosWeight(std::string contact_name, 
@@ -225,6 +270,47 @@ void CentroidalPlanner::SetForceWeight(double W_F)
 }
 
 
+std::map< std::string, double > CentroidalPlanner::GetForceWeight() const
+{
+    std::map< std::string, double > force_weight_map;
+    
+    for ( auto& elem: _contact_names)
+    {
+        force_weight_map[elem] = _cpl_problem->GetContactForceWeight(elem);
+    }
+    
+    return force_weight_map;
+}
+
+
+void CentroidalPlanner::SetContactForceWeight(std::string contact_name, 
+                                             double W_F)
+{   
+    if (!HasContact(contact_name))
+    {
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
+    }
+    
+    if (W_F < 0.0)
+    {
+        throw std::invalid_argument("Invalid weight");
+    }
+    
+    _cpl_problem->SetContactForceWeight(contact_name, W_F);
+}
+
+
+double CentroidalPlanner::GetContactForceWeight(std::string contact_name) const
+{
+    if (!HasContact(contact_name))
+    {
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
+    }
+    
+    return _cpl_problem->GetContactForceWeight(contact_name);
+}
+
+
 void CentroidalPlanner::SetManipulationWrench(const Eigen::VectorXd& wrench_manip)
 {    
     _cpl_problem->SetManipulationWrench(wrench_manip); 
@@ -264,6 +350,17 @@ void  CentroidalPlanner::SetForceThreshold(std::string contact_name,
         _cpl_problem->SetForceThreshold(contact_name, 
                                         F_thr);
     } 
+}
+
+
+double CentroidalPlanner::GetForceThreshold(std::string contact_name) const
+{
+    if (!HasContact(contact_name))
+    {
+        throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
+    }
+    
+    return _cpl_problem->GetForceThreshold(contact_name);
 }
 
 

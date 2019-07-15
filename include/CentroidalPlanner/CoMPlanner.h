@@ -18,7 +18,7 @@ public:
     
     /**
     * @brief Set the lifting contact.
-    * NOTE: the related contact force is equal to zero.
+    * NOTE: the related contact force is set to zero.
     * @throw exception if invalid contact name.
     */
     void SetLiftingContact(std::string contact_name);

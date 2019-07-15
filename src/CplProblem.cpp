@@ -20,7 +20,6 @@ CplProblem::CplProblem(std::vector< std::string > contact_names,
     
     for(auto& elem: _contact_names)
     {
-        
          ContactVars _struct;
         
         _struct.force_var = std::make_shared<Variable3D> ("F_" + elem);
@@ -32,7 +31,6 @@ CplProblem::CplProblem(std::vector< std::string > contact_names,
         AddVariableSet(_struct.force_var);
         AddVariableSet(_struct.position_var);
         AddVariableSet(_struct.normal_var);
- 
     }
     
     /* Constraints */
@@ -181,15 +179,46 @@ void CplProblem::SetPosRef(std::string contact_name,
 }
 
 
+Eigen::Vector3d CplProblem::GetPosRef(std::string contact_name) const
+{
+    return _cost->GetPosRef(contact_name);
+}
+
+
+void CplProblem::SetForceRef(std::string contact_name, 
+                             const Eigen::Vector3d& force_ref)
+{
+    _cost->SetForceRef(contact_name, force_ref);   
+}
+
+
+Eigen::Vector3d CplProblem::GetForceRef(std::string contact_name) const
+{
+    return _cost->GetForceRef(contact_name);
+}
+
+
 void CplProblem::SetCoMRef(const Eigen::Vector3d& com_ref)
 {    
     _cost->SetCoMRef(com_ref);
 }
 
 
+Eigen::Vector3d CplProblem::GetCoMRef() const
+{
+    return _cost->GetCoMRef();;
+}
+
+
 void CplProblem::SetCoMWeight(double W_CoM)
 {   
     _cost->SetCoMWeight(W_CoM);
+}
+
+
+double CplProblem::GetCoMWeight() const
+{
+    return _cost->GetCoMWeight();
 }
 
 
@@ -215,6 +244,19 @@ double CplProblem::GetContactPosWeight(std::string contact_name) const
 void CplProblem::SetForceWeight(double W_F)
 {
     _cost->SetForceWeight(W_F);
+}
+
+
+void CplProblem::SetContactForceWeight(std::string contact_name,
+                                       double W_F)
+{   
+    _cost->SetContactForceWeight(contact_name, W_F);
+}
+
+
+double CplProblem::GetContactForceWeight(std::string contact_name) const
+{
+    return _cost->GetContactForceWeight(contact_name);
 }
 
 
@@ -265,6 +307,12 @@ void CplProblem::SetForceThreshold(std::string contact_name,
                                    double F_thr)
 {
     _friction_cone_map.at(contact_name)->SetForceThreshold(F_thr);    
+}
+
+
+double CplProblem::GetForceThreshold(std::string contact_name) const
+{
+    return  _friction_cone_map.at(contact_name)->GetForceThreshold();   
 }
 
 

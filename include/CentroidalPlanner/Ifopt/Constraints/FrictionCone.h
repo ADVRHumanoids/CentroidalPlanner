@@ -25,6 +25,8 @@ public:
                  env::EnvironmentClass::Ptr env);
 
     void SetForceThreshold(double F_thr);
+    
+    double GetForceThreshold() const;
 
   
 private:

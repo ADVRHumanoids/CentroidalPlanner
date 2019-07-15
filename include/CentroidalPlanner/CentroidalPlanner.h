@@ -87,18 +87,29 @@ public:
     /**
     * @throw exception if invalid contact name
     */  
-    Eigen::Vector3d GetPosRef(std::string contact_name) const; //TODO
+    Eigen::Vector3d GetPosRef(std::string contact_name) const; 
     
+    /**
+    * @throw exception if invalid contact name
+    */  
+    void SetForceRef(std::string contact_name,
+                    const Eigen::Vector3d& force_ref);
+    
+    /**
+    * @throw exception if invalid contact name
+    */  
+    Eigen::Vector3d GetForceRef(std::string contact_name) const; 
+      
     void SetCoMRef(const Eigen::Vector3d& com_ref);
     
-    Eigen::Vector3d GetCoMRef() const; //TODO
+    Eigen::Vector3d GetCoMRef() const;
     
     /**
     * @throw exception if weight < 0.0
     */  
     void SetCoMWeight(double W_CoM);
     
-    double GetCoMWeight() const; //TODO
+    double GetCoMWeight() const; 
     
     /**
     * @brief Set the same position weight for every contact.
@@ -127,7 +138,20 @@ public:
     */
     void SetForceWeight(double W_F);
     
-    double GetForceWeight() const; //TODO
+    std::map<std::string, double> GetForceWeight() const;
+    
+    /**
+    * @brief Set the force weight for a specific contact.
+    * @throw exception if invalid contact name
+    * @throw exception if weight < 0.0
+    */
+    void SetContactForceWeight(std::string contact_name,
+                               double W_F);
+    
+    /**
+    * @throw exception if invalid contact name
+    */  
+    double GetContactForceWeight(std::string contact_name) const; 
     
     double GetMu() const; 
     
@@ -141,9 +165,11 @@ public:
                            double F_thr);
         
     /**
+    * @brief Set the lower bound on the contact force along
+    * the direction constrained by the environment. 
     * @throw exception if invalid contact name
     */  
-    double GetForceThreshold(std::string contact_name) const; //TODO
+    double GetForceThreshold(std::string contact_name) const; 
     
     virtual ~CentroidalPlanner() = default; // polymorphic classes must have virtual destructor (good practice)
        
