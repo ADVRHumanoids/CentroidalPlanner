@@ -83,6 +83,18 @@ TARGET_LINK_LIBRARIES(Cpl PUBLIC
 
 INSTALL(TARGETS Cpl 
         DESTINATION lib)
+           
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  FILES_MATCHING PATTERN "*.launch"
+)
+                                                      
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(DIRECTORY cartesio_stack/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cartesio_stack
+  FILES_MATCHING PATTERN "*.yaml"
+)        
 
 option(BUILD_TESTS FALSE)
 if(${BUILD_TESTS})
