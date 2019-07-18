@@ -78,8 +78,11 @@ void CoMPlanner::ResetLiftingContact(std::string contact_name)
         throw std::runtime_error("'" + contact_name + "' is not a lifting contact.");
     }
     else
-    {
-        ResetForceBounds(contact_name);
+    {    
+        SetForceBounds(contact_name,
+                       -1e3*Eigen::Vector3d::Ones(), 
+                        1e3*Eigen::Vector3d::Ones());  
+        
         SetForceThreshold(contact_name, _F_thr_map[contact_name]); 
     }
 }

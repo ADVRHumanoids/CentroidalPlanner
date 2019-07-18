@@ -169,9 +169,7 @@ public:
     
     virtual ~CentroidalPlanner() = default; // polymorphic classes must have virtual destructor (good practice)
        
-protected:
-    
-    void ResetForceBounds(std::string contact_name);
+protected:  
     
     void SetNormalBounds(std::string contact_name, 
                          const Eigen::Vector3d& normal_lb,

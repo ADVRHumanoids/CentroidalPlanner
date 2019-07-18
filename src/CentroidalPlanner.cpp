@@ -49,14 +49,6 @@ void CentroidalPlanner::SetForceBounds(std::string contact_name,
 }
 
 
-void CentroidalPlanner::ResetForceBounds(std::string contact_name)
-{   
-    SetForceBounds(contact_name,
-                   -1e3*Eigen::Vector3d::Ones(), 
-                    1e3*Eigen::Vector3d::Ones());  
-}
-
-
 void CentroidalPlanner::GetForceBounds(std::string contact_name,
                                        Eigen::Vector3d& force_lb, 
                                        Eigen::Vector3d& force_ub) const

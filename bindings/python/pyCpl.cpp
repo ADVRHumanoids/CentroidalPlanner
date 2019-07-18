@@ -46,7 +46,8 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetPosWeight", &CentroidalPlanner::SetPosWeight)
     .def("SetForceWeight", &CentroidalPlanner::SetForceWeight)
     .def("SetCoMRef", &CentroidalPlanner::SetCoMRef)
-    .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold);
+    .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold)
+    .def("GetForceThreshold", &CentroidalPlanner::GetForceThreshold);
     
     
     py::class_<CoMPlanner>(m, "CoMPlanner", base)
