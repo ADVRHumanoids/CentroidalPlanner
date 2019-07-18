@@ -1,9 +1,7 @@
+#!/usr/bin/env python
 from cartesian_interface.pyci_all import *
 import centroidal_planner.pycpl as cpl
 import numpy as np
-import xbot_interface.xbot_interface as xb
-import xbot_interface.config_options as copt
-
 
 def main():
 
@@ -19,10 +17,10 @@ def main():
     mu = 0.5
     com_pl = cpl.CoMPlanner(contacts, mass)
     com_pl.SetMu(mu)
-    com_pl.SetCoMWeight(1000000.0)
+    com_pl.SetCoMWeight(100000.0)
     com_pl.SetForceWeight(0.0000001)
     for c in contacts:
-        com_pl.SetForceThreshold(c, 15.0)
+        com_pl.SetForceThreshold(c, 50.0)
 
     # get current com from cartesio and set it to planner
     com_ref = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
