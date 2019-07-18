@@ -11,9 +11,6 @@
 
 namespace cpl { namespace solver {
 
-/**
-* @brief Non linear friction cone constraint
-*/      
 class FrictionCone : public ifopt::ConstraintSet {
     
 public:

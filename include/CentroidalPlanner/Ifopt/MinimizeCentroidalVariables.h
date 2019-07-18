@@ -10,9 +10,6 @@
 
 namespace cpl { namespace solver {
 
-/**
-* @brief Miniminization of: CoM position, contact positions and contact forces
-*/  
 class MinimizeCentroidalVariables : public ifopt::CostTerm {
     
 public:

@@ -11,9 +11,6 @@
 
 namespace cpl { namespace solver {
 
-/**
-* @brief Environment normal constraint
-*/    
 class EnvironmentNormal : public ifopt::ConstraintSet {
     
 public:

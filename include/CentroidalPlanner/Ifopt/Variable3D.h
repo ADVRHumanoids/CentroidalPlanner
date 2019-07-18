@@ -9,9 +9,6 @@
 
 namespace cpl { namespace solver {
     
-/**
-* @brief 3D optimization variable
-*/
 class Variable3D : public ifopt::VariableSet {
     
 public:

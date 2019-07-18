@@ -44,10 +44,6 @@ public:
     void SetForceBounds(std::string contact_name, 
                         const Eigen::Vector3d& force_lb, 
                         const Eigen::Vector3d& force_ub);
-    /**
-    * @throw exception if invalid contact name
-    */
-    void ResetForceBounds(std::string contact_name);
     
     /**
     * @throw exception if invalid contact name
@@ -174,6 +170,8 @@ public:
     virtual ~CentroidalPlanner() = default; // polymorphic classes must have virtual destructor (good practice)
        
 protected:
+    
+    void ResetForceBounds(std::string contact_name);
     
     void SetNormalBounds(std::string contact_name, 
                          const Eigen::Vector3d& normal_lb,

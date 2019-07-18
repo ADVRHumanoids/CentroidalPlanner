@@ -9,10 +9,7 @@
 #include <CentroidalPlanner/Ifopt/Types.h>
 
 namespace cpl { namespace solver {
-
-/**
-* @brief Centroidal statics constraint
-*/    
+  
 class CentroidalStatics : public ifopt::ConstraintSet {
     
 public:

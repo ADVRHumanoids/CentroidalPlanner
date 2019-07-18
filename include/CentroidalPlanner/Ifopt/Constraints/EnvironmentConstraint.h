@@ -11,9 +11,6 @@
 
 namespace cpl { namespace solver {
 
-/**
-* @brief Environment continuous function constraint
-*/
 class EnvironmentConstraint : public ifopt::ConstraintSet {
     
 public:  

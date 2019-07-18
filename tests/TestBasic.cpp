@@ -239,6 +239,8 @@ TEST_F(TestBasic, testCoMPlanner)
     double mu = 0.5;
     cpl->SetMu(mu);
     
+    std::cout <<"mu: "<< cpl->GetMu() << std::endl;
+    
     cpl->SetContactPosition("contact1", Eigen::Vector3d(1.0, 1.0, 0.0));
     cpl->SetContactPosition("contact2", Eigen::Vector3d(-1.0, 1.0, 0.0));
     cpl->SetContactPosition("contact3", Eigen::Vector3d(-1.0, -1.0, 0.0));

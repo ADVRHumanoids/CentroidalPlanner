@@ -8,7 +8,7 @@
 namespace cpl { namespace env {
 
 /**
-* @brief This class models the environment as the (x,y) plane.
+* @brief Environment modelled as the (x,y) plane with settable ground level.
 */
 class Ground : public EnvironmentClass {
     

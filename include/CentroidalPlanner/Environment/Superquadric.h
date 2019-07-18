@@ -8,7 +8,7 @@
 namespace cpl { namespace env {
 
 /**
-* @brief This class models the environment as a superquadric function.
+* @brief Environment modelled as a superquadric function with settable parameters.
 */
 class Superquadric : public EnvironmentClass {
     

@@ -15,10 +15,7 @@
 #include <CentroidalPlanner/Environment/Ground.h>
 
 namespace cpl { namespace solver {
-
-/**
-* @brief Centroidal statics problem with environment
-*/      
+     
 class CplProblem : public ifopt::Problem {
     
 public:
@@ -113,7 +110,7 @@ private:
     EnvironmentNormal::Ptr _env_normal;
     FrictionCone::Ptr _friction_cone;
     MinimizeCentroidalVariables::Ptr _cost;
-    std::map<std::string, FrictionCone::Ptr> _friction_cone_map;  
+    std::map<std::string, FrictionCone::Ptr> _friction_cone_map; 
      
 };
 
