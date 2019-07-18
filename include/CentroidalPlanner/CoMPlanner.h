@@ -18,12 +18,22 @@ public:
     
     /**
     * @brief Set the lifting contact.
-    * NOTE: the related contact force is set to zero.
+    * NOTE: the related friction cone force threshold is set to zero.
+    * NOTE: the related contact force is set to zero as equality constraint.
+    * Remember to ResetLiftingContact bounds before new solve.
     * @throw exception if invalid contact name.
     */
     void SetLiftingContact(std::string contact_name);
     
     std::vector<std::string> GetLiftingContacts() const;
+     
+    /**
+    * @brief Reset the lifting contact.
+    * NOTE: restore the friction cone force threshold.
+    * NOTE: reset force bounds.
+    * @throw exception if invalid contact name.
+    */
+    void ResetLiftingContact(std::string contact_name);
     
     /**
     * @brief Set the contact position as equality constraint. 
@@ -57,15 +67,25 @@ public:
     
     using CentroidalPlanner::Solve;
     using CentroidalPlanner::SetCoMWeight;
+    using CentroidalPlanner::GetCoMWeight;
     using CentroidalPlanner::SetPosWeight;
+    using CentroidalPlanner::GetPosWeight;
     using CentroidalPlanner::SetForceWeight;
+    using CentroidalPlanner::GetForceWeight;
     using CentroidalPlanner::SetCoMRef;
-    using CentroidalPlanner::ResetForceBounds;
+    using CentroidalPlanner::GetCoMRef;
     using CentroidalPlanner::SetForceThreshold;
+    using CentroidalPlanner::GetForceThreshold;
+    using CentroidalPlanner::GetMu;
+    
+protected:
+
+    bool IsLiftingContact ( const std::string& contact_name ) const;
     
 private:
 
     std::vector<std::string> _contact_names; 
+    std::map<std::string, double> _F_thr_map;  
     
 };
 

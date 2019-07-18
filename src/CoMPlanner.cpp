@@ -16,19 +16,24 @@ CoMPlanner::CoMPlanner(std::vector< std::string > contact_names,
      for(auto& elem: contact_names)
      {        
           SetContactNormal(elem,
-                           normal_init);        
+                           normal_init);  
+           
+          _F_thr_map[elem] = GetForceThreshold(elem);
+
      }   
 }
 
 
 void CoMPlanner::SetLiftingContact(std::string contact_name)
-{    
+{     
+    _F_thr_map[contact_name] = GetForceThreshold(contact_name);
+     
+    SetForceThreshold(contact_name, 
+                      0.0);  
+    
     SetForceBounds(contact_name,
                    Eigen::Vector3d::Zero(), 
-                   Eigen::Vector3d::Zero());
-    
-    SetForceThreshold(contact_name, 
-                      0.0);      
+                   Eigen::Vector3d::Zero());       
 }
 
 
@@ -48,6 +53,35 @@ std::vector<std::string> CoMPlanner::GetLiftingContacts() const
     }
     
     return lifting_contacts;
+}
+
+
+bool CoMPlanner::IsLiftingContact(const std::string& contact_name) const
+{  
+    bool lifting = false;
+    auto lifting_contacts = GetLiftingContacts();
+    
+    for (auto& elem: lifting_contacts)
+    {        
+        if(elem == contact_name)
+            lifting = true;
+    }
+    
+    return lifting;
+}
+
+
+void CoMPlanner::ResetLiftingContact(std::string contact_name)
+{
+    if (!IsLiftingContact(contact_name))
+    {
+        throw std::runtime_error("'" + contact_name + "' is not a lifting contact.");
+    }
+    else
+    {
+        ResetForceBounds(contact_name);
+        SetForceThreshold(contact_name, _F_thr_map[contact_name]); 
+    }
 }
 
 
