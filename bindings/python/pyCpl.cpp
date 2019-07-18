@@ -46,7 +46,6 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetPosWeight", &CentroidalPlanner::SetPosWeight)
     .def("SetForceWeight", &CentroidalPlanner::SetForceWeight)
     .def("SetCoMRef", &CentroidalPlanner::SetCoMRef)
-    .def("ResetForceBounds", &CentroidalPlanner::ResetForceBounds)
     .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold);
     
     
@@ -54,6 +53,7 @@ PYBIND11_MODULE(pycpl, m) {
     .def(py::init<std::vector<std::string>,
                   double>())
     .def("SetLiftingContact", &CoMPlanner::SetLiftingContact)
+    .def("ResetLiftingContact", &CoMPlanner::ResetLiftingContact)
     .def("SetContactPosition", &CoMPlanner::SetContactPosition)
     .def("GetContactPosition", &CoMPlanner::GetContactPosition)
     .def("SetContactNormal", &CoMPlanner::SetContactNormal)
