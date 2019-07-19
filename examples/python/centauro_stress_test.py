@@ -64,6 +64,10 @@ def main():
         ci.setTargetPose(contact_lift, wheel_ci, reach_time/2.0)
         ci.waitReachCompleted(contact_lift)
 
+    i = 1
+
+    print "Counter: ", i
+
     while True:
         for contact_lift in contacts:
 
@@ -83,6 +87,8 @@ def main():
             ci.setTargetPose(contact_lift, wheel_ci, reach_time/2.0)
             ci.waitReachCompleted(contact_lift)
 
+        i += 1
+        print "Counter: ", i
 
     print 'Terminating...'
 

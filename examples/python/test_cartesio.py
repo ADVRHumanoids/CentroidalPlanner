@@ -34,6 +34,7 @@ def main():
 
     while True:
         for contact_lift in contacts:
+
             # we lift contact
             com_pl.SetLiftingContact(contact_lift)
 
@@ -49,16 +50,16 @@ def main():
             ci.setTargetPose('com', com_ci, reach_time)
             ci.waitReachCompleted('com')
 
-            wheel_1_ci = ci.getPoseReference(contact_lift)[0]
-            wheel_1_ci.translation_ref()[2] += 0.1
-            ci.setTargetPose(contact_lift, wheel_1_ci, reach_time/2.0)
+            wheel_ci = ci.getPoseReference(contact_lift)[0]
+            wheel_ci.translation_ref()[2] += 0.1
+            ci.setTargetPose(contact_lift, wheel_ci, reach_time/2.0)
             ci.waitReachCompleted(contact_lift)
 
             ci.update()
 
-            wheel_1_ci = ci.getPoseReference(contact_lift)[0]
-            wheel_1_ci.translation_ref()[2] -= 0.1
-            ci.setTargetPose(contact_lift, wheel_1_ci, reach_time/2.0)
+            wheel_ci = ci.getPoseReference(contact_lift)[0]
+            wheel_ci.translation_ref()[2] -= 0.1
+            ci.setTargetPose(contact_lift, wheel_ci, reach_time/2.0)
             ci.waitReachCompleted(contact_lift)
 
 
