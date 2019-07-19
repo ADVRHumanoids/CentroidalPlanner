@@ -17,10 +17,10 @@ public:
                double robot_mass);   
     
     /**
-    * @brief Set the lifting contact.
-    * NOTE: the related friction cone force threshold is set to zero.
-    * NOTE: the related contact force is set to zero as equality constraint.
-    * Remember to ResetLiftingContact bounds before new solve.
+    * @brief Set the lifting contact:
+    * the related friction cone force threshold is set to zero;
+    * the related contact force is set to zero.
+    * NOTE: Remember to reset the lifting contact before new solve.
     * @throw exception if invalid contact name.
     */
     void SetLiftingContact(std::string contact_name);
@@ -28,9 +28,8 @@ public:
     std::vector<std::string> GetLiftingContacts() const;
      
     /**
-    * @brief Reset the lifting contact.
-    * NOTE: restore the friction cone force threshold.
-    * NOTE: reset force bounds.
+    * @brief Reset the lifting contact:
+    * the friction cone force threshold is restored.
     * @throw exception if invalid contact name.
     */
     void ResetLiftingContact(std::string contact_name);
