@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<robot name="template">
+<group name="base">
+    <link name="Waist"/>
+</group>
+<group name="contact1">
+    <chain base_link="Waist" tip_link="Contact1"/>
+</group>
+<group name="contact2">
+    <chain base_link="Waist" tip_link="Contact2"/>
+</group>
+<group name="contact3">
+    <chain base_link="Waist" tip_link="Contact3"/>
+</group>
+<group name="contact4">
+    <chain base_link="Waist" tip_link="Contact4"/>
+</group>  
+<group name="chains">
+    <group name="contact1"/>
+    <group name="contact2"/>
+    <group name="contact3"/>
+    <group name="contact4"/>
+</group>
+<group_state group="chains" name="home">
+    <joint name="Contact1_x" value="0.3"/>
+    <joint name="Contact1_y" value="0.2"/>
+    <joint name="Contact1_z" value="-0.5"/>
+    <joint name="Contact2_x" value="0.3"/>
+    <joint name="Contact2_y" value="-0.2"/>
+    <joint name="Contact2_z" value="-0.5"/>
+    <joint name="Contact3_x" value="-0.3"/>
+    <joint name="Contact3_y" value="-0.2"/>
+    <joint name="Contact3_z" value="-0.5"/>
+    <joint name="Contact4_x" value="-0.3"/>
+    <joint name="Contact4_y" value="0.2"/>
+    <joint name="Contact4_z" value="-0.5"/>
+</group_state>
+</robot>
