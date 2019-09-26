@@ -12,7 +12,10 @@ find_package(OpenSoT REQUIRED)
 find_package(ReflexxesTypeII REQUIRED)
 find_package(cartesian_interface REQUIRED)
 find_package(alglib QUIET)
-find_package(catkin REQUIRED COMPONENTS roscpp
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(matlogger2 REQUIRED)
+find_package(catkin REQUIRED COMPONENTS urdf
+                                        roscpp
                                         std_msgs
                                         geometry_msgs
                                         sensor_msgs
