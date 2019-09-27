@@ -1,0 +1,69 @@
+solver_options:
+    regularization: 1e-6
+    back_end: "qpoases"
+
+stack:
+    - ["LFoot", "RFoot"] #PosturalPennacchio
+    - ["LArm", "RArm"]
+    - ["CoM"] # CoM # CoMStabilizer #"Torso"
+    - ["Postural"]
+    
+constraints: ["JointLimits", "VelocityLimits"]
+
+################################################
+############### TASK DEFINITIONS ###############
+################################################
+
+LFoot:
+    type: "Cartesian"
+    distal_link: "l_sole"
+    base_link: "world"
+    lamda: 1
+
+RFoot:
+    type: "Cartesian"
+    distal_link: "r_sole"
+    base_link: "world"
+    lambda: 1
+
+WaistOrient:
+    type: "Cartesian"
+    distal_link: "Waist"
+    base_link: "world"
+    lambda: 0.1
+    indices: [3,4,5]
+#    weight: 0.07
+
+CoM:
+    type: "Com"
+    lambda: 1
+ 
+PosturalPennacchio:
+    type: "Postural"
+    lambda: 1.0
+    enabled_joints: ["WaistLat"]
+
+Postural:
+    type: "Postural"
+    lambda: 0.01
+
+LArm:
+    type: "Cartesian"
+    distal_link: "LSoftHand"
+    base_link: "world"
+    lambda: 1
+
+RArm:
+    type: "Cartesian"
+    distal_link: "RSoftHand"
+    base_link: "world"
+    lambda: 1
+
+Torso:
+    type: "Cartesian"
+    distal_link: "torso"
+    base_link: "world"
+    lambda: 0.1
+    indices: [3,4,5]
+
+
