@@ -5,6 +5,7 @@
 #include <pinocchio/algorithm/contact-dynamics.hpp>
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/algorithm/rnea.hpp>
+#include <pinocchio/algorithm/contact-dynamics.hpp>
 
 #include <urdf_parser/urdf_parser.h>
 
@@ -61,7 +62,12 @@ std::string generate_inv_dyn(std::string urdf_string)
     auto model = model_dbl.cast<Scalar>();
     pinocchio::DataTpl<Scalar> data(model);
     int nq = model.nq;
-    
+
+//    for(int i = 0; i < nq; i++)
+//    {
+//        std::cout << model.getJointName(i) << std::endl;
+//    }
+
     // casadi variabes
     casadi::SX u = casadi::SX::sym("u", nq); // control (qddot)
     casadi::SX q = casadi::SX::sym("q", nq), qdot = casadi::SX::sym("qdot", nq); // states
@@ -69,7 +75,10 @@ std::string generate_inv_dyn(std::string urdf_string)
     // Compute expression for inverse dynamics with Pinocchio
     pinocchio::rnea(model, data, cas_to_eig(q), cas_to_eig(qdot), cas_to_eig(u));
     auto tau = eig_to_cas(data.tau);
+//    auto tau_u = eig_to_cas(data.tau.head(6));
+//    auto tau_a = eig_to_cas(data.tau.tail(nq-6-1));
     casadi::Function ID("inverse_dynamics", {q, qdot, u}, {tau}, {"q", "qdot", "qddot"}, {"tau"});
+//    casadi::Function ID("inverse_dynamics", {q, qdot, u}, {tau_u,tau_a}, {"q", "qdot", "qddot"}, {"tau_u","tau_a"});
 
     std::stringstream ss;
     ss << ID.serialize();
