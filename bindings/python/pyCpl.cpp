@@ -26,7 +26,12 @@ PYBIND11_MODULE(pycpl, m) {
     py::class_<env::Ground, env::EnvironmentClass, std::shared_ptr<env::Ground>>(m, "Ground")
         .def(py::init())
         .def("SetGroundZ", &env::Ground::SetGroundZ);
-        
+
+    py::class_<env::Superquadric, env::EnvironmentClass, std::shared_ptr<env::Superquadric>>(m, "Superquadric")
+        .def(py::init())
+        .def("SetParameters", &env::Superquadric::SetParameters)
+        .def("GetParameters", &env::Superquadric::GetParameters);
+
     py::class_<solver::ContactValues>(m, "ContactValues")
         .def_readonly("force", &solver::ContactValues::force_value)
         .def_readonly("position", &solver::ContactValues::position_value)
