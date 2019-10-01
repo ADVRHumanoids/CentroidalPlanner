@@ -62,23 +62,16 @@ std::string generate_inv_dyn(std::string urdf_string)
     auto model = model_dbl.cast<Scalar>();
     pinocchio::DataTpl<Scalar> data(model);
     int nq = model.nq;
-
-//    for(int i = 0; i < nq; i++)
-//    {
-//        std::cout << model.getJointName(i) << std::endl;
-//    }
+    int nv = model.nv;
 
     // casadi variabes
-    casadi::SX u = casadi::SX::sym("u", nq); // control (qddot)
-    casadi::SX q = casadi::SX::sym("q", nq), qdot = casadi::SX::sym("qdot", nq); // states
+    casadi::SX u = casadi::SX::sym("u", nv); // control (qddot)
+    casadi::SX q = casadi::SX::sym("q", nq), qdot = casadi::SX::sym("qdot", nv); // states
 
     // Compute expression for inverse dynamics with Pinocchio
     pinocchio::rnea(model, data, cas_to_eig(q), cas_to_eig(qdot), cas_to_eig(u));
     auto tau = eig_to_cas(data.tau);
-//    auto tau_u = eig_to_cas(data.tau.head(6));
-//    auto tau_a = eig_to_cas(data.tau.tail(nq-6-1));
     casadi::Function ID("inverse_dynamics", {q, qdot, u}, {tau}, {"q", "qdot", "qddot"}, {"tau"});
-//    casadi::Function ID("inverse_dynamics", {q, qdot, u}, {tau_u,tau_a}, {"q", "qdot", "qddot"}, {"tau_u","tau_a"});
 
     std::stringstream ss;
     ss << ID.serialize();
@@ -117,4 +110,39 @@ std::string generate_forward_kin(std::string urdf_string, std::string body_name)
     ss << FK.serialize();
 
     return ss.str();
+}
+
+std::string generate_jacobian(std::string urdf_string, std::string body_name)
+{
+
+    auto urdf = urdf::parseURDF(urdf_string);
+
+    pinocchio::Model model_dbl;
+    pinocchio::urdf::buildModel(urdf, model_dbl, true);
+    pinocchio::Data data_dbl(model_dbl);
+
+    auto model = model_dbl.cast<Scalar>();
+    pinocchio::DataTpl<Scalar> data(model);
+    int nq = model.nq;
+
+    // casadi variabes
+    casadi::SX q = casadi::SX::sym("q", nq);
+
+    auto frame_idx = model.getFrameId(body_name);
+
+    // Compute expression for forward kinematics with Pinocchio
+    Eigen::Matrix<Scalar, 6, -1> J;
+    int nv = model.nv;
+    J.setZero(6, nv);
+    pinocchio::computeJointJacobians(model, data, cas_to_eig(q));
+    pinocchio::framesForwardKinematics(model, data, cas_to_eig(q));
+    pinocchio::frameJacobian(model, data, cas_to_eig(q),frame_idx, J);
+    auto Jac = eigmat_to_cas(J);
+    casadi::Function JACOBIAN("jacobian", {q}, {Jac}, {"q"}, {"J"});
+
+    std::stringstream ss;
+    ss << JACOBIAN.serialize();
+
+    return ss.str();
+
 }

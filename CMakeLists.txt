@@ -75,6 +75,8 @@ ADD_LIBRARY(Cpl SHARED
                        ${ENVIRONMENT_SOURCES}
                        ${CPL_SOURCES}
                        )
+
+ADD_LIBRARY(Pinocchio_bug include/CentroidalPlanner/Casadi/pinocchio_bug.cpp)
                     
 TARGET_LINK_LIBRARIES(Cpl PUBLIC
                                  ${OpenSoT_LIBRARIES}

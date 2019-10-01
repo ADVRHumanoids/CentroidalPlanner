@@ -12,6 +12,8 @@ PYBIND11_MODULE(pycpl_casadi, m) {
 
 
     m.def("generate_inv_dyn", generate_inv_dyn)
-     .def("generate_forward_kin", generate_forward_kin);
+     .def("generate_forward_kin", generate_forward_kin)
+     .def("generate_jacobian", generate_jacobian);
+
 
 }
