@@ -2,10 +2,9 @@
 from cartesian_interface.pyci_all import *
 import centroidal_planner.pycpl as cpl
 import numpy as np
-def main():
 
-    # get robot
-    
+def init():
+
     # get cartesio ros client
     ci = pyci.CartesianInterfaceRos()
 
@@ -16,15 +15,21 @@ def main():
 
     mass = 70.0
 
-    height_robot = (ci.getPoseFromTf('ci/com', 'ci/world_odom').translation)[2]
-    # --------------------  centroidal planner  ------------------------------------------------------------------------
-    # get environment (just ground)
-    env = cpl.Ground()
+    #height of ground
+    height_ground = (ci.getPoseFromTf('ci/com', 'ci/world_odom').translation)[2]
 
-    env.SetGroundZ(ci.getPoseReference('l_sole')[0].translation[2])
     # distance hands from feet
-    dist_hands_x = 0.5
-    dist_hands_y = 0.1
+    dist_hands = np.array([0.5, 0.1])
+    # size of the bound region for solver
+    bound_size = 0.25
+
+
+    return ci, feet_list, hands_list, contacts, mass, height_ground, dist_hands, bound_size
+
+def optimal_pos_sheep(ci, contacts, hands_list, feet_list, mass, dist_hands, bound_size) :
+
+    env = cpl.Ground()
+    env.SetGroundZ(ci.getPoseReference('l_sole')[0].translation[2])
 
     ctrl_pl = cpl.CentroidalPlanner(contacts, mass, env)
 
@@ -32,10 +37,7 @@ def main():
     # ctrl_pl.SetPosWeight(100000000)
     # ctrl_pl.SetForceWeight(0)
 
-    # size of the bound region for solver
-    bound_size = 0.25
-
-    # set position reference for links and set bounds
+    # set position reference and bounds for FEET
     for foot in feet_list :
         contact_foot = ci.getPoseReference(foot)[0].translation
         # contact_foot[2] = 0.
@@ -46,15 +48,16 @@ def main():
         print "Lower bound: ", lower_bound
         print "Upper bound: ", upper_bound
 
+    # set position reference and bounds for HANDS
     i = 0
     for hand in hands_list :
         contact_hand = ci.getPoseReference(feet_list[i])[0].translation
         # contact_hand[2] = 0.
-        contact_hand[0] += dist_hands_x
+        contact_hand[0] += dist_hands[0]
         if hand == "l_ball_tip":
-            contact_hand[1] += dist_hands_y
+            contact_hand[1] += dist_hands[1]
         else:
-            contact_hand[1] -= dist_hands_y
+            contact_hand[1] -= dist_hands[1]
 
         i = i+1
         ctrl_pl.SetPosRef(hand, contact_hand)
@@ -68,16 +71,11 @@ def main():
 
     print sol_centroidal
 
+    return ctrl_pl, sol_centroidal
+
     # print list(sol.contact_values_map)
-    # print sol.contact_values_map["l_sole"].force
-    # print sol.contact_values_map["l_sole"].position
-    # print sol.contact_values_map["l_sole"].normal
 
-    #===================================================================================================================
-    #===================================================================================================================
-    #===================================================================================================================
-
-    # ---------------------------- preparing tasks ---------------------------------------------------------------------
+def foot_positioning(ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_centroidal) :
 
     # HANDS WRT WAIST
     for hand_i in hands_list:
@@ -86,10 +84,8 @@ def main():
     # WAIST DISABLED
     ci.setControlMode('Waist', pyci.ControlType.Disabled)
 
-        # ci.setBaseLink(hand_i, )
 
-    # -------------------------- com planner ---------------------------------------------------------------------------
-    # set up com planner
+    # SET UP COM PLANNER
     com_pl = cpl.CoMPlanner(contacts, mass)
 
     # WEIGHTS
@@ -98,19 +94,21 @@ def main():
     com_pl.SetCoMWeight(1000000000000)    #100000.0
     com_pl.SetForceWeight(0.)  #0.0000001
 
-
+    # SET THRESHOLD FOR FEET
     for c in feet_list :
         com_pl.SetForceThreshold(c, 50.0)
 
     # SET FEET CONTACTS
     for c_f in feet_list :
-        contact_pos = ctrl_pl.GetPosRef(c_f)
+        # contact_pos = ctrl_pl.GetPosRef(c_f) # should be the same
+        contact_pos = ci.getPoseReference(c_f)[0].translation
         com_pl.SetContactPosition(c_f, contact_pos)
         print("Setting contact position for ", c_f, " to ", com_pl.GetContactPosition(c_f))
 
     # SET HANDS CONTACTS
     for c_h in hands_list :
-        contact_pos = ctrl_pl.GetPosRef(c_h)
+        # contact_pos = ctrl_pl.GetPosRef(c_h)
+        contact_pos = sol_centroidal.contact_values_map[c_h].position
         com_pl.SetContactPosition(c_h, contact_pos)
         print("Setting contact position for ", c_h, " to ", com_pl.GetContactPosition(c_h))
 
@@ -141,7 +139,7 @@ def main():
         # send commands to cartesio
 
         # move com
-        com_disp = [sol.com[0], sol.com[1], height_robot]
+        com_disp = [sol.com[0], sol.com[1], height_ground]
         print(com_disp)
         com_ci = Affine3(pos=com_disp)
         reach_time = 2.0
@@ -165,12 +163,12 @@ def main():
 
         # get contacts references from cartesio and set them to the planner
         for c in feet_list:
-            contact_pos = ctrl_pl.GetPosRef(c)
+            contact_pos = ci.getPoseReference(c)[0].translation
             com_pl.SetContactPosition(c, contact_pos)
             print("Setting contact position for ", c, " to ", com_pl.GetContactPosition(c))
 
 
-    # ============================== PUT BACK COM IN THE MIDDLE ========================================================
+    # PUT BACK COM IN THE MIDDLE
     for c_f in feet_list :
         contact_pos = ctrl_pl.GetPosRef(c_f)
         com_pl.SetContactPosition(c_f, contact_pos)
@@ -178,13 +176,14 @@ def main():
 
     sol = com_pl.Solve()
 
-    com_disp = [sol.com[0], sol.com[1], height_robot]
+    com_disp = [sol.com[0], sol.com[1], height_ground]
     com_ci = Affine3(pos=com_disp)
     reach_time = 2.0
     ci.setTargetPose('com', com_ci, reach_time)
     ci.waitReachCompleted('com')
     ci.update()
 
+def hand_positioning(ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_centroidal) :
     # ==================================================================================================================
     # SET HANDS WRT WORLD
     for hand_i in hands_list:
@@ -206,22 +205,92 @@ def main():
     ci.waitReachCompleted(hands_list[0])
     ci.waitReachCompleted(hands_list[1])
 
-    # ADVANCE WITH COM
-    com_advance = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
-    com_advance[0] = 0.15
-    com_ci = Affine3(pos=com_advance)
-    reach_time = 4.0
-    ci.setTargetPose('com', com_ci, reach_time)
-    ci.waitReachCompleted('com')
-    ci.update()
+    # # ADVANCE WITH COM
+    # com_advance = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+    # com_advance[0] = 0.15
+    # com_ci = Affine3(pos=com_advance)
+    # reach_time = 4.0
+    # ci.setTargetPose('com', com_ci, reach_time)
+    # ci.waitReachCompleted('com')
+    # ci.update()
 
-    # ==================================================================================================================
+def optimal_pos_wall(ci, contacts, hands_list, feet_list, mass) :
 
+
+    # get x osition of feet
+    contact_foot_l_x = ci.getPoseReference('l_sole')[0].translation[0]
+
+    # distance from wall
+    wall_distance = 0.5
+
+    # height from ground
+    height_contact = 0.5
+
+    bound_size_wall = 0.2
+
+    superquadric_env = cpl.Superquadric()
+    mu = 0.5
+    superquadric_env.SetMu(mu)
+    radius = 10
+
+    C = np.array([contact_foot_l_x, 0.0, radius])
+    R = np.array([wall_distance, 10.0, height_ground + radius])
+    P = np.array([10.0, 10.0, 10.0])
+    superquadric_env.SetParameters(C,R,P)
+
+
+    ctrl_pl = cpl.CentroidalPlanner(contacts, mass, superquadric_env)
+
+    # ctrl_pl.SetCoMWeight(100000)
+    # ctrl_pl.SetPosWeight(100000000)
+    # ctrl_pl.SetForceWeight(0)
+
+    # set position reference and bounds for HANDS
+    for hand in hands_list:
+        contact_foot = ci.getPoseReference(hand)[0].translation
+        ctrl_pl.SetPosRef(hand, contact_foot)
+        print "Setting contact position for", hand, " to ", ctrl_pl.GetPosRef(hand)
+        lower_bound = ctrl_pl.GetPosRef(hand) - bound_size
+        upper_bound = ctrl_pl.GetPosRef(hand) + bound_size
+        print "Lower bound: ", lower_bound
+        print "Upper bound: ", upper_bound
+
+    # # set position reference and bounds for FEET
+    for foot in feet_list:
+        contact_foot = [ci.getPoseReference(foot)[0].translation[0] - wall_distance, ci.getPoseReference(foot)[0].translation[1], height_ground + height_contact]
+
+
+
+
+        ctrl_pl.SetPosRef(foot, contact_foot)
+        print "Setting contact position for", foot, " to ", ctrl_pl.GetPosRef(foot)
+        lower_bound = ctrl_pl.GetPosRef(foot) - bound_size_wall
+        upper_bound = ctrl_pl.GetPosRef(foot) + bound_size_wall
+        print "Lower bound: ", lower_bound
+        print "Upper bound: ", upper_bound
+    #
+    sol_centroidal = ctrl_pl.Solve()
+    #
+    print sol_centroidal
+    #
+    # return ctrl_pl, sol_centroidal
+
+    # print list(sol.contact_values_map)
 if __name__ == '__main__':
 
     np.set_printoptions(precision=3, suppress=True)
 
-    main()
+
+    ci, feet_list, hands_list, contacts, mass, height_ground, dist_hands, bound_size = init()
+
+    ctrl_pl, sol_centroidal = optimal_pos_sheep(ci, contacts, hands_list, feet_list, mass, dist_hands, bound_size)
+
+    foot_positioning(ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_centroidal)
+
+    hand_positioning(ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_centroidal)
+
+    # optimal_pos_wall(ci, contacts, hands_list, feet_list, mass)
+
 
 
 
