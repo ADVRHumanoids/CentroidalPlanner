@@ -4,12 +4,16 @@ from cartesian_interface.pyci_all import *
 import matlogger2.matlogger as matl
 import centroidal_planner.pycpl_casadi as cpl_cas
 import rospy
+import xbot_interface.config_options as cfg
+import xbot_interface.xbot_interface as xbot
 
 logger = matl.MatLogger2('/tmp/test_casadi_log')
 logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
 # get cartesio ros client
 ci = pyci.CartesianInterfaceRos()
+opt = cfg.ConfigOptions()
+model = xbot.ModelInterface(opt)
 
 urdf = rospy.get_param('robot_description')
 
@@ -31,78 +35,96 @@ FK4 = Function.deserialize(fk4)
 id_string = cpl_cas.generate_inv_dyn(urdf)
 ID = Function.deserialize(id_string)
 
+jac_waist = cpl_cas.generate_jacobian(urdf, 'Waist')
+Jac_waist = Function.deserialize(jac_waist)
+
+jac_C1 = cpl_cas.generate_jacobian(urdf, 'Contact1')
+Jac_C1 = Function.deserialize(jac_C1)
+
+jac_C2 = cpl_cas.generate_jacobian(urdf, 'Contact2')
+Jac_C2 = Function.deserialize(jac_C2)
+
+jac_C3 = cpl_cas.generate_jacobian(urdf, 'Contact3')
+Jac_C3 = Function.deserialize(jac_C3)
+
+jac_C4 = cpl_cas.generate_jacobian(urdf, 'Contact4')
+Jac_C4 = Function.deserialize(jac_C4)
+
 tf = 1.  # Normalized time horizon
-ns = 50  # number of shooting nodes
+ns = 20  # number of shooting nodes
 
 nc = 4  # number of contacts
 
-nq = 18 + 1  # number of DoFs - TODO: check "universe" joint (+1 DoF)
+nq = 12+7  # number of DoFs - NB: 7 DoFs floating base (quaternions)
+nv = nq-1
+nf = 3*nc
 
-# Declare model variables
-t = SX.sym('t')
-T = SX.sym('T')
+# Model variables
 q = SX.sym('q', nq)
-qdot = SX.sym('qdot', nq)
-
+qdot = SX.sym('qdot', nv)
 # Control variables
-qddot = SX.sym('qddot', nq)
-f = SX.sym('f', 3*nc)
+qddot = SX.sym('qddot', nv)
+f = SX.sym('f', nf)
 
 x = vertcat(q, qdot)
-
-# Number of differential states
 nx = x.size1()
 
-# Number of controls
-nq = q.size1()
-nf = f.size1()
-
 # Bounds and initial guess for the control
-qddot_min = np.full((1, nq), -inf)
+qddot_min = np.full((1, nv), -inf)
 qddot_max = -qddot_min
 qddot_init = np.zeros_like(qddot_min)
 
-f_min = np.full((1, nf), -inf)
-f_max = -f_min
+f_min = np.tile(np.array([-100, -100, 20]), 4)
+f_min[2] = 0
+f_max = np.tile(np.array([100, 100, 1000]), 4)
 f_init = np.zeros_like(f_min)
 
 # Bounds and initial guess for the state # TODO: get from robot
 q_min = np.full((1, nq), -inf)
-# q_min = np.array([-10., -10., -10., 0., 0., 0., -2., -2., -2., -2., -2., -2., -2., -2., -2., -2., -2., -2., 0.])
 q_max = -q_min
-q_init = np.zeros_like(q_min)
+q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5])
 
-qdot_min = q_min
+qdot_min = np.full((1, nv), -inf)
 qdot_max = -qdot_min
-qdot_init = np.zeros_like(q_min)
+qdot_init = np.zeros_like(qdot_min)
 
-xmin = q_min
-xmin = np.append(xmin, qdot_min)
+xmin = np.append(q_min, qdot_min)
 xmax = -xmin
 
-xfmin = np.full((1, nx), -inf)
-xfmax = -xfmin
+x_init = np.append(q_init, np.zeros_like(qdot_min))
 
-x0_min = np.zeros_like(xmin)
-x0_max = x0_min
+x0_min = x_init
+x0_max = x_init
 
-x_init = np.zeros_like(xmin)
+# xf_min = x_init
+# xf_max = x_init
+xf_min = np.append(q_min, np.zeros_like(qdot_min))
+xf_max = np.append(q_max, np.zeros_like(qdot_min))
 
 # Model equations
-xdot = T*vertcat(qdot, qddot)
+S = SX.zeros(3, 3)
+S[0, 1] = -q[5]
+S[0, 2] = q[4]
+S[1, 0] = q[5]
+S[1, 2] = -q[3]
+S[2, 0] = -q[4]
+S[2, 1] = q[3]
+
+tmp1 = casadi.mtimes(0.5*(q[6]*SX.eye(3) - S), qdot[3:6])
+tmp2 = -0.5*casadi.mtimes(q[3:6].T, qdot[3:6])
+
+xdot = vertcat(qdot[0:3], tmp1, tmp2, qdot[6:18], qddot)
 
 # Objective term
-L = 0
+L = 0.1*dot(qddot, qddot)
 
 # Formulate discrete time dynamics
-
-# CVODES from the SUNDIALS suite
-dae = {'x': x, 'p': vertcat(qddot, T), 'ode': xdot, 'quad': L}
+dae = {'x': x, 'p': qddot, 'ode': xdot, 'quad': L}
 opts = {'tf': tf/ns}
 F = integrator('F', 'cvodes', dae, opts)
 
 # Start with an empty NLP
-NV = nx*(ns+1) + (nq+nf)*ns + 1
+NV = nx*(ns+1) + (nv + nf)*ns
 V = MX.sym('V', NV)
 
 # NLP vars bounds and init guess
@@ -139,12 +161,12 @@ for k in range(ns):
     offset += nx
 
     # Control at k-th node
-    Qddot.append(V[offset:offset+nq])
+    Qddot.append(V[offset:offset+nv])
     v_min += qddot_min.tolist()
     v_max += qddot_max.tolist()
     v_init += qddot_init.tolist()
 
-    offset += nq
+    offset += nv
 
     Force.append(V[offset:offset+nf])
     v_min += f_min.tolist()
@@ -155,16 +177,10 @@ for k in range(ns):
 
 # Final state
 X.append(V[offset:offset+nx])
-v_min += xfmin.tolist()
-v_max += xfmax.tolist()
+v_min += xf_min.tolist()
+v_max += xf_max.tolist()
 v_init += x_init.tolist()
 offset += nx
-
-# Trajectory time
-v_min += [0.0]
-v_max += [100.0]
-v_init += [1.0]
-offset += 1
 
 assert offset == NV
 
@@ -173,55 +189,20 @@ J = MX([0])
 g = []
 
 Waist_pos_hist = MX(Sparsity.dense(3, ns))
-Waist_vel_hist = MX(Sparsity.dense(3, ns))
-
-Waist_pos = None
-Waist_vel = None
-
-for k in range(ns):
-
-    integrator_out = F(x0=X[k], p=vertcat(Qddot[k], Time))
-
-    g += [integrator_out['xf'] - X[k+1]]
-    g_min += [0] * X[k + 1].size1()
-    g_max += [0] * X[k + 1].size1()
-
-    J += integrator_out['qf']
-
-    #if k == ns:
-    Q_k = X[k][0:nq]
-    Qdot_k = X[k][nq:2*nq]
-
-    Waist_pos = FK_waist(q=Q_k)['ee_pos']
-    dFK_dq = FK_waist.jacobian_old(0, 0)
-
-    dWaist_pos_dq = dFK_dq(Q_k)[0]
-    Waist_vel = mtimes(dWaist_pos_dq, Qdot_k)
-    Waist_pos_ref = MX([0, 0, 0])
-
-    Waist_pos_hist[0:3, k] = Waist_pos
-    Waist_vel_hist[0:3, k] = Waist_vel
-
-    J += 1000.0 * dot(Waist_pos - Waist_pos_ref, Waist_pos - Waist_pos_ref)
-    # J += 1000.0 * dot(Waist_vel, Waist_vel)
-
-
-tau_u_history = MX(Sparsity.dense(6, ns))
-tau_a_history = MX(Sparsity.dense(12, ns))
-tau0 = np.zeros((6, 1))
-tau_min = np.full((1, 12), -10.)
-tau_max = -tau_min
-
-Fc1_history = MX(Sparsity.dense(3, ns))
-Fc2_history = MX(Sparsity.dense(3, ns))
-Fc3_history = MX(Sparsity.dense(3, ns))
-Fc4_history = MX(Sparsity.dense(3, ns))
-
+Waist_vel_hist = MX(Sparsity.dense(6, ns))
 C1_history = MX(Sparsity.dense(3, ns))
 C2_history = MX(Sparsity.dense(3, ns))
 C3_history = MX(Sparsity.dense(3, ns))
 C4_history = MX(Sparsity.dense(3, ns))
+Fc1_history = MX(Sparsity.dense(3, ns))
+Fc2_history = MX(Sparsity.dense(3, ns))
+Fc3_history = MX(Sparsity.dense(3, ns))
+Fc4_history = MX(Sparsity.dense(3, ns))
+tau_u_history = MX(Sparsity.dense(6, ns))
+tau_a_history = MX(Sparsity.dense(12, ns))
 
+Waist_pos = None
+Waist_vel = None
 C1_pos = None
 C2_pos = None
 C3_pos = None
@@ -229,55 +210,72 @@ C4_pos = None
 
 for k in range(ns):
 
+    integrator_out = F(x0=X[k], p=Qddot[k])
+
     Q_k = X[k][0:nq]
-    Qdot_k = X[k][nq:2 * nq]
+    Qdot_k = X[k][nq:nq + nv]
 
-    Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau']
-
-    tau_u_history[0:6, k] = Tau_k[0:6]
-    tau_a_history[0:12, k] = Tau_k[6:18]
-
+    Waist_pos = FK_waist(q=Q_k)['ee_pos']
     C1_pos = FK1(q=Q_k)['ee_pos']
-    dFK1_dq = FK1.jacobian_old(0, 0)
-    dC1_pos_dq = dFK1_dq(Q_k)[0]
-
     C2_pos = FK2(q=Q_k)['ee_pos']
-    dFK2_dq = FK2.jacobian_old(0, 0)
-    dC2_pos_dq = dFK2_dq(Q_k)[0]
-
     C3_pos = FK3(q=Q_k)['ee_pos']
-    dFK3_dq = FK3.jacobian_old(0, 0)
-    dC3_pos_dq = dFK3_dq(Q_k)[0]
-
     C4_pos = FK4(q=Q_k)['ee_pos']
-    dFK4_dq = FK4.jacobian_old(0, 0)
-    dC4_pos_dq = dFK4_dq(Q_k)[0]
 
-    Fc1_history[0:3, k] = Force[k][0:3]
-    Fc2_history[0:3, k] = Force[k][3:6]
-    Fc3_history[0:3, k] = Force[k][6:9]
-    Fc4_history[0:3, k] = Force[k][9:12]
+    Waist_jac = Jac_waist(q=Q_k)['J']
+    C1_jac = Jac_C1(q=Q_k)['J']
+    C2_jac = Jac_C2(q=Q_k)['J']
+    C3_jac = Jac_C3(q=Q_k)['J']
+    C4_jac = Jac_C4(q=Q_k)['J']
 
+    Waist_vel = mtimes(Waist_jac, Qdot_k)
+
+    JtF_k = mtimes(C1_jac.T, vertcat(Force[k][0:3], MX.zeros(3, 1))) + \
+            mtimes(C2_jac.T, vertcat(Force[k][3:6], MX.zeros(3, 1))) + \
+            mtimes(C3_jac.T, vertcat(Force[k][6:9], MX.zeros(3, 1))) + \
+            mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
+
+    Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
+
+    J += integrator_out['qf']
+
+    Waist_pos_ref = MX([0, 0, 0])
+    C1_pos_ref = MX([0.3, 0.2, -0.5])
+    C2_pos_ref = MX([0.3, -0.2, -0.5])
+    C3_pos_ref = MX([-0.3, -0.2, -0.5])
+    C4_pos_ref = MX([-0.3, 0.2, -0.5])
+
+    J += dot(Waist_pos - Waist_pos_ref, Waist_pos - Waist_pos_ref)
+    J += dot(C1_pos - C1_pos_ref, C1_pos - C1_pos_ref)
+    J += dot(C2_pos - C2_pos_ref, C2_pos - C2_pos_ref)
+    J += dot(C3_pos - C3_pos_ref, C3_pos - C3_pos_ref)
+    J += dot(C4_pos - C4_pos_ref, C4_pos - C4_pos_ref)
+
+    g += [integrator_out['xf'] - X[k+1]]
+    g_min += [0] * X[k + 1].size1()
+    g_max += [0] * X[k + 1].size1()
+
+    g += [Tau_k[0:6]]
+    g_min += np.zeros((6, 1)).tolist()
+    g_max += np.zeros((6, 1)).tolist()
+
+    if k >= ns/2:
+        g += [Force[k][0:3]]
+        g_min += np.zeros((3, 1)).tolist()
+        g_max += np.zeros((3, 1)).tolist()
+
+    Waist_pos_hist[0:3, k] = Waist_pos
+    Waist_vel_hist[0:6, k] = Waist_vel
     C1_history[0:3, k] = C1_pos
     C2_history[0:3, k] = C2_pos
     C3_history[0:3, k] = C3_pos
     C4_history[0:3, k] = C4_pos
+    Fc1_history[0:3, k] = Force[k][0:3]
+    Fc2_history[0:3, k] = Force[k][3:6]
+    Fc3_history[0:3, k] = Force[k][6:9]
+    Fc4_history[0:3, k] = Force[k][9:12]
+    tau_u_history[0:6, k] = Tau_k[0:6]
+    tau_a_history[0:12, k] = Tau_k[6:18]
 
-    JtF_k = mtimes(dC1_pos_dq.T, Force[k][0:3]) + \
-            mtimes(dC2_pos_dq.T, Force[k][3:6]) + \
-            mtimes(dC3_pos_dq.T, Force[k][6:9]) + \
-            mtimes(dC4_pos_dq.T, Force[k][9:12])
-
-    g += [Tau_k[0:6] - JtF_k[0:6]]
-    g_min += tau0.tolist()
-    g_max += tau0.tolist()
-
-    g += [Tau_k[6:18] - JtF_k[6:18]]
-    g_min += tau_min.tolist()
-    g_max += tau_max.tolist()
-
-
-J += Time
 
 g = vertcat(*g)
 v_init = vertcat(*v_init)
@@ -286,19 +284,25 @@ g_max = vertcat(*g_max)
 v_min = vertcat(*v_min)
 v_max = vertcat(*v_max)
 
+
 # Create an NLP solver
 prob = {'f': J, 'x': V, 'g': g}
 opts = {'ipopt.tol': 1e-5,
-        'ipopt.max_iter': 100,
+        'ipopt.max_iter': 200,
         'ipopt.linear_solver': 'ma57'}
 solver = nlpsol('solver', 'ipopt', prob, opts)
 
 # Solve the NLP
-sol = solver(x0=v_init, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max)
+sol1 = solver(x0=v_init, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max)
+w_opt1 = sol1['x'].full().flatten()
+lam_w_opt = sol1['lam_x']
+lam_g_opt = sol1['lam_g']
+
+sol = solver(x0=w_opt1, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max, lam_x0=lam_w_opt, lam_g0=lam_g_opt)
 w_opt = sol['x'].full().flatten()
 
 # Plot the solution
-tgrid = [w_opt[-1]/ns*k for k in range(ns+1)]
+tgrid = [tf/ns*k for k in range(ns+1)]
 
 F_tau_u_hist = Function("F_tau_u_hist", [V], [tau_u_history])
 tau_u_hist_value = F_tau_u_hist(w_opt).full()
@@ -330,24 +334,23 @@ C4_hist = Function("C4_hist", [V], [C4_history])
 C4_hist_value = C4_hist(w_opt).full()
 
 q_opt = np.zeros((nq, ns+1))
-qdot_opt = np.zeros((nq, ns+1))
-qddot_opt = np.zeros((nq, ns))
+qdot_opt = np.zeros((nv, ns+1))
+qddot_opt = np.zeros((nv, ns))
 
 for k in range(ns+1):
-    q_opt[:, k] = w_opt[((3*nq+nf)*k):((3*nq+nf)*k + nq)]
-    qdot_opt[:, k] = w_opt[((3*nq+nf)*k + nq):((3*nq+nf)*k + 2*nq)]
+    q_opt[:, k] = w_opt[((nq+2*nv+nf)*k):((nq+2*nv+nf)*k + nq)]
+    qdot_opt[:, k] = w_opt[((nq+2*nv+nf)*k + nq):((nq+2*nv+nf)*k + nq + nv)]
 
     if k < ns:
-        qddot_opt[:, k] = w_opt[((3*nq+nf)*k + 2*nq):((3*nq+nf) * k + 3*nq)]
+        qddot_opt[:, k] = w_opt[((nq+2*nv+nf)*k + nq + nv):((nq+2*nv+nf) * k + nq + 2*nv)]
 
 logger.add('q', q_opt)
 logger.add('qdot', qdot_opt)
 logger.add('qddot', qddot_opt)
 logger.add('tau_u', tau_u_hist_value)
 logger.add('tau_a', tau_a_hist_value)
-logger.add('Waist_vel', Waist_vel_value)
+logger.add('Waist_twist', Waist_vel_value)
 logger.add('Waist_pos', Waist_pos_value)
-logger.add('tf', w_opt[-1])
 logger.add('Fc1', Fc1_hist_value)
 logger.add('Fc2', Fc2_hist_value)
 logger.add('Fc3', Fc3_hist_value)
@@ -356,46 +359,6 @@ logger.add('C1', C1_hist_value)
 logger.add('C2', C2_hist_value)
 logger.add('C3', C3_hist_value)
 logger.add('C4', C4_hist_value)
-
-
-print('tf: ', w_opt[-1])
+logger.add('t', tgrid)
 
 del(logger)
-
-# import matplotlib.pyplot as plt
-#
-# plt.figure(1)
-# plt.clf()
-# plt.plot(tgrid, q_opt.transpose())
-# plt.xlabel('t')
-# plt.ylabel('q')
-# plt.grid()
-#
-# plt.figure(2)
-# plt.plot(tgrid, qdot_opt.transpose())
-# plt.xlabel('t')
-# plt.ylabel('qdot')
-# plt.grid()
-#
-# plt.figure(3)
-# plt.step(tgrid[0:ns], qddot_opt.transpose())
-# plt.xlabel('t')
-# plt.ylabel('qddot')
-# plt.grid()
-#
-# plt.figure(4)
-# plt.plot(tgrid[0:ns], tau_u_hist_value.transpose())
-# plt.xlabel('t')
-# plt.ylabel('tau')
-# plt.grid()
-#
-# plt.figure(5)
-# plt.plot(tgrid[0:ns], Waist_vel_value.transpose())
-# plt.xlabel('t')
-# plt.ylabel('waist_vel')
-# plt.grid()
-#
-# plt.show()
-
-
-print('Exiting..')
