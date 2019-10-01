@@ -1,11 +1,11 @@
 solver_options:
-    regularization: 1e-6
-    back_end: "qpoases"
+    regularization: 1e-2
+    back_end: "osqp"
 
 stack:
     - ["LFoot", "RFoot"] #PosturalPennacchio
     - ["LArm", "RArm"]
-    - ["CoM"] # CoM # CoMStabilizer #"Torso"
+    - ["CoM", "Torso", "WaistZ"]
     - ["Postural"]
     
 constraints: ["JointLimits", "VelocityLimits"]
@@ -26,17 +26,31 @@ RFoot:
     base_link: "world"
     lambda: 1
 
-WaistOrient:
+WaistZ:
     type: "Cartesian"
     distal_link: "Waist"
     base_link: "world"
     lambda: 0.1
+    indices: [2]
+#    weight: 0.07
+
+WaistOrient:
+    type: "Cartesian"
+    distal_link: "Waist"
+    base_link: "world"
+    lambda: 0.5
     indices: [3,4,5]
 #    weight: 0.07
 
 CoM:
     type: "Com"
     lambda: 1
+    indices: [0,1]
+
+CoMZ:
+    type: "Com"
+    lambda: 1
+    indices: [2]
  
 PosturalPennacchio:
     type: "Postural"
@@ -49,14 +63,16 @@ Postural:
 
 LArm:
     type: "Cartesian"
-    distal_link: "LSoftHand"
-    base_link: "world"
+    distal_link: "l_ball_tip"
+    base_link: "Waist"
+    indices: [0,1,2]
     lambda: 1
 
 RArm:
     type: "Cartesian"
-    distal_link: "RSoftHand"
-    base_link: "world"
+    distal_link: "r_ball_tip"
+    base_link: "Waist"
+    indices: [0,1,2]
     lambda: 1
 
 Torso:
@@ -65,5 +81,6 @@ Torso:
     base_link: "world"
     lambda: 0.1
     indices: [3,4,5]
+    weight: 0.001
 
 
