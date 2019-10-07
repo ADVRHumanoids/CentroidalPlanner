@@ -51,7 +51,7 @@ jac_C4 = cpl_cas.generate_jacobian(urdf, 'Contact4')
 Jac_C4 = Function.deserialize(jac_C4)
 
 tf = 2.  # Normalized time horizon
-ns = 30  # number of shooting nodes
+ns = 25  # number of shooting nodes
 
 nc = 4  # number of contacts
 
@@ -67,21 +67,21 @@ f = SX.sym('f', nf)
 t = MX.sym('t', ns)
 
 # Bounds and initial guess for the control
-qddot_min = np.full((1, nv), -10.)
+qddot_min = np.full((1, nv), -1000.)
 qddot_max = -qddot_min
 qddot_init = np.zeros_like(qddot_min)
 
 # f_min = np.tile(np.array([-100, -100, 20]), 4)
 # f_min[2] = 0
-f_min = np.tile(np.array([-100, -100, 0]), 4)
-f_max = np.tile(np.array([100, 100, inf]), 4)
+f_min = np.tile(np.array([-1000., -1000., 0.]), 4)
+f_max = np.tile(np.array([1000., 1000., 1000.]), 4)
 f_init = np.zeros_like(f_min)
 
 # Bounds and initial guess for the state # TODO: get from robot
 # q_min = np.full((1, nq), -inf)
 # q_max = -q_min
 q_min = np.array([-inf, -inf, -inf, -inf, -inf, -inf, -inf, 0.2, 0.1, -0.5, 0.2, -0.3, -0.5, -0.4, -0.3, -0.5, -0.4, 0.1, -0.5])
-q_max = np.array([inf,  inf,  inf,  inf,  inf,  inf,  inf, 0.4, 0.3, -0.1, 0.4, -0.1, -0.1, -0.2, -0.1, -0.1, -0.2, 0.3, -0.1])
+q_max = np.array([inf,  inf,  inf,  inf,  inf,  inf,  inf, 0.5, 0.3, -0.2, 0.5, -0.1, -0.1, -0.2, -0.1, -0.2, -0.1, 0.3, -0.2])
 q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5])
 
 qdot_min = np.full((1, nv), -inf)
@@ -198,16 +198,16 @@ for k in range(ns):
     offset += nf
 
     Time.append(V[offset:offset+1])
-    v_min += np.array([1./ns]).tolist()
-    v_max += np.array([2./ns]).tolist()
-    v_init += np.array([1./ns]).tolist()
+    v_min += np.array([1./20]).tolist()
+    v_max += np.array([3./20]).tolist()
+    v_init += np.array([1./20]).tolist()
 
     offset += 1
 
 # Final state
 X.append(V[offset:offset+nx])
-v_min += xf_min.tolist()
-v_max += xf_max.tolist()
+v_min += xmin.tolist()
+v_max += xmax.tolist()
 v_init += x_init.tolist()
 offset += nx
 
@@ -282,9 +282,13 @@ for k in range(ns):
             mtimes(C3_jac.T, vertcat(Force[k][6:9], MX.zeros(3, 1))) + \
             mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
 
-    Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
+    if k >= 10 and k < 19:
+        Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau']
 
-    Waist_pos_ref = MX([0, 0, 1])
+    if k < 10 or k >= 19:
+        Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
+
+    Waist_pos_ref = MX([0, 0, 1.])
 
     C1_pos_ref = MX([0.3, 0.2, -0.5])
     C2_pos_ref = MX([0.3, -0.2, -0.5])
@@ -296,43 +300,60 @@ for k in range(ns):
     C4_pos_ref2 = MX([-0.3, 0.2, -0.1])
 
     J += integrator_out['qf']
-    # J += dot(Waist_pos - Waist_pos_ref, Waist_pos - Waist_pos_ref)
+    J += 100.*Time[k]
 
-    if ns/3 < k <= 2*ns/3:
-        J += dot(Waist_pos - Waist_pos_ref, Waist_pos - Waist_pos_ref)
-    else:
-        J += 50.*dot(C1_pos - C1_pos_ref, C1_pos - C1_pos_ref)
-        J += 50.*dot(C2_pos - C2_pos_ref, C2_pos - C2_pos_ref)
-        J += 50.*dot(C3_pos - C3_pos_ref1, C3_pos - C3_pos_ref1)
-        J += 50.*dot(C4_pos - C4_pos_ref1, C4_pos - C4_pos_ref1)
+    J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
+    J += 100.*dot(Qdot_k[0:6], Qdot_k[0:6])
+
+    if k >= 10 and k < 19 :
+        J += 1000.*dot(Waist_pos[2] - MX([0.2]), Waist_pos[2] - MX([0.2]))
 
     g += [integrator_out['xf'] - X[k+1]]
     g_min += [0] * X[k + 1].size1()
     g_max += [0] * X[k + 1].size1()
 
-    g += [Tau_k]
-    g_min += np.append(np.zeros((6, 1)), np.full((12, 1), -inf)).tolist()
-    g_max += np.append(np.zeros((6, 1)), np.full((12, 1), inf)).tolist()
+    g += [Tau_k[0:6]]
+    g_min += np.zeros((6, 1)).tolist()
+    g_max += np.zeros((6, 1)).tolist()
 
-    if ns/3 < k <= 2*ns/3:
+    # g += [Tau_k]
+    # g_min += np.append(np.zeros((6, 1)), np.full((12, 1), -400.)).tolist()
+    # g_max += np.append(np.zeros((6, 1)), np.full((12, 1), 400.)).tolist()
+
+    if k >= 10 and k < 19:
         g += [Force[k]]
         g_min += np.zeros((nf, 1)).tolist()
         g_max += np.zeros((nf, 1)).tolist()
-    # else:
-    #     g += [C1_pos, C2_pos, C3_pos, C4_pos]
-    #     g_min += np.array([0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5]).tolist()
-    #     g_max += np.array([0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5]).tolist()
 
-    # if k == ns/2:
-    #     g += [Waist_pos]
-    #     g_min += np.array([0, 0, 1]).tolist()
-    #     g_max += np.array([0, 0, 1]).tolist()
+    if k <= 10:  # or k >= 19:
+        g += [C1_pos, C2_pos, C3_pos, C4_pos]
+        g_min += np.array([0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5]).tolist()
+        g_max += np.array([0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5]).tolist()
+
+    if k >= 19:
+        g += [C1_pos, C2_pos, C3_pos, C4_pos]
+        g_min += np.array([0.5, 0.2, -0.5, 0.5, -0.2, -0.5, -0.1, -0.2, -0.5, -0.1, 0.2, -0.5]).tolist()
+        g_max += np.array([0.5, 0.2, -0.5, 0.5, -0.2, -0.5, -0.1, -0.2, -0.5, -0.1, 0.2, -0.5]).tolist()
+
+    if k >= 24:
+        g += [Waist_pos]
+        g_min += np.array([0.2, 0, 0.0]).tolist()
+        g_max += np.array([0.2, 0, 0.0]).tolist()
+
+    if k >= 24:
+        g += [Waist_vel]
+        g_min += np.zeros((6, 1)).tolist()
+        g_max += np.zeros((6, 1)).tolist()
 
     # Linearized friction cones
     g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6]),
           mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
     g_max += np.zeros((20, 1)).tolist()
     g_min += np.full((20, 1), -inf).tolist()
+
+    # g += [Q_k[3:7]]
+    # g_max += np.array([0., 0., 0., 1.]).tolist()
+    # g_min += np.array([0., 0., 0., 1.]).tolist()
 
     Waist_pos_hist[0:3, k] = Waist_pos
     Waist_vel_hist[0:6, k] = Waist_vel
@@ -363,7 +384,7 @@ v_max = vertcat(*v_max)
 # Create an NLP solver
 prob = {'f': J, 'x': V, 'g': g}
 opts = {'ipopt.tol': 1e-5,
-        'ipopt.max_iter': 300,
+        'ipopt.max_iter': 1000,
         'ipopt.linear_solver': 'ma57'}
 solver = nlpsol('solver', 'ipopt', prob, opts)
 
@@ -438,6 +459,7 @@ logger.add('C3', C3_hist_value)
 logger.add('C4', C4_hist_value)
 logger.add('t', tgrid)
 logger.add('h', h_hist_value)
+logger.add('ns', ns)
 
 del(logger)
 
