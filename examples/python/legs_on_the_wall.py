@@ -71,15 +71,11 @@ qddot_min = np.full((1, nv), -1000.)
 qddot_max = np.full((1, nv), 1000.)
 qddot_init = np.zeros_like(qddot_min)
 
-# f_min = np.tile(np.array([-100, -100, 20]), 4)
-# f_min[2] = 0
 f_min = np.tile(np.array([-1000., -1000., -1000.]), 4)
 f_max = np.tile(np.array([1000., 1000., 1000.]), 4)
 f_init = np.zeros_like(f_min)
 
 # Bounds and initial guess for the state # TODO: get from robot
-# q_min = np.full((1, nq), -inf)
-# q_max = -q_min
 q_min = np.array([-inf, -inf, -inf, -inf, -inf, -inf, -inf, 0.1, 0.0, -0.5, 0.1, -0.4, -0.5, -0.5, -0.4, -0.5, -0.5, 0.0, -0.5])
 q_max = np.array([inf,  inf,  inf,  inf,  inf,  inf,  inf, 0.5, 0.4, -0.2, 0.5, 0.0, -0.2, -0.1, 0.0, -0.2, -0.1, 0.4, -0.2])
 q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5])
@@ -121,11 +117,6 @@ nx = x.size1()
 
 # Objective term
 L = 0.1*dot(qddot, qddot)
-
-# Formulate discrete time dynamics
-dae = {'x': x, 'p': qddot, 'ode': xdot, 'quad': L}
-opts = {'tf': tf/ns}
-F_int = integrator('F_int', 'cvodes', dae, opts)
 
 # Runge-Kutta 4 integrator
 f_RK = Function('f_RK', [x, qddot], [xdot, L])
@@ -223,6 +214,10 @@ C1_history = MX(Sparsity.dense(3, ns))
 C2_history = MX(Sparsity.dense(3, ns))
 C3_history = MX(Sparsity.dense(3, ns))
 C4_history = MX(Sparsity.dense(3, ns))
+C1_vel_history = MX(Sparsity.dense(6, ns))
+C2_vel_history = MX(Sparsity.dense(6, ns))
+C3_vel_history = MX(Sparsity.dense(6, ns))
+C4_vel_history = MX(Sparsity.dense(6, ns))
 Fc1_history = MX(Sparsity.dense(3, ns))
 Fc2_history = MX(Sparsity.dense(3, ns))
 Fc3_history = MX(Sparsity.dense(3, ns))
@@ -240,6 +235,11 @@ C1_pos = None
 C2_pos = None
 C3_pos = None
 C4_pos = None
+
+C1_vel = None
+C2_vel = None
+C3_vel = None
+C4_vel = None
 
 mu = 1.0
 mu_lin = mu/2.0*sqrt(2.0)
@@ -264,7 +264,6 @@ A_fr_R = mtimes(A_fr, R_wall)
 
 for k in range(ns):
 
-    # integrator_out = F_int(x0=X[k], p=Qddot[k])
     integrator_out = F_RK(x0=X[k], p=Qddot[k], time=Time[k])
 
     Q_k = X[k][0:nq]
@@ -283,6 +282,10 @@ for k in range(ns):
     C4_jac = Jac_C4(q=Q_k)['J']
 
     Waist_vel = mtimes(Waist_jac, Qdot_k)
+    C1_vel = mtimes(C1_jac, Qdot_k)
+    C2_vel = mtimes(C2_jac, Qdot_k)
+    C3_vel = mtimes(C3_jac, Qdot_k)
+    C4_vel = mtimes(C4_jac, Qdot_k)
 
     JtF_k = mtimes(C1_jac.T, vertcat(Force[k][0:3], MX.zeros(3, 1))) + \
             mtimes(C2_jac.T, vertcat(Force[k][3:6], MX.zeros(3, 1))) + \
@@ -295,7 +298,11 @@ for k in range(ns):
     J += 100*Time[k]
     J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
     J += 100*dot(Qdot_k[0:6], Qdot_k[0:6])
-    J += 1000.*dot(Waist_pos, Waist_pos)
+    J += 1000.*dot(Waist_pos[1], Waist_pos[1])
+
+    if 10 < k < 20:
+        J += 100.*dot(C3_vel[0], C3_vel[0])
+        J += 100.*dot(C4_vel[0], C4_vel[0])
 
     g += [integrator_out['xf'] - X[k+1]]
     g_min += [0] * X[k + 1].size1()
@@ -309,8 +316,8 @@ for k in range(ns):
     C2_pos_ground = [0.3, -0.2, -0.5]
     C3_pos_ground = [-0.3, -0.2, -0.5]
     C4_pos_ground = [-0.3, 0.2, -0.5]
-    C3_pos_wall = [-0.4, -0.2, -0.3]
-    C4_pos_wall = [-0.4, 0.2, -0.3]
+    C3_pos_wall = [-0.45, -0.2, -0.3]
+    C4_pos_wall = [-0.45, 0.2, -0.3]
 
     g += [C1_pos, C2_pos]
     g_min += np.array([C1_pos_ground, C2_pos_ground]).tolist()
@@ -325,6 +332,11 @@ for k in range(ns):
         g += [C3_pos, C4_pos]
         g_min += np.array([C3_pos_wall, C4_pos_wall]).tolist()
         g_max += np.array([C3_pos_wall, C4_pos_wall]).tolist()
+
+    if k >= 20 or k <= 10:
+        g += [C3_vel, C4_vel]
+        g_min += np.zeros((12, 1)).tolist()
+        g_max += np.zeros((12, 1)).tolist()
 
     if 10 <= k < 20:
         g += [Force[k][6:12]]
@@ -362,6 +374,10 @@ for k in range(ns):
     C2_history[0:3, k] = C2_pos
     C3_history[0:3, k] = C3_pos
     C4_history[0:3, k] = C4_pos
+    C1_vel_history[0:3, k] = C1_vel[0:3]
+    C2_vel_history[0:3, k] = C2_vel[0:3]
+    C3_vel_history[0:3, k] = C3_vel[0:3]
+    C4_vel_history[0:3, k] = C4_vel[0:3]
     Fc1_history[0:3, k] = Force[k][0:3]
     Fc2_history[0:3, k] = Force[k][3:6]
     Fc3_history[0:3, k] = Force[k][6:9]
@@ -390,23 +406,16 @@ opts = {'ipopt.tol': 1e-5,
 solver = nlpsol('solver', 'ipopt', prob, opts)
 
 # Solve the NLP
-sol1 = solver(x0=v_init, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max)
-w_opt1 = sol1['x'].full().flatten()
-lam_w_opt = sol1['lam_x']
-lam_g_opt = sol1['lam_g']
-
-# sol = solver(x0=w_opt1, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max, lam_x0=lam_w_opt, lam_g0=lam_g_opt)
-# w_opt = sol['x'].full().flatten()
-
-w_opt = w_opt1
+sol = solver(x0=v_init, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max)
+w_opt = sol['x'].full().flatten()
+lam_w_opt = sol['lam_x']
+lam_g_opt = sol['lam_g']
 
 # Plot the solution
-tgrid = [1./ns*k for k in range(ns+1)]
-
-F_tau_u_hist = Function("F_tau_u_hist", [V], [tau_u_history])
-tau_u_hist_value = F_tau_u_hist(w_opt).full()
-F_tau_a_hist = Function("F_tau_a_hist", [V], [tau_a_history])
-tau_a_hist_value = F_tau_a_hist(w_opt).full()
+tau_u_hist = Function("tau_u_hist", [V], [tau_u_history])
+tau_u_hist_value = tau_u_hist(w_opt).full()
+tau_a_hist = Function("tau_a_hist", [V], [tau_a_history])
+tau_a_hist_value = tau_a_hist(w_opt).full()
 
 Waist_vel = Function("Waist_vel", [V], [Waist_vel_hist])
 Waist_vel_value = Waist_vel(w_opt).full()
@@ -432,6 +441,15 @@ C3_hist_value = C3_hist(w_opt).full()
 C4_hist = Function("C4_hist", [V], [C4_history])
 C4_hist_value = C4_hist(w_opt).full()
 
+C1_vel_hist = Function("C1_vel_hist", [V], [C1_vel_history])
+C1_vel_hist_value = C1_vel_hist(w_opt).full()
+C2_vel_hist = Function("C2_vel_hist", [V], [C2_vel_history])
+C2_vel_hist_value = C2_vel_hist(w_opt).full()
+C3_vel_hist = Function("C3_vel_hist", [V], [C3_vel_history])
+C3_vel_hist_value = C3_vel_hist(w_opt).full()
+C4_vel_hist = Function("C4_vel_hist", [V], [C4_vel_history])
+C4_vel_hist_value = C4_vel_hist(w_opt).full()
+
 q_hist = Function("q_hist", [V], [q_history])
 q_hist_value = q_hist(w_opt).full()
 qdot_hist = Function("qdot_hist", [V], [qdot_history])
@@ -441,7 +459,6 @@ qddot_hist_value = qddot_hist(w_opt).full()
 
 h_hist = Function("h_hist", [V], [h_history])
 h_hist_value = h_hist(w_opt).full()
-
 
 logger.add('q', q_hist_value)
 logger.add('qdot', qdot_hist_value)
@@ -458,9 +475,71 @@ logger.add('C1', C1_hist_value)
 logger.add('C2', C2_hist_value)
 logger.add('C3', C3_hist_value)
 logger.add('C4', C4_hist_value)
-logger.add('t', tgrid)
+logger.add('C1_vel', C1_vel_hist_value)
+logger.add('C2_vel', C2_vel_hist_value)
+logger.add('C3_vel', C3_vel_hist_value)
+logger.add('C4_vel', C4_vel_hist_value)
 logger.add('h', h_hist_value)
 logger.add('ns', ns)
+
+
+# Resampler
+dt = 0.001
+
+# Formulate discrete time dynamics
+dae = {'x': x, 'p': qddot, 'ode': xdot, 'quad': []}
+opts = {'tf': dt}
+F_int = integrator('F_int', 'cvodes', dae, opts)
+
+Tf = 0.0
+T_i = {}
+for k in range(ns):
+
+    if k == 0:
+        T_i[k] = 0.0
+    else:
+        T_i[k] = T_i[k-1] + h_hist_value[0, k-1]
+
+    Tf += h_hist_value[0, k]
+
+print(T_i)
+
+n_res = int(round(Tf/dt))
+
+q_res = MX(Sparsity.dense(nq, n_res+1))
+qdot_res = MX(Sparsity.dense(nv, n_res+1))
+qddot_res = MX(Sparsity.dense(nv, n_res+1))
+F_res = MX(Sparsity.dense(nf, n_res+1))
+X_res = MX(Sparsity.dense(nx, n_res+1))
+
+for i in range(ns):
+    n_res_i = int(round(h_hist_value[0, i] / dt))
+    for j in range(n_res_i):
+        n_prev = int(round(T_i[i]/dt))
+        print(n_prev)
+        if j == 0:
+            integrator_1 = F_int(x0=X[i], p=Qddot[i])
+            X_res[0:nx, n_prev+j+1] = integrator_1['xf']
+        else:
+            integrator_2 = F_int(x0=X_res[0:nx, n_prev+j], p=Qddot[i])
+            X_res[0:nx, n_prev+j+1] = integrator_2['xf']
+
+        q_res[0:nq, n_prev + j] = X_res[0:nq, n_prev + j]
+        qdot_res[0:nv, n_prev + j] = X_res[nq:nx, n_prev + j]
+        qddot_res[0:nv, n_prev + j] = Qddot[i]
+        F_res[0:nf, n_prev + j] = Force[i]
+
+Resampler = Function("Resampler", [V], [q_res, qdot_res, qddot_res, F_res], ['V'], ['q_res', 'qdot_res', 'qddot_res', 'F_res'])
+
+q_hist_res = Resampler(V=w_opt)['q_res'].full()
+qdot_hist_res = Resampler(V=w_opt)['qdot_res'].full()
+qddot_hist_res = Resampler(V=w_opt)['qddot_res'].full()
+F_hist_res = Resampler(V=w_opt)['F_res'].full()
+
+logger.add('q_hist_res', q_hist_res)
+logger.add('qdot_hist_res', qdot_hist_res)
+logger.add('qddot_hist_res', qddot_hist_res)
+logger.add('F_hist_res', F_hist_res)
 
 del(logger)
 
@@ -472,7 +551,7 @@ import geometry_msgs.msg
 
 pub = rospy.Publisher('joint_states', JointState, queue_size=10)
 rospy.init_node('joint_state_publisher')
-rate = rospy.Rate(10)
+rate = rospy.Rate(1/dt)
 joint_state_pub = JointState()
 joint_state_pub.header = Header()
 joint_state_pub.name = ['Contact1_x', 'Contact1_y', 'Contact1_z',
@@ -486,23 +565,24 @@ m.header.frame_id = 'world_odom'
 m.child_frame_id = 'base_link'
 
 while not rospy.is_shutdown():
-    for k in range(ns):
+    for k in range(n_res):
 
-        m.transform.translation.x = q_hist_value[0, k]
-        m.transform.translation.y = q_hist_value[1, k]
-        m.transform.translation.z = q_hist_value[2, k]
-        m.transform.rotation.x = q_hist_value[3, k]
-        m.transform.rotation.y = q_hist_value[4, k]
-        m.transform.rotation.z = q_hist_value[5, k]
-        m.transform.rotation.w = q_hist_value[6, k]
+        m.transform.translation.x = q_hist_res[0, k]
+        m.transform.translation.y = q_hist_res[1, k]
+        m.transform.translation.z = q_hist_res[2, k]
+        m.transform.rotation.x = q_hist_res[3, k]
+        m.transform.rotation.y = q_hist_res[4, k]
+        m.transform.rotation.z = q_hist_res[5, k]
+        m.transform.rotation.w = q_hist_res[6, k]
 
         br.sendTransform((m.transform.translation.x, m.transform.translation.y, m.transform.translation.z),
                          (m.transform.rotation.x, m.transform.rotation.y, m.transform.rotation.z, m.transform.rotation.w),
                          rospy.Time.now(), m.child_frame_id, m.header.frame_id)
 
         joint_state_pub.header.stamp = rospy.Time.now()
-        joint_state_pub.position = q_hist_value[7:19, k]
+        joint_state_pub.position = q_hist_res[7:19, k]
         joint_state_pub.velocity = []
         joint_state_pub.effort = []
         pub.publish(joint_state_pub)
         rate.sleep()
+        # rospy.sleep(0.5*rospy.Duration(h_hist_value[0, k]))
