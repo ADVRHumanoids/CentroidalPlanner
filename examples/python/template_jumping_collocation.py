@@ -444,6 +444,7 @@ logger.add('C3', C3_hist_value)
 logger.add('C4', C4_hist_value)
 logger.add('t', tgrid)
 logger.add('h', h_hist_value)
+logger.add('ns', ns)
 
 del(logger)
 

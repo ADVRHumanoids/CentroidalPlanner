@@ -51,7 +51,7 @@ jac_C4 = cpl_cas.generate_jacobian(urdf, 'Contact4')
 Jac_C4 = Function.deserialize(jac_C4)
 
 tf = 2.  # Normalized time horizon
-ns = 25  # number of shooting nodes
+ns = 30  # number of shooting nodes
 
 nc = 4  # number of contacts
 
@@ -198,9 +198,9 @@ for k in range(ns):
     offset += nf
 
     Time.append(V[offset:offset+1])
-    v_min += np.array([1./20]).tolist()
-    v_max += np.array([3./20]).tolist()
-    v_init += np.array([1./20]).tolist()
+    v_min += np.array([0.05]).tolist()
+    v_max += np.array([0.15]).tolist()
+    v_init += np.array([0.05]).tolist()
 
     offset += 1
 
@@ -282,22 +282,11 @@ for k in range(ns):
             mtimes(C3_jac.T, vertcat(Force[k][6:9], MX.zeros(3, 1))) + \
             mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
 
-    if k >= 10 and k < 19:
+    if 10 <= k < 19:
         Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau']
 
     if k < 10 or k >= 19:
         Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
-
-    Waist_pos_ref = MX([0, 0, 1.])
-
-    C1_pos_ref = MX([0.3, 0.2, -0.5])
-    C2_pos_ref = MX([0.3, -0.2, -0.5])
-
-    C3_pos_ref1 = MX([-0.3, -0.2, -0.5])
-    C4_pos_ref1 = MX([-0.3, 0.2, -0.5])
-
-    C3_pos_ref2 = MX([-0.3, -0.2, -0.1])
-    C4_pos_ref2 = MX([-0.3, 0.2, -0.1])
 
     J += integrator_out['qf']
     J += 100.*Time[k]
@@ -305,8 +294,10 @@ for k in range(ns):
     J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
     J += 100.*dot(Qdot_k[0:6], Qdot_k[0:6])
 
-    if k >= 10 and k < 19 :
-        J += 1000.*dot(Waist_pos[2] - MX([0.2]), Waist_pos[2] - MX([0.2]))
+    disp_x = 0.4
+
+    if 10 <= k < 19:
+        J += 1000.*dot(Waist_pos - MX([disp_x, 0.0, 0.2]), Waist_pos - MX([0.1, 0.0, 0.2]))
 
     g += [integrator_out['xf'] - X[k+1]]
     g_min += [0] * X[k + 1].size1()
@@ -320,25 +311,25 @@ for k in range(ns):
     # g_min += np.append(np.zeros((6, 1)), np.full((12, 1), -400.)).tolist()
     # g_max += np.append(np.zeros((6, 1)), np.full((12, 1), 400.)).tolist()
 
-    if k >= 10 and k < 19:
+    if 10 <= k < 19:
         g += [Force[k]]
         g_min += np.zeros((nf, 1)).tolist()
         g_max += np.zeros((nf, 1)).tolist()
 
-    if k <= 10:  # or k >= 19:
+    if k <= 10:
         g += [C1_pos, C2_pos, C3_pos, C4_pos]
         g_min += np.array([0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5]).tolist()
         g_max += np.array([0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5]).tolist()
 
     if k >= 19:
         g += [C1_pos, C2_pos, C3_pos, C4_pos]
-        g_min += np.array([0.5, 0.2, -0.5, 0.5, -0.2, -0.5, -0.1, -0.2, -0.5, -0.1, 0.2, -0.5]).tolist()
-        g_max += np.array([0.5, 0.2, -0.5, 0.5, -0.2, -0.5, -0.1, -0.2, -0.5, -0.1, 0.2, -0.5]).tolist()
+        g_min += np.array([0.3+disp_x, 0.2, -0.5, 0.3+disp_x, -0.2, -0.5, -0.3+disp_x, -0.2, -0.5, -0.3+disp_x, 0.2, -0.5]).tolist()
+        g_max += np.array([0.3+disp_x, 0.2, -0.5, 0.3+disp_x, -0.2, -0.5, -0.3+disp_x, -0.2, -0.5, -0.3+disp_x, 0.2, -0.5]).tolist()
 
     if k >= 24:
         g += [Waist_pos]
-        g_min += np.array([0.2, 0, 0.0]).tolist()
-        g_max += np.array([0.2, 0, 0.0]).tolist()
+        g_min += np.array([disp_x, 0.0, 0.0]).tolist()
+        g_max += np.array([disp_x, 0.0, 0.0]).tolist()
 
     if k >= 24:
         g += [Waist_vel]
