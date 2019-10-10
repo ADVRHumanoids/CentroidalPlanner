@@ -5,7 +5,7 @@ back_end: "qpoases"
 
 stack:
     - ["Wheel_FL", "Wheel_FR", "Wheel_HR", "Wheel_HL"]
-    - ["Com", "LeftArm", "RightArm"]
+    - ["Com"]
     - ["Postural", "Hankle_FL", "Hankle_FR", "Hankle_HR", "Hankle_HL", "Pelvis"]
     
 constraints: ["JointLimits", "VelocityLimits"]

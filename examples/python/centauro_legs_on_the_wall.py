@@ -7,7 +7,7 @@ import rospy
 import xbot_interface.config_options as cfg
 import xbot_interface.xbot_interface as xbot
 
-logger = matl.MatLogger2('/tmp/template_legs_wall_log')
+logger = matl.MatLogger2('/tmp/centauro_legs_wall_log')
 logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
 # get cartesio ros client
@@ -17,37 +17,37 @@ model = xbot.ModelInterface(opt)
 
 urdf = rospy.get_param('robot_description')
 
-fk_waist = cpl_cas.generate_forward_kin(urdf, 'Waist')
+fk_waist = cpl_cas.generate_forward_kin(urdf, 'pelvis')
 FK_waist = Function.deserialize(fk_waist)
 
-fk1 = cpl_cas.generate_forward_kin(urdf, 'Contact1')
+fk1 = cpl_cas.generate_forward_kin(urdf, 'wheel_1')
 FK1 = Function.deserialize(fk1)
 
-fk2 = cpl_cas.generate_forward_kin(urdf, 'Contact2')
+fk2 = cpl_cas.generate_forward_kin(urdf, 'wheel_2')
 FK2 = Function.deserialize(fk2)
 
-fk3 = cpl_cas.generate_forward_kin(urdf, 'Contact3')
+fk3 = cpl_cas.generate_forward_kin(urdf, 'wheel_3')
 FK3 = Function.deserialize(fk3)
 
-fk4 = cpl_cas.generate_forward_kin(urdf, 'Contact4')
+fk4 = cpl_cas.generate_forward_kin(urdf, 'wheel_4')
 FK4 = Function.deserialize(fk4)
 
 id_string = cpl_cas.generate_inv_dyn(urdf)
 ID = Function.deserialize(id_string)
 
-jac_waist = cpl_cas.generate_jacobian(urdf, 'Waist')
+jac_waist = cpl_cas.generate_jacobian(urdf, 'pelvis')
 Jac_waist = Function.deserialize(jac_waist)
 
-jac_C1 = cpl_cas.generate_jacobian(urdf, 'Contact1')
+jac_C1 = cpl_cas.generate_jacobian(urdf, 'wheel_1')
 Jac_C1 = Function.deserialize(jac_C1)
 
-jac_C2 = cpl_cas.generate_jacobian(urdf, 'Contact2')
+jac_C2 = cpl_cas.generate_jacobian(urdf, 'wheel_2')
 Jac_C2 = Function.deserialize(jac_C2)
 
-jac_C3 = cpl_cas.generate_jacobian(urdf, 'Contact3')
+jac_C3 = cpl_cas.generate_jacobian(urdf, 'wheel_3')
 Jac_C3 = Function.deserialize(jac_C3)
 
-jac_C4 = cpl_cas.generate_jacobian(urdf, 'Contact4')
+jac_C4 = cpl_cas.generate_jacobian(urdf, 'wheel_4')
 Jac_C4 = Function.deserialize(jac_C4)
 
 tf = 2.  # Normalized time horizon
@@ -55,8 +55,10 @@ ns = 30  # number of shooting nodes
 
 nc = 4  # number of contacts
 
-nq = 12+7  # number of DoFs - NB: 7 DoFs floating base (quaternions)
-nv = nq-1
+DoF = 12
+
+nq = DoF + 7  # number of DoFs - NB: 7 DoFs floating base (quaternions)
+nv = nq - 1
 nf = 3*nc
 
 # Variables
@@ -73,12 +75,12 @@ qddot_init = np.zeros_like(qddot_min)
 
 f_min = np.tile(np.array([-1000., -1000., -1000.]), 4)
 f_max = np.tile(np.array([1000., 1000., 1000.]), 4)
-f_init = np.zeros_like(f_min)
+f_init = np.array([0., 0., 300., 0., 0., 300., 0., 0., 150., 0., 0., 150.])
 
 # Bounds and initial guess for the state # TODO: get from robot
-q_min = np.array([-inf, -inf, -inf, -inf, -inf, -inf, -inf, 0.1, 0.0, -0.5, 0.1, -0.4, -0.5, -0.5, -0.4, -0.5, -0.5, 0.0, -0.5])
-q_max = np.array([inf,  inf,  inf,  inf,  inf,  inf,  inf, 0.5, 0.4, -0.2, 0.5, 0.0, -0.2, -0.1, 0.0, -0.2, -0.1, 0.4, -0.2])
-q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5])
+q_min = np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.00, -2.07, -2.61799388, -2.48, -2.06, -2.61799388, -2.48, -2.06, -2.61799388, -2.00, -2.07, -2.61799388])
+q_max = np.array([1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 2.48, 2.07, 2.61799388, 2.00, 2.09439510, 2.61799388, 2.00, 2.09439510, 2.61799388, 2.48, 2.07, 2.61799388])
+q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, -0.746874, -1.25409, -1.55576, 0.746874, 1.25409, 1.55576, 0.746874, 1.25409, 1.55576, -0.746874, -1.25409, -1.55576])
 
 qdot_min = np.full((1, nv), -1000.)
 qdot_max = np.full((1, nv), 1000.)
@@ -111,7 +113,7 @@ tmp2 = -0.5*casadi.mtimes(q[3:6].T, qdot[3:6])
 
 
 x = vertcat(q, qdot)
-xdot = vertcat(qdot[0:3], tmp1, tmp2, qdot[6:18], qddot)
+xdot = vertcat(qdot[0:3], tmp1, tmp2, qdot[6:nv], qddot)
 
 nx = x.size1()
 
@@ -190,7 +192,7 @@ for k in range(ns):
 
     Time.append(V[offset:offset+1])
     v_min += np.array([0.05]).tolist()
-    v_max += np.array([0.50]).tolist()
+    v_max += np.array([0.15]).tolist()
     v_init += np.array([0.05]).tolist()
 
     offset += 1
@@ -223,7 +225,7 @@ Fc2_history = MX(Sparsity.dense(3, ns))
 Fc3_history = MX(Sparsity.dense(3, ns))
 Fc4_history = MX(Sparsity.dense(3, ns))
 tau_u_history = MX(Sparsity.dense(6, ns))
-tau_a_history = MX(Sparsity.dense(12, ns))
+tau_a_history = MX(Sparsity.dense(DoF, ns))
 q_history = MX(Sparsity.dense(nq, ns))
 qdot_history = MX(Sparsity.dense(nv, ns))
 qddot_history = MX(Sparsity.dense(nv, ns))
@@ -294,79 +296,94 @@ for k in range(ns):
 
     Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
 
-    J += integrator_out['qf']
-    J += 100*Time[k]
-    J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
-    J += 100*dot(Qdot_k[0:6], Qdot_k[0:6])
-    J += 1000.*dot(Waist_pos[1], Waist_pos[1])
+    C1_pos_ground = [0.2982, 0.3023, 0.3101]
+    C2_pos_ground = [0.2982, -0.3023, 0.3101]
+    C3_pos_ground = [-0.2982, 0.3023, 0.3101]
+    C4_pos_ground = [-0.2982, -0.3023, 0.3101]
+    C3_pos_wall = [-0.2982-0.2, 0.3023, 0.3101+0.2]
+    C4_pos_wall = [-0.2982-0.2, -0.3023, 0.3101+0.2]
+    Waist_pos_init = [0., 0., 0.9345]
 
-    if 10 < k < 20:
-        J += 100.*dot(C3_vel[0], C3_vel[0])
-        J += 100.*dot(C4_vel[0], C4_vel[0])
+    J += 10.*integrator_out['qf']
+    J += 10.*Time[k]
+    # J += 0.1*dot(Force[k], Force[k])
+    J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
+    J += 10.*dot(Qdot_k, Qdot_k)
+    J += 100.*dot(Waist_pos - MX([0., 0., 0.9345]), Waist_pos - MX([0., 0., 0.9345]))
+
+    J += 1000.*dot(C1_pos - C1_pos_ground, C1_pos - C1_pos_ground)
+    J += 1000.*dot(C2_pos - C2_pos_ground, C2_pos - C2_pos_ground)
+    J += 1000.*dot(C3_pos - C3_pos_ground, C3_pos - C3_pos_ground)
+    J += 1000.*dot(C4_pos - C4_pos_ground, C4_pos - C4_pos_ground)
+
+    # if 10 < k < 20:
+    #     J += 100.*dot(C3_vel[0], C3_vel[0])
+    #     J += 100.*dot(C4_vel[0], C4_vel[0])
 
     g += [integrator_out['xf'] - X[k+1]]
     g_min += [0] * X[k + 1].size1()
     g_max += [0] * X[k + 1].size1()
 
     g += [Tau_k]
-    g_min += np.append(np.zeros((6, 1)), np.full((12, 1), -400.)).tolist()
-    g_max += np.append(np.zeros((6, 1)), np.full((12, 1), 400.)).tolist()
+    g_min += np.append(np.zeros((6, 1)), np.full((DoF, 1), -1000.)).tolist()
+    g_max += np.append(np.zeros((6, 1)), np.full((DoF, 1), 1000.)).tolist()
 
-    C1_pos_ground = [0.3, 0.2, -0.5]
-    C2_pos_ground = [0.3, -0.2, -0.5]
-    C3_pos_ground = [-0.3, -0.2, -0.5]
-    C4_pos_ground = [-0.3, 0.2, -0.5]
-    C3_pos_wall = [-0.45, -0.2, -0.3]
-    C4_pos_wall = [-0.45, 0.2, -0.3]
+    # g += [C1_pos, C2_pos]
+    # g_min += np.array([C1_pos_ground, C2_pos_ground]).tolist()
+    # g_max += np.array([C1_pos_ground, C2_pos_ground]).tolist()
+    #
+    # g += [C3_pos, C4_pos]
+    # g_min += np.array([C3_pos_ground, C4_pos_ground]).tolist()
+    # g_max += np.array([C3_pos_ground, C4_pos_ground]).tolist()
 
-    g += [C1_pos, C2_pos]
-    g_min += np.array([C1_pos_ground, C2_pos_ground]).tolist()
-    g_max += np.array([C1_pos_ground, C2_pos_ground]).tolist()
-
-    if k < 10:
-        g += [C3_pos, C4_pos]
-        g_min += np.array([C3_pos_ground, C4_pos_ground]).tolist()
-        g_max += np.array([C3_pos_ground, C4_pos_ground]).tolist()
-
-    if k >= 20:
-        g += [C3_pos, C4_pos]
-        g_min += np.array([C3_pos_wall, C4_pos_wall]).tolist()
-        g_max += np.array([C3_pos_wall, C4_pos_wall]).tolist()
-
-    if k >= 20 or k <= 10:
-        g += [C3_vel, C4_vel]
-        g_min += np.zeros((12, 1)).tolist()
-        g_max += np.zeros((12, 1)).tolist()
-
-    if 10 <= k < 20:
-        g += [Force[k][6:12]]
-        g_min += np.zeros((6, 1)).tolist()
-        g_max += np.zeros((6, 1)).tolist()
-
-    if k >= 25:
-        g += [Waist_vel]
-        g_min += np.zeros((6, 1)).tolist()
-        g_max += np.zeros((6, 1)).tolist()
-
-    # Collisions Waist/rear legs
-    g += [Waist_pos[2]-C3_pos[2], Waist_pos[2]-C4_pos[2]]
-    g_min += np.array([0.3, 0.3]).tolist()
-    g_max += np.array([100., 100.]).tolist()
+    # if k < 10:
+    #     g += [C3_pos, C4_pos]
+    #     g_min += np.array([C3_pos_ground, C4_pos_ground]).tolist()
+    #     g_max += np.array([C3_pos_ground, C4_pos_ground]).tolist()
+    #
+    # if k >= 20:
+    #     g += [C3_pos, C4_pos]
+    #     g_min += np.array([C3_pos_wall, C4_pos_wall]).tolist()
+    #     g_max += np.array([C3_pos_wall, C4_pos_wall]).tolist()
+    #
+    # if k >= 20 or k <= 10:
+    #     g += [C3_vel, C4_vel]
+    #     g_min += np.zeros((12, 1)).tolist()
+    #     g_max += np.zeros((12, 1)).tolist()
+    #
+    # if 10 <= k < 20:
+    #     g += [Force[k][6:12]]
+    #     g_min += np.zeros((6, 1)).tolist()
+    #     g_max += np.zeros((6, 1)).tolist()
+    #
+    # if k >= 25:
+    #     g += [Waist_vel]
+    #     g_min += np.zeros((6, 1)).tolist()
+    #     g_max += np.zeros((6, 1)).tolist()
+    #
+    # # Collisions Waist/rear legs
+    # g += [Waist_pos[2]-C3_pos[2], Waist_pos[2]-C4_pos[2]]
+    # g_min += np.array([0.3, 0.3]).tolist()
+    # g_max += np.array([100., 100.]).tolist()
 
     # Linearized friction cones
     g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6])]
     g_min += np.full((10, 1), -inf).tolist()
     g_max += np.zeros((10, 1)).tolist()
 
-    if k < 10:
-        g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
-        g_min += np.full((10, 1), -inf).tolist()
-        g_max += np.zeros((10, 1)).tolist()
+    g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
+    g_min += np.full((10, 1), -inf).tolist()
+    g_max += np.zeros((10, 1)).tolist()
 
-    if k >= 20:
-        g += [mtimes(A_fr_R, Force[k][6:9]), mtimes(A_fr_R, Force[k][9:12])]
-        g_min += np.full((10, 1), -inf).tolist()
-        g_max += np.zeros((10, 1)).tolist()
+    # if k < 10:
+    #     g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
+    #     g_min += np.full((10, 1), -inf).tolist()
+    #     g_max += np.zeros((10, 1)).tolist()
+    #
+    # if k >= 20:
+    #     g += [mtimes(A_fr_R, Force[k][6:9]), mtimes(A_fr_R, Force[k][9:12])]
+    #     g_min += np.full((10, 1), -inf).tolist()
+    #     g_max += np.zeros((10, 1)).tolist()
 
     Waist_pos_hist[0:3, k] = Waist_pos
     Waist_vel_hist[0:6, k] = Waist_vel
@@ -383,7 +400,7 @@ for k in range(ns):
     Fc3_history[0:3, k] = Force[k][6:9]
     Fc4_history[0:3, k] = Force[k][9:12]
     tau_u_history[0:6, k] = Tau_k[0:6]
-    tau_a_history[0:12, k] = Tau_k[6:18]
+    tau_a_history[0:12, k] = Tau_k[6:nv]
     q_history[0:nq, k] = Q_k
     qdot_history[0:nv, k] = Qdot_k
     qddot_history[0:nv, k] = Qddot[k]
@@ -556,15 +573,15 @@ rospy.init_node('joint_state_publisher')
 rate = rospy.Rate(1/dt)
 joint_state_pub = JointState()
 joint_state_pub.header = Header()
-joint_state_pub.name = ['Contact1_x', 'Contact1_y', 'Contact1_z',
-                        'Contact2_x', 'Contact2_y', 'Contact2_z',
-                        'Contact3_x', 'Contact3_y', 'Contact3_z',
-                        'Contact4_x', 'Contact4_y', 'Contact4_z']
+joint_state_pub.name = ['hip_yaw_1', 'hip_pitch_1', 'knee_pitch_1',
+                        'hip_yaw_2', 'hip_pitch_2', 'knee_pitch_2',
+                        'hip_yaw_3', 'hip_pitch_3', 'knee_pitch_3',
+                        'hip_yaw_4', 'hip_pitch_4', 'knee_pitch_4']
 
 br = tf.TransformBroadcaster()
 m = geometry_msgs.msg.TransformStamped()
 m.header.frame_id = 'world_odom'
-m.child_frame_id = 'base_link'
+m.child_frame_id = 'pelvis'
 
 while not rospy.is_shutdown():
     for k in range(n_res):
@@ -582,7 +599,7 @@ while not rospy.is_shutdown():
                          rospy.Time.now(), m.child_frame_id, m.header.frame_id)
 
         joint_state_pub.header.stamp = rospy.Time.now()
-        joint_state_pub.position = q_hist_res[7:19, k]
+        joint_state_pub.position = q_hist_res[7:nq, k]
         joint_state_pub.velocity = []
         joint_state_pub.effort = []
         pub.publish(joint_state_pub)

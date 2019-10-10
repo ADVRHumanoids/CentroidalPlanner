@@ -4,10 +4,10 @@
     <arg name="prefix" default=""/>
     
     <param name="robot_description" 
-        textfile="$(env ROBOTOLOGY_ROOT)/configs/CentauroConfig/urdf/centauro.urdf"/>
+        textfile="$(env ROBOTOLOGY_ROOT)/external/CentroidalPlanner/centauro-config/urdf/centauro.urdf"/>
     
     <param name="robot_description_semantic"
-        textfile="$(env ROBOTOLOGY_ROOT)/configs/CentauroConfig/srdf/centauro.srdf"/>
+        textfile="$(env ROBOTOLOGY_ROOT)/external/CentroidalPlanner/centauro-config/srdf/centauro.srdf"/>
     
     <param name="cartesian/problem_description" 
         textfile="$(find centroidal_planner)/cartesio_stack/centauro_stack.yaml"/>
