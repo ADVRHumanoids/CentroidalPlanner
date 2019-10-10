@@ -502,32 +502,34 @@ for k in range(ns):
 
     Tf += h_hist_value[0, k]
 
-print(T_i)
-
 n_res = int(round(Tf/dt))
 
-q_res = MX(Sparsity.dense(nq, n_res+1))
-qdot_res = MX(Sparsity.dense(nv, n_res+1))
-qddot_res = MX(Sparsity.dense(nv, n_res+1))
-F_res = MX(Sparsity.dense(nf, n_res+1))
+q_res = MX(Sparsity.dense(nq, n_res))
+qdot_res = MX(Sparsity.dense(nv, n_res))
+qddot_res = MX(Sparsity.dense(nv, n_res))
+F_res = MX(Sparsity.dense(nf, n_res))
 X_res = MX(Sparsity.dense(nx, n_res+1))
 
+k = 0
+
 for i in range(ns):
-    n_res_i = int(round(h_hist_value[0, i] / dt))
-    for j in range(n_res_i):
+    for j in range(int(round(h_hist_value[0, i]/dt))):
+
         n_prev = int(round(T_i[i]/dt))
-        print(n_prev)
+
         if j == 0:
             integrator_1 = F_int(x0=X[i], p=Qddot[i])
-            X_res[0:nx, n_prev+j+1] = integrator_1['xf']
+            X_res[0:nx, k+1] = integrator_1['xf']
         else:
-            integrator_2 = F_int(x0=X_res[0:nx, n_prev+j], p=Qddot[i])
-            X_res[0:nx, n_prev+j+1] = integrator_2['xf']
+            integrator_2 = F_int(x0=X_res[0:nx, k], p=Qddot[i])
+            X_res[0:nx, k+1] = integrator_2['xf']
 
-        q_res[0:nq, n_prev + j] = X_res[0:nq, n_prev + j]
-        qdot_res[0:nv, n_prev + j] = X_res[nq:nx, n_prev + j]
-        qddot_res[0:nv, n_prev + j] = Qddot[i]
-        F_res[0:nf, n_prev + j] = Force[i]
+        q_res[0:nq, k] = X_res[0:nq, k+1]
+        qdot_res[0:nv, k] = X_res[nq:nx, k+1]
+        qddot_res[0:nv, k] = Qddot[i]
+        F_res[0:nf, k] = Force[i]
+
+        k += 1
 
 Resampler = Function("Resampler", [V], [q_res, qdot_res, qddot_res, F_res], ['V'], ['q_res', 'qdot_res', 'qddot_res', 'F_res'])
 
