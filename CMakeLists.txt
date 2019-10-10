@@ -22,7 +22,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         interactive_markers
                                         tf tf_conversions)
 
-include_directories(include
+include_directories(include/
                     ${OpenSoT_INCLUDE_DIRS}
                     ${XBotInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
@@ -43,6 +43,17 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
+
+add_service_files(
+  FILES
+  SetLiftedContacts.srv
+)
+
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 
 catkin_package(
@@ -66,20 +77,39 @@ SET(CPL_SOURCES src/CentroidalPlanner.cpp
                 src/CoMPlanner.cpp
                 src/Utils.cpp
                 ) 
-                  
+
+SET(FORZA_GIUSTA src/forza_giusta/ForzaGiustaFeedForward.cpp
+                )
+
 ADD_LIBRARY(Cpl SHARED
-                       ${IFOPT_SOURCES}
-                       ${ENVIRONMENT_SOURCES}
-                       ${CPL_SOURCES}
-                       )
+            ${IFOPT_SOURCES}
+            ${ENVIRONMENT_SOURCES}
+            ${CPL_SOURCES}
+            )
                     
 TARGET_LINK_LIBRARIES(Cpl PUBLIC
-                                 ${OpenSoT_LIBRARIES}
-                                 ${XBotInterface_LIBRARIES}
-                                 ${catkin_LIBRARIES}
-                                 ${ReflexxesTypeII_LIBRARIES}
-                                 ${cartesian_interface_LIBRARIES}  
-                                 ifopt::ifopt_ipopt)
+                      ${OpenSoT_LIBRARIES}
+                      ${XBotInterface_LIBRARIES}
+                      ${catkin_LIBRARIES}
+                      ${ReflexxesTypeII_LIBRARIES}
+                      ${cartesian_interface_LIBRARIES}
+                      ifopt::ifopt_ipopt
+                      )
+
+add_executable(forza_giusta_node src/forza_giusta/ForzaGiustaFeedForward.cpp)
+
+target_link_libraries(forza_giusta_node ${OpenSoT_LIBRARIES}
+                                        ${XBotInterface_LIBRARIES}
+                                        ${catkin_LIBRARIES}
+                                        ${ReflexxesTypeII_LIBRARIES}
+                                        ${cartesian_interface_LIBRARIES})
+
+install(TARGETS forza_giusta_node forza_giusta_node
+                                  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+                                  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+                                  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+                                  )
+
 
 INSTALL(TARGETS Cpl 
         DESTINATION lib)
@@ -96,9 +126,17 @@ install(DIRECTORY cartesio_stack/
   FILES_MATCHING PATTERN "*.yaml"
 )        
 
+install(DIRECTORY include/forza_giusta/
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+    FILES_MATCHING PATTERN "*.h"
+    PATTERN ".svn" EXCLUDE
+)
+
 option(BUILD_TESTS FALSE)
 if(${BUILD_TESTS})
     add_subdirectory(tests/)
 endif()
+
+
 
 add_subdirectory(bindings/python/)

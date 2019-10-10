@@ -1,0 +1,44 @@
+<launch>
+
+    <arg name="rate" default="100.0"/>
+    <arg name="prefix" default=""/>
+
+    <param name="robot_description"
+    textfile="$(env ROBOTOLOGY_ROOT)/robots/iit-cogimon-ros-pkg/cogimon_urdf/urdf/cogimon.urdf"/>
+
+    <param name="robot_description_semantic"
+    textfile="$(env ROBOTOLOGY_ROOT)/robots/iit-cogimon-ros-pkg/cogimon_srdf/srdf/cogimon.srdf"/>
+
+    <param name="cartesian/problem_description"
+    textfile="$(find centroidal_planner)/cartesio_stack/coman_stack.yaml"/>
+        
+    <include file="$(find cartesian_interface)/launch/cartesio.launch">
+        <arg name="rate" value="$(arg rate)"/>
+        <arg name="prefix" value="$(arg prefix)"/>
+    </include>    
+    
+    <rosparam command="load" param="cartesian/torque_offset" file="$(find centroidal_planner)/configs/tau_offset.yaml"/>
+    
+                
+    <node pkg="centroidal_planner"
+          type="forza_giusta_node"
+          name="forza_giusta_node_torque_ffwd" 
+          output="screen">
+          
+          <arg name="rate" value="100.0"/>
+          
+          <remap from="~torque_offset" to="cartesian/torque_offset"/>
+          
+          <param name="mu" value="0.3"/>
+          
+          <param name="log" type="bool" value="true"/>
+                   
+          <param name="is_model_floating_base" value="true"/>
+          <param name="model_type" value="RBDL"/>
+          
+          <param name="links" type="yaml" 
+                 value="[l_sole, r_sole, l_ball_tip, r_ball_tip]"/>
+          
+    </node>
+
+</launch>

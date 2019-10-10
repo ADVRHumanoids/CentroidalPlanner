@@ -6,11 +6,19 @@ find_package(pybind11 QUIET)
 if(${pybind11_FOUND})
 
     message(STATUS "Compiling python bindings")
+
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
     pybind11_add_module(pycpl pyCpl.cpp)
     target_link_libraries(pycpl PUBLIC Cpl)
 
     install(TARGETS pycpl
+            DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
+
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+    pybind11_add_module(pyforcepub pyForcePub.cpp)
+    target_link_libraries(pyforcepub PUBLIC Cpl)
+
+    install(TARGETS pyforcepub
             DESTINATION ${CATKIN_PACKAGE_PYTHON_DESTINATION})
             
     file(WRITE ${CMAKE_BINARY_DIR}/__init__.py "")
