@@ -92,6 +92,13 @@ std::string generate_forward_kin(std::string urdf_string, std::string body_name)
     auto model = model_dbl.cast<Scalar>();
     pinocchio::DataTpl<Scalar> data(model);
     int nq = model.nq;
+    
+    for (int i = 0; i < model.njoints; i++)
+    {
+        std::cout << "joint_" << i << ": "<< model.getJointName(i) << std::endl;
+    }
+    
+    std::cout << "nq: " << model.nq << std::endl;
 
     // casadi variabes
     casadi::SX q = casadi::SX::sym("q", nq);
