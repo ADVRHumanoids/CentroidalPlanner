@@ -50,7 +50,7 @@ Jac_C3 = Function.deserialize(jac_C3)
 jac_C4 = cpl_cas.generate_jacobian(urdf, 'wheel_4')
 Jac_C4 = Function.deserialize(jac_C4)
 
-tf = 2.  # Normalized time horizon
+tf = 1.  # Normalized time horizon
 ns = 30  # number of shooting nodes
 
 nc = 4  # number of contacts
@@ -75,27 +75,41 @@ qddot_init = np.zeros_like(qddot_min)
 
 f_min = np.tile(np.array([-1000., -1000., -1000.]), 4)
 f_max = np.tile(np.array([1000., 1000., 1000.]), 4)
-f_init = np.array([0., 0., 300., 0., 0., 300., 0., 0., 150., 0., 0., 150.])
+f_init = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
 
 # Bounds and initial guess for the state # TODO: get from robot
 q_min = np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.00, -2.07, -2.61799388, -2.48, -2.06, -2.61799388, -2.48, -2.06, -2.61799388, -2.00, -2.07, -2.61799388])
 q_max = np.array([1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 2.48, 2.07, 2.61799388, 2.00, 2.09439510, 2.61799388, 2.00, 2.09439510, 2.61799388, 2.48, 2.07, 2.61799388])
 q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, -0.746874, -1.25409, -1.55576, 0.746874, 1.25409, 1.55576, 0.746874, 1.25409, 1.55576, -0.746874, -1.25409, -1.55576])
 
+C1_pos_ground = FK1(q=q_init)['ee_pos']
+C2_pos_ground = FK2(q=q_init)['ee_pos']
+C3_pos_ground = FK3(q=q_init)['ee_pos']
+C4_pos_ground = FK4(q=q_init)['ee_pos']
+
+
+C3_pos_wall = FK3(q=q_init)['ee_pos']
+C3_pos_wall[0] -= 0.1
+C3_pos_wall[2] += 0.2
+
+C4_pos_wall = FK4(q=q_init)['ee_pos']
+C4_pos_wall[0] -= 0.1
+C4_pos_wall[2] += 0.2
+
+Waist_pos_init = FK_waist(q=q_init)['ee_pos']
+
 qdot_min = np.full((1, nv), -1000.)
 qdot_max = np.full((1, nv), 1000.)
 qdot_init = np.zeros_like(qdot_min)
 
-xmin = np.append(q_min, qdot_min)
-xmax = np.append(q_max, qdot_max)
+x_min = np.append(q_min, qdot_min)
+x_max = np.append(q_max, qdot_max)
 
-x_init = np.append(q_init, np.zeros_like(qdot_min))
+x_init = np.append(q_init, qdot_init)
 
 x0_min = x_init
 x0_max = x_init
 
-# xf_min = x_init
-# xf_max = x_init
 xf_min = np.append(q_min, np.zeros_like(qdot_min))
 xf_max = np.append(q_max, np.zeros_like(qdot_min))
 
@@ -111,14 +125,15 @@ S[2, 1] = q[3]
 tmp1 = casadi.mtimes(0.5*(q[6]*SX.eye(3) - S), qdot[3:6])
 tmp2 = -0.5*casadi.mtimes(q[3:6].T, qdot[3:6])
 
-
+T = SX.sym('T')
 x = vertcat(q, qdot)
 xdot = vertcat(qdot[0:3], tmp1, tmp2, qdot[6:nv], qddot)
+# xdot = T*vertcat(qdot[0:3], tmp1, tmp2, qdot[6:nv], qddot)
 
 nx = x.size1()
 
 # Objective term
-L = 0.1*dot(qddot, qddot)
+L = 0.01*dot(qddot, qddot)
 
 # Runge-Kutta 4 integrator
 f_RK = Function('f_RK', [x, qddot], [xdot, L])
@@ -136,7 +151,15 @@ k4, k4_q = f_RK(X + DT * k3, U)
 X = X + DT / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
 Q = Q + DT / 6 * (k1_q + 2 * k2_q + 2 * k3_q + k4_q)
 
+# X = X + DT * k1
+
 F_RK = Function('F_RK', [X0, U, Time], [X, Q], ['x0', 'p', 'time'], ['xf', 'qf'])
+
+# Formulate discrete time dynamics
+dae = {'x': x, 'p': qddot, 'ode': xdot, 'quad': L}
+# dae = {'x': x, 'p': vertcat(qddot, T), 'ode': xdot, 'quad': L}
+opts = {'tf': tf/ns}
+F_integrator = integrator('F_integrator', 'rk', dae, opts)
 
 # Start with an empty NLP
 NV = nx*(ns+1) + (nv + nf)*ns + ns
@@ -168,8 +191,8 @@ for k in range(ns):
         v_min += x0_min.tolist()
         v_max += x0_max.tolist()
     else:
-        v_min += xmin.tolist()
-        v_max += xmax.tolist()
+        v_min += x_min.tolist()
+        v_max += x_max.tolist()
 
     v_init += x_init.tolist()
 
@@ -177,15 +200,19 @@ for k in range(ns):
 
     # Control at k-th node
     Qddot.append(V[offset:offset+nv])
+
     v_min += qddot_min.tolist()
     v_max += qddot_max.tolist()
+
     v_init += qddot_init.tolist()
 
     offset += nv
 
     Force.append(V[offset:offset+nf])
+
     v_min += f_min.tolist()
     v_max += f_max.tolist()
+
     v_init += f_init.tolist()
 
     offset += nf
@@ -199,9 +226,12 @@ for k in range(ns):
 
 # Final state
 X.append(V[offset:offset+nx])
-v_min += xmin.tolist()
-v_max += xmax.tolist()
+
+v_min += xf_min.tolist()
+v_max += xf_max.tolist()
+
 v_init += x_init.tolist()
+
 offset += nx
 
 assert offset == NV
@@ -266,6 +296,8 @@ A_fr_R = mtimes(A_fr, R_wall)
 
 for k in range(ns):
 
+    # integrator_out = F_integrator(x0=X[k], p=Qddot[k])
+    # integrator_out = F_integrator(x0=X[k], p=vertcat(Qddot[k], Time[k]))
     integrator_out = F_RK(x0=X[k], p=Qddot[k], time=Time[k])
 
     Q_k = X[k][0:nq]
@@ -296,66 +328,46 @@ for k in range(ns):
 
     Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
 
-    C1_pos_ground = [0.2982, 0.3023, 0.3101]
-    C2_pos_ground = [0.2982, -0.3023, 0.3101]
-    C3_pos_ground = [-0.2982, 0.3023, 0.3101]
-    C4_pos_ground = [-0.2982, -0.3023, 0.3101]
-    C3_pos_wall = [-0.2982-0.2, 0.3023, 0.3101+0.2]
-    C4_pos_wall = [-0.2982-0.2, -0.3023, 0.3101+0.2]
-    Waist_pos_init = [0., 0., 0.9345]
-
-    J += 10.*integrator_out['qf']
-    J += 10.*Time[k]
-    # J += 0.1*dot(Force[k], Force[k])
+    J += 100*Time[k]
     J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
-    J += 10.*dot(Qdot_k, Qdot_k)
-    J += 100.*dot(Waist_pos - MX([0., 0., 0.9345]), Waist_pos - MX([0., 0., 0.9345]))
+    J += 100*dot(Qdot_k, Qdot_k)
+    J += 1000.*dot(Waist_pos - Waist_pos_init, Waist_pos - Waist_pos_init)
 
-    J += 1000.*dot(C1_pos - C1_pos_ground, C1_pos - C1_pos_ground)
-    J += 1000.*dot(C2_pos - C2_pos_ground, C2_pos - C2_pos_ground)
-    J += 1000.*dot(C3_pos - C3_pos_ground, C3_pos - C3_pos_ground)
-    J += 1000.*dot(C4_pos - C4_pos_ground, C4_pos - C4_pos_ground)
-
-    # if 10 < k < 20:
-    #     J += 100.*dot(C3_vel[0], C3_vel[0])
-    #     J += 100.*dot(C4_vel[0], C4_vel[0])
+    J += 100.*dot(C3_vel, C3_vel)
+    J += 100.*dot(C4_vel, C4_vel)
 
     g += [integrator_out['xf'] - X[k+1]]
     g_min += [0] * X[k + 1].size1()
     g_max += [0] * X[k + 1].size1()
 
     g += [Tau_k]
-    g_min += np.append(np.zeros((6, 1)), np.full((DoF, 1), -1000.)).tolist()
-    g_max += np.append(np.zeros((6, 1)), np.full((DoF, 1), 1000.)).tolist()
+    g_min += np.append(np.zeros((6, 1)), np.full((12, 1), -400.)).tolist()
+    g_max += np.append(np.zeros((6, 1)), np.full((12, 1), 400.)).tolist()
 
-    # g += [C1_pos, C2_pos]
-    # g_min += np.array([C1_pos_ground, C2_pos_ground]).tolist()
-    # g_max += np.array([C1_pos_ground, C2_pos_ground]).tolist()
-    #
-    # g += [C3_pos, C4_pos]
-    # g_min += np.array([C3_pos_ground, C4_pos_ground]).tolist()
-    # g_max += np.array([C3_pos_ground, C4_pos_ground]).tolist()
+    g += [C1_pos, C2_pos]
+    g_min += [C1_pos_ground, C2_pos_ground]
+    g_max += [C1_pos_ground, C2_pos_ground]
 
-    # if k < 10:
-    #     g += [C3_pos, C4_pos]
-    #     g_min += np.array([C3_pos_ground, C4_pos_ground]).tolist()
-    #     g_max += np.array([C3_pos_ground, C4_pos_ground]).tolist()
-    #
-    # if k >= 20:
-    #     g += [C3_pos, C4_pos]
-    #     g_min += np.array([C3_pos_wall, C4_pos_wall]).tolist()
-    #     g_max += np.array([C3_pos_wall, C4_pos_wall]).tolist()
-    #
-    # if k >= 20 or k <= 10:
-    #     g += [C3_vel, C4_vel]
-    #     g_min += np.zeros((12, 1)).tolist()
-    #     g_max += np.zeros((12, 1)).tolist()
-    #
-    # if 10 <= k < 20:
-    #     g += [Force[k][6:12]]
-    #     g_min += np.zeros((6, 1)).tolist()
-    #     g_max += np.zeros((6, 1)).tolist()
-    #
+    if k < 10:
+        g += [C3_pos, C4_pos]
+        g_min += [C3_pos_ground, C4_pos_ground]
+        g_max += [C3_pos_ground, C4_pos_ground]
+
+    if k >= 20:
+        g += [C3_pos, C4_pos]
+        g_min += [C3_pos_wall, C4_pos_wall]
+        g_max += [C3_pos_wall, C4_pos_wall]
+
+    if k >= 20:  # or k <= 10:
+        g += [C3_vel, C4_vel]
+        g_min += np.zeros((12, 1)).tolist()
+        g_max += np.zeros((12, 1)).tolist()
+
+    if 10 <= k < 20:
+        g += [Force[k][6:12]]
+        g_min += np.zeros((6, 1)).tolist()
+        g_max += np.zeros((6, 1)).tolist()
+
     # if k >= 25:
     #     g += [Waist_vel]
     #     g_min += np.zeros((6, 1)).tolist()
@@ -365,16 +377,12 @@ for k in range(ns):
     # g += [Waist_pos[2]-C3_pos[2], Waist_pos[2]-C4_pos[2]]
     # g_min += np.array([0.3, 0.3]).tolist()
     # g_max += np.array([100., 100.]).tolist()
-
-    # Linearized friction cones
-    g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6])]
-    g_min += np.full((10, 1), -inf).tolist()
-    g_max += np.zeros((10, 1)).tolist()
-
-    g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
-    g_min += np.full((10, 1), -inf).tolist()
-    g_max += np.zeros((10, 1)).tolist()
-
+    #
+    # # Linearized friction cones
+    # g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6])]
+    # g_min += np.full((10, 1), -inf).tolist()
+    # g_max += np.zeros((10, 1)).tolist()
+    #
     # if k < 10:
     #     g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
     #     g_min += np.full((10, 1), -inf).tolist()
@@ -405,6 +413,7 @@ for k in range(ns):
     qdot_history[0:nv, k] = Qdot_k
     qddot_history[0:nv, k] = Qddot[k]
     h_history[0, k] = Time[k]
+    # h_history[0, k] = 0.05
 
 
 g = vertcat(*g)
@@ -417,16 +426,22 @@ v_max = vertcat(*v_max)
 
 # Create an NLP solver
 prob = {'f': J, 'x': V, 'g': g}
-opts = {'ipopt.tol': 1e-5,
+opts = {'ipopt.tol': 1e-3,
+        'ipopt.constr_viol_tol': 1e-2,
         'ipopt.max_iter': 2000,
         'ipopt.linear_solver': 'ma57'}
 solver = nlpsol('solver', 'ipopt', prob, opts)
 
 # Solve the NLP
-sol = solver(x0=v_init, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max)
-w_opt = sol['x'].full().flatten()
-lam_w_opt = sol['lam_x']
-lam_g_opt = sol['lam_g']
+sol1 = solver(x0=v_init, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max)
+w_opt1 = sol1['x'].full().flatten()
+lam_w_opt = sol1['lam_x']
+lam_g_opt = sol1['lam_g']
+
+# sol = solver(x0=w_opt1, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max, lam_x0=lam_w_opt, lam_g0=lam_g_opt)
+# w_opt = sol['x'].full().flatten()
+
+w_opt = w_opt1
 
 # Plot the solution
 tau_u_hist = Function("tau_u_hist", [V], [tau_u_history])
@@ -605,3 +620,4 @@ while not rospy.is_shutdown():
         pub.publish(joint_state_pub)
         rate.sleep()
         # rospy.sleep(0.5*rospy.Duration(h_hist_value[0, k]))
+
