@@ -333,6 +333,8 @@ for k in range(ns):
     J += 100*dot(Qdot_k, Qdot_k)
     J += 1000.*dot(Waist_pos - Waist_pos_init, Waist_pos - Waist_pos_init)
 
+    J += 100.*dot(C1_vel, C1_vel)
+    J += 100.*dot(C2_vel, C2_vel)
     J += 100.*dot(C3_vel, C3_vel)
     J += 100.*dot(C4_vel, C4_vel)
 
@@ -377,21 +379,21 @@ for k in range(ns):
     # g += [Waist_pos[2]-C3_pos[2], Waist_pos[2]-C4_pos[2]]
     # g_min += np.array([0.3, 0.3]).tolist()
     # g_max += np.array([100., 100.]).tolist()
-    #
-    # # Linearized friction cones
-    # g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6])]
-    # g_min += np.full((10, 1), -inf).tolist()
-    # g_max += np.zeros((10, 1)).tolist()
-    #
-    # if k < 10:
-    #     g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
-    #     g_min += np.full((10, 1), -inf).tolist()
-    #     g_max += np.zeros((10, 1)).tolist()
-    #
-    # if k >= 20:
-    #     g += [mtimes(A_fr_R, Force[k][6:9]), mtimes(A_fr_R, Force[k][9:12])]
-    #     g_min += np.full((10, 1), -inf).tolist()
-    #     g_max += np.zeros((10, 1)).tolist()
+
+    # Linearized friction cones
+    g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6])]
+    g_min += np.full((10, 1), -inf).tolist()
+    g_max += np.zeros((10, 1)).tolist()
+
+    if k < 10:
+        g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
+        g_min += np.full((10, 1), -inf).tolist()
+        g_max += np.zeros((10, 1)).tolist()
+
+    if k >= 20:
+        g += [mtimes(A_fr_R, Force[k][6:9]), mtimes(A_fr_R, Force[k][9:12])]
+        g_min += np.full((10, 1), -inf).tolist()
+        g_max += np.zeros((10, 1)).tolist()
 
     Waist_pos_hist[0:3, k] = Waist_pos
     Waist_vel_hist[0:6, k] = Waist_vel
