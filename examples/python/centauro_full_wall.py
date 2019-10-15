@@ -55,18 +55,22 @@ ns = 30  # number of shooting nodes
 
 nc = 4  # number of contacts
 
+# REDUCED model
 DoF = 12
-
 nq = DoF + 7  # number of DoFs - NB: 7 DoFs floating base (quaternions)
 nv = nq - 1
 nf = 3*nc
+
+# FULL model
+DoF_full = 35
+nq_full = DoF_full + 7
+nv_full = nq_full - 1
 
 # Variables
 q = SX.sym('q', nq)
 qdot = SX.sym('qdot', nv)
 qddot = SX.sym('qddot', nv)
 f = SX.sym('f', nf)
-t = MX.sym('t', ns)
 
 # Bounds and initial guess for the control
 qddot_min = np.full((1, nv), -1000.)
@@ -109,10 +113,8 @@ S[2, 1] = q[3]
 tmp1 = casadi.mtimes(0.5*(q[6]*SX.eye(3) - S), qdot[3:6])
 tmp2 = -0.5*casadi.mtimes(q[3:6].T, qdot[3:6])
 
-T = SX.sym('T')
 x = vertcat(q, qdot)
 xdot = vertcat(qdot[0:3], tmp1, tmp2, qdot[6:nv], qddot)
-# xdot = T*vertcat(qdot[0:3], tmp1, tmp2, qdot[6:nv], qddot)
 
 nx = x.size1()
 
@@ -135,18 +137,10 @@ k4, k4_q = f_RK(X + DT * k3, U)
 X = X + DT / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
 Q = Q + DT / 6 * (k1_q + 2 * k2_q + 2 * k3_q + k4_q)
 
-# X = X + DT * k1
-
 F_RK = Function('F_RK', [X0, U, Time], [X, Q], ['x0', 'p', 'time'], ['xf', 'qf'])
 
-# Formulate discrete time dynamics
-dae = {'x': x, 'p': qddot, 'ode': xdot, 'quad': L}
-# dae = {'x': x, 'p': vertcat(qddot, T), 'ode': xdot, 'quad': L}
-opts = {'tf': tf/ns}
-F_integrator = integrator('F_integrator', 'rk', dae, opts)
-
 q_red = MX.sym('q_red', nq)
-q_full = MX(Sparsity.dense(42, 1))
+q_full = MX(Sparsity.dense(nq_full, 1))
 q_full[0:7, 0] = q_red[0:7]
 q_full[7:10, 0] = q_red[7:10]
 q_full[10:12, 0] = [-0.301666, 0.746874]
@@ -161,7 +155,7 @@ q_full[28:35, 0] = [0.520149, 0.320865, 0.274669, -2.23604, 0.0500815, -0.781461
 q_full[35:42, 0] = [0.520149, -0.320865, -0.274669, -2.23604, -0.0500815, -0.781461, 0.0567608]
 
 qdot_red = MX.sym('qdot_red', nv)
-qdot_full = MX(Sparsity.dense(41, 1))
+qdot_full = MX(Sparsity.dense(nv_full, 1))
 qdot_full[0:6, 0] = qdot_red[0:6]
 qdot_full[6:9, 0] = qdot_red[6:9]
 qdot_full[9:11, 0] = [0.0, 0.0]
@@ -176,7 +170,7 @@ qdot_full[27:34, 0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 qdot_full[34:41, 0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 qddot_red = MX.sym('qddot_red', nv)
-qddot_full = MX(Sparsity.dense(41, 1))
+qddot_full = MX(Sparsity.dense(nv_full, 1))
 qddot_full[0:6, 0] = qddot_red[0:6]
 qddot_full[6:9, 0] = qddot_red[6:9]
 qddot_full[9:11, 0] = [0.0, 0.0]
@@ -193,13 +187,38 @@ qddot_full[34:41, 0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 State_Extension = Function('State_Extension', [q_red, qdot_red, qddot_red], [q_full, qdot_full, qddot_full],
                            ['q_red', 'qdot_red', 'qddot_red'], ['q_full', 'qdot_full', 'qddot_full'])
 
+
+qddot_red = MX.sym('qddot_red', nv)
+qddot_full = MX(Sparsity.dense(nv_full, 1))
+qddot_full[0:6, 0] = qddot_red[0:6]
+qddot_full[6:9, 0] = qddot_red[6:9]
+qddot_full[9:11, 0] = [0.0, 0.0]
+qddot_full[11:14, 0] = qddot_red[9:12]
+qddot_full[14:16, 0] = [0.0, 0.0]
+qddot_full[16:19, 0] = qddot_red[12:15]
+qddot_full[19:21, 0] = [0.0, 0.0]
+qddot_full[21:24, 0] = qddot_red[15:18]
+qddot_full[24:26, 0] = [0.0, 0.0]
+qddot_full[26, 0] = [0.0]
+qddot_full[27:34, 0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+qddot_full[34:41, 0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+# tau_full = MX.sym('tau_full', nv_full)
+# tau_red = MX(Sparsity.dense(nv, 1))
+# tau_red[0:6, 0] = tau_full[0:6]
+# tau_red[6:9, 0] = tau_full[6:9]
+# tau_red[9:12, 0] = tau_full[11:14]
+# tau_red[12:15, 0] = tau_full[16:19]
+# tau_red[15:18, 0] = tau_full[21:24]
+#
+# Torque_Reduction = Function('Torque_Reduction', [tau_full], [tau_red], ['tau_full'], ['tau_red'])
+
 q_full_init = State_Extension(q_red=q_init, qdot_red=qdot_init, qddot_red=qddot_init)['q_full']
 
 C1_pos_ground = FK1(q=q_full_init)['ee_pos']
 C2_pos_ground = FK2(q=q_full_init)['ee_pos']
 C3_pos_ground = FK3(q=q_full_init)['ee_pos']
 C4_pos_ground = FK4(q=q_full_init)['ee_pos']
-
 
 C3_pos_wall = FK3(q=q_full_init)['ee_pos']
 C3_pos_wall[0] -= 0.1
@@ -305,7 +324,7 @@ Fc2_history = MX(Sparsity.dense(3, ns))
 Fc3_history = MX(Sparsity.dense(3, ns))
 Fc4_history = MX(Sparsity.dense(3, ns))
 tau_u_history = MX(Sparsity.dense(6, ns))
-tau_a_history = MX(Sparsity.dense(DoF, ns))
+tau_a_history = MX(Sparsity.dense(DoF_full, ns))
 q_history = MX(Sparsity.dense(nq, ns))
 qdot_history = MX(Sparsity.dense(nv, ns))
 qddot_history = MX(Sparsity.dense(nv, ns))
@@ -346,8 +365,6 @@ A_fr_R = mtimes(A_fr, R_wall)
 
 for k in range(ns):
 
-    # integrator_out = F_integrator(x0=X[k], p=Qddot[k])
-    # integrator_out = F_integrator(x0=X[k], p=vertcat(Qddot[k], Time[k]))
     integrator_out = F_RK(x0=X[k], p=Qddot[k], time=Time[k])
 
     Q_k = X[k][0:nq]
@@ -382,8 +399,6 @@ for k in range(ns):
 
     Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
 
-    exit()
-
     J += 100*Time[k]
     J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
     J += 100*dot(Qdot_k, Qdot_k)
@@ -398,9 +413,9 @@ for k in range(ns):
     g_min += [0] * X[k + 1].size1()
     g_max += [0] * X[k + 1].size1()
 
-    g += [Tau_k]
-    g_min += np.append(np.zeros((6, 1)), np.full((12, 1), -400.)).tolist()
-    g_max += np.append(np.zeros((6, 1)), np.full((12, 1), 400.)).tolist()
+    g += [Tau_k[0:6]]
+    g_min += np.zeros((6, 1)).tolist()
+    g_max += np.zeros((6, 1)).tolist()
 
     g += [C1_pos, C2_pos]
     g_min += [C1_pos_ground, C2_pos_ground]
@@ -425,16 +440,6 @@ for k in range(ns):
         g += [Force[k][6:12]]
         g_min += np.zeros((6, 1)).tolist()
         g_max += np.zeros((6, 1)).tolist()
-
-    # if k >= 25:
-    #     g += [Waist_vel]
-    #     g_min += np.zeros((6, 1)).tolist()
-    #     g_max += np.zeros((6, 1)).tolist()
-    #
-    # # Collisions Waist/rear legs
-    # g += [Waist_pos[2]-C3_pos[2], Waist_pos[2]-C4_pos[2]]
-    # g_min += np.array([0.3, 0.3]).tolist()
-    # g_max += np.array([100., 100.]).tolist()
 
     # Linearized friction cones
     g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6])]
@@ -466,13 +471,11 @@ for k in range(ns):
     Fc3_history[0:3, k] = Force[k][6:9]
     Fc4_history[0:3, k] = Force[k][9:12]
     tau_u_history[0:6, k] = Tau_k[0:6]
-    tau_a_history[0:12, k] = Tau_k[6:nv]
+    tau_a_history[0:DoF_full, k] = Tau_k[6:nv_full]
     q_history[0:nq, k] = Q_k
     qdot_history[0:nv, k] = Qdot_k
     qddot_history[0:nv, k] = Qddot[k]
     h_history[0, k] = Time[k]
-    # h_history[0, k] = 0.05
-
 
 g = vertcat(*g)
 v_init = vertcat(*v_init)
@@ -491,15 +494,10 @@ opts = {'ipopt.tol': 1e-3,
 solver = nlpsol('solver', 'ipopt', prob, opts)
 
 # Solve the NLP
-sol1 = solver(x0=v_init, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max)
-w_opt1 = sol1['x'].full().flatten()
-lam_w_opt = sol1['lam_x']
-lam_g_opt = sol1['lam_g']
-
-# sol = solver(x0=w_opt1, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max, lam_x0=lam_w_opt, lam_g0=lam_g_opt)
-# w_opt = sol['x'].full().flatten()
-
-w_opt = w_opt1
+sol = solver(x0=v_init, lbx=v_min, ubx=v_max, lbg=g_min, ubg=g_max)
+w_opt = sol['x'].full().flatten()
+lam_w_opt = sol['lam_x']
+lam_g_opt = sol['lam_g']
 
 # Plot the solution
 tau_u_hist = Function("tau_u_hist", [V], [tau_u_history])
@@ -646,10 +644,13 @@ rospy.init_node('joint_state_publisher')
 rate = rospy.Rate(1/dt)
 joint_state_pub = JointState()
 joint_state_pub.header = Header()
-joint_state_pub.name = ['hip_yaw_1', 'hip_pitch_1', 'knee_pitch_1',
-                        'hip_yaw_2', 'hip_pitch_2', 'knee_pitch_2',
-                        'hip_yaw_3', 'hip_pitch_3', 'knee_pitch_3',
-                        'hip_yaw_4', 'hip_pitch_4', 'knee_pitch_4']
+joint_state_pub.name = ['hip_yaw_1', 'hip_pitch_1', 'knee_pitch_1', 'ankle_pitch_1', 'ankle_yaw_1',
+                        'hip_yaw_2', 'hip_pitch_2', 'knee_pitch_2', 'ankle_pitch_2', 'ankle_yaw_2',
+                        'hip_yaw_3', 'hip_pitch_3', 'knee_pitch_3', 'ankle_pitch_3', 'ankle_yaw_3',
+                        'hip_yaw_4', 'hip_pitch_4', 'knee_pitch_4', 'ankle_pitch_4', 'ankle_yaw_4',
+                        'torso_yaw',
+                        'j_arm1_1', 'j_arm1_2', 'j_arm1_3', 'j_arm1_4', 'j_arm1_5', 'j_arm1_6', 'j_arm1_7',
+                        'j_arm2_1', 'j_arm2_2', 'j_arm2_3', 'j_arm2_4', 'j_arm2_5', 'j_arm2_6', 'j_arm2_7']
 
 br = tf.TransformBroadcaster()
 m = geometry_msgs.msg.TransformStamped()
@@ -672,10 +673,15 @@ while not rospy.is_shutdown():
                          rospy.Time.now(), m.child_frame_id, m.header.frame_id)
 
         joint_state_pub.header.stamp = rospy.Time.now()
-        joint_state_pub.position = q_hist_res[7:nq, k]
+        joint_state_pub.position = [q_hist_res[7, k], q_hist_res[8, k], q_hist_res[9, k], -0.301666, 0.746874,
+                                    q_hist_res[10, k], q_hist_res[11, k], q_hist_res[12, k], 0.301666, -0.746874,
+                                    q_hist_res[13, k], q_hist_res[14, k], q_hist_res[15, k], 0.301666, -0.746874,
+                                    q_hist_res[16, k], q_hist_res[17, k], q_hist_res[18, k], -0.301666, 0.746874,
+                                    3.56617e-13,
+                                    0.520149, 0.320865, 0.274669, -2.23604, 0.0500815, -0.781461, -0.0567608,
+                                    0.520149, -0.320865, -0.274669, -2.23604, -0.0500815, -0.781461, 0.0567608]
         joint_state_pub.velocity = []
         joint_state_pub.effort = []
         pub.publish(joint_state_pub)
         rate.sleep()
-        # rospy.sleep(0.5*rospy.Duration(h_hist_value[0, k]))
 
