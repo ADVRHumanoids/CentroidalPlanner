@@ -72,16 +72,7 @@ qdot = SX.sym('qdot', nv)
 qddot = SX.sym('qddot', nv)
 f = SX.sym('f', nf)
 
-# Bounds and initial guess for the control
-qddot_min = np.full((1, nv), -1000.)
-qddot_max = np.full((1, nv), 1000.)
-qddot_init = np.zeros_like(qddot_min)
-
-f_min = np.tile(np.array([-1000., -1000., -1000.]), 4)
-f_max = np.tile(np.array([1000., 1000., 1000.]), 4)
-f_init = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
-
-# Bounds and initial guess for the state # TODO: get from robot
+# Bounds and initial guess  # TODO: get from robot
 q_min = np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.00, -2.07, -2.61799388, -2.48, -2.06, -2.61799388, -2.48, -2.06, -2.61799388, -2.00, -2.07, -2.61799388])
 q_max = np.array([1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, 2.48, 2.07, 2.61799388, 2.00, 2.09439510, 2.61799388, 2.00, 2.09439510, 2.61799388, 2.48, 2.07, 2.61799388])
 q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, -0.746874, -1.25409, -1.55576, 0.746874, 1.25409, 1.55576, 0.746874, 1.25409, 1.55576, -0.746874, -1.25409, -1.55576])
@@ -89,6 +80,14 @@ q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, -0.746874, -1.25409, -1.55
 qdot_min = np.full((1, nv), -1000.)
 qdot_max = np.full((1, nv), 1000.)
 qdot_init = np.zeros_like(qdot_min)
+
+qddot_min = np.full((1, nv), -1000.)
+qddot_max = np.full((1, nv), 1000.)
+qddot_init = np.zeros_like(qddot_min)
+
+f_min = np.tile(np.array([-1000., -1000., -1000.]), 4)
+f_max = np.tile(np.array([1000., 1000., 1000.]), 4)
+f_init = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
 
 x_min = np.append(q_min, qdot_min)
 x_max = np.append(q_max, qdot_max)
@@ -100,6 +99,9 @@ x0_max = x_init
 
 xf_min = np.append(q_min, np.zeros_like(qdot_min))
 xf_max = np.append(q_max, np.zeros_like(qdot_min))
+
+t_min = 0.05
+t_max = 0.15
 
 # Model equations
 S = SX.zeros(3, 3)
@@ -203,15 +205,15 @@ qddot_full[26, 0] = [0.0]
 qddot_full[27:34, 0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 qddot_full[34:41, 0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-# tau_full = MX.sym('tau_full', nv_full)
-# tau_red = MX(Sparsity.dense(nv, 1))
-# tau_red[0:6, 0] = tau_full[0:6]
-# tau_red[6:9, 0] = tau_full[6:9]
-# tau_red[9:12, 0] = tau_full[11:14]
-# tau_red[12:15, 0] = tau_full[16:19]
-# tau_red[15:18, 0] = tau_full[21:24]
-#
-# Torque_Reduction = Function('Torque_Reduction', [tau_full], [tau_red], ['tau_full'], ['tau_red'])
+tau_full = MX.sym('tau_full', nv_full)
+tau_red = MX(Sparsity.dense(nv, 1))
+tau_red[0:6, 0] = tau_full[0:6]
+tau_red[6:9, 0] = tau_full[6:9]
+tau_red[9:12, 0] = tau_full[11:14]
+tau_red[12:15, 0] = tau_full[16:19]
+tau_red[15:18, 0] = tau_full[21:24]
+
+Torque_Reduction = Function('Torque_Reduction', [tau_full], [tau_red], ['tau_full'], ['tau_red'])
 
 q_full_init = State_Extension(q_red=q_init, qdot_red=qdot_init, qddot_red=qddot_init)['q_full']
 
@@ -229,6 +231,9 @@ C4_pos_wall[0] -= 0.1
 C4_pos_wall[2] += 0.2
 
 Waist_pos_init = FK_waist(q=q_full_init)['ee_pos']
+
+lift_node = 10
+touch_wall_node = 20
 
 # Start with an empty NLP
 NV = nx*(ns+1) + (nv + nf)*ns + ns
@@ -287,9 +292,9 @@ for k in range(ns):
     offset += nf
 
     Time.append(V[offset:offset+1])
-    v_min += np.array([0.05]).tolist()
-    v_max += np.array([0.15]).tolist()
-    v_init += np.array([0.05]).tolist()
+    v_min += np.array([t_min]).tolist()
+    v_max += np.array([t_max]).tolist()
+    v_init += np.array([t_min]).tolist()
 
     offset += 1
 
@@ -324,7 +329,7 @@ Fc2_history = MX(Sparsity.dense(3, ns))
 Fc3_history = MX(Sparsity.dense(3, ns))
 Fc4_history = MX(Sparsity.dense(3, ns))
 tau_u_history = MX(Sparsity.dense(6, ns))
-tau_a_history = MX(Sparsity.dense(DoF_full, ns))
+tau_a_history = MX(Sparsity.dense(DoF, ns))
 q_history = MX(Sparsity.dense(nq, ns))
 qdot_history = MX(Sparsity.dense(nv, ns))
 qddot_history = MX(Sparsity.dense(nv, ns))
@@ -398,10 +403,11 @@ for k in range(ns):
             mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
 
     Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
+    Tau_red = Torque_Reduction(tau_full=Tau_k)['tau_red']
 
-    J += 100*Time[k]
+    J += 100.*Time[k]
     J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
-    J += 100*dot(Qdot_k, Qdot_k)
+    J += 100.*dot(Qdot_k, Qdot_k)
     J += 1000.*dot(Waist_pos - Waist_pos_init, Waist_pos - Waist_pos_init)
 
     J += 100.*dot(C1_vel, C1_vel)
@@ -409,34 +415,41 @@ for k in range(ns):
     J += 100.*dot(C3_vel, C3_vel)
     J += 100.*dot(C4_vel, C4_vel)
 
+    if k >= touch_wall_node:
+        J += 0.0001*dot(Force[k], Force[k])
+
     g += [integrator_out['xf'] - X[k+1]]
     g_min += [0] * X[k + 1].size1()
     g_max += [0] * X[k + 1].size1()
 
-    g += [Tau_k[0:6]]
+    g += [Tau_red[0:6]]
     g_min += np.zeros((6, 1)).tolist()
     g_max += np.zeros((6, 1)).tolist()
+
+    # g += [Tau_red]
+    # g_min += np.append(np.zeros((6, 1)), np.full((DoF, 1), -400.)).tolist()
+    # g_max += np.append(np.zeros((6, 1)), np.full((DoF, 1), 400.)).tolist()
 
     g += [C1_pos, C2_pos]
     g_min += [C1_pos_ground, C2_pos_ground]
     g_max += [C1_pos_ground, C2_pos_ground]
 
-    if k < 10:
+    if k < lift_node:
         g += [C3_pos, C4_pos]
         g_min += [C3_pos_ground, C4_pos_ground]
         g_max += [C3_pos_ground, C4_pos_ground]
 
-    if k >= 20:
+    if k >= touch_wall_node:
         g += [C3_pos, C4_pos]
         g_min += [C3_pos_wall, C4_pos_wall]
         g_max += [C3_pos_wall, C4_pos_wall]
 
-    if k >= 20:  # or k <= 10:
+    if k >= touch_wall_node:
         g += [C3_vel, C4_vel]
         g_min += np.zeros((12, 1)).tolist()
         g_max += np.zeros((12, 1)).tolist()
 
-    if 10 <= k < 20:
+    if lift_node <= k < touch_wall_node:
         g += [Force[k][6:12]]
         g_min += np.zeros((6, 1)).tolist()
         g_max += np.zeros((6, 1)).tolist()
@@ -446,12 +459,12 @@ for k in range(ns):
     g_min += np.full((10, 1), -inf).tolist()
     g_max += np.zeros((10, 1)).tolist()
 
-    if k < 10:
+    if k < lift_node:
         g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
         g_min += np.full((10, 1), -inf).tolist()
         g_max += np.zeros((10, 1)).tolist()
 
-    if k >= 20:
+    if k >= touch_wall_node:
         g += [mtimes(A_fr_R, Force[k][6:9]), mtimes(A_fr_R, Force[k][9:12])]
         g_min += np.full((10, 1), -inf).tolist()
         g_max += np.zeros((10, 1)).tolist()
@@ -470,8 +483,8 @@ for k in range(ns):
     Fc2_history[0:3, k] = Force[k][3:6]
     Fc3_history[0:3, k] = Force[k][6:9]
     Fc4_history[0:3, k] = Force[k][9:12]
-    tau_u_history[0:6, k] = Tau_k[0:6]
-    tau_a_history[0:DoF_full, k] = Tau_k[6:nv_full]
+    tau_u_history[0:6, k] = Tau_red[0:6]
+    tau_a_history[0:DoF, k] = Tau_red[6:nv]
     q_history[0:nq, k] = Q_k
     qdot_history[0:nv, k] = Qdot_k
     qddot_history[0:nv, k] = Qddot[k]
@@ -641,7 +654,7 @@ import geometry_msgs.msg
 
 pub = rospy.Publisher('joint_states', JointState, queue_size=10)
 rospy.init_node('joint_state_publisher')
-rate = rospy.Rate(1/dt)
+rate = rospy.Rate(1./dt)
 joint_state_pub = JointState()
 joint_state_pub.header = Header()
 joint_state_pub.name = ['hip_yaw_1', 'hip_pitch_1', 'knee_pitch_1', 'ankle_pitch_1', 'ankle_yaw_1',
