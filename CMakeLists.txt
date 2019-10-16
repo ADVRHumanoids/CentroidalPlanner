@@ -108,15 +108,3 @@ endif()
 
 add_subdirectory(bindings/python/)
 
-add_executable(centauro_replay_node examples/centauro_replay_node.cpp)
-target_link_libraries(centauro_replay_node ${OpenSoT_LIBRARIES}
-                                           ${XBotInterface_LIBRARIES}
-                                           ${catkin_LIBRARIES}
-                                           ${ReflexxesTypeII_LIBRARIES}
-                                           ${cartesian_interface_LIBRARIES})
-
-install(TARGETS centauro_replay_node centauro_replay_node
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-

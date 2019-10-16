@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 from casadi import *
-from cartesian_interface.pyci_all import *
 import matlogger2.matlogger as matl
 import centroidal_planner.pycpl_casadi as cpl_cas
 import rospy
 import xbot_interface.config_options as cfg
 import xbot_interface.xbot_interface as xbot
 
-logger = matl.MatLogger2('/tmp/centauro_legs_wall_log')
+logger = matl.MatLogger2('/tmp/centauro_full_wall_log')
 logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
 # get cartesio ros client
-ci = pyci.CartesianInterfaceRos()
 opt = cfg.ConfigOptions()
 model = xbot.ModelInterface(opt)
 
@@ -594,8 +592,8 @@ F_int = integrator('F_int', 'cvodes', dae, opts)
 
 Tf = 0.0
 T_i = {}
-for k in range(ns):
 
+for k in range(ns):
     if k == 0:
         T_i[k] = 0.0
     else:
@@ -643,6 +641,79 @@ logger.add('q_hist_res', q_hist_res)
 logger.add('qdot_hist_res', qdot_hist_res)
 logger.add('qddot_hist_res', qddot_hist_res)
 logger.add('F_hist_res', F_hist_res)
+
+# RESAMPLER REPLAY TRAJECTORY
+
+Tf = 0.0
+T_i = {}
+
+for k in range(touch_wall_node):
+    if k == 0:
+        T_i[k] = 0.0
+    else:
+        T_i[k] = T_i[k-1] + h_hist_value[0, k-1]
+
+    Tf += h_hist_value[0, k]
+
+n_replay = int(round(Tf/dt))
+
+# q_res = MX(Sparsity.dense(nq, n_replay))
+# qdot_res = MX(Sparsity.dense(nv, n_replay))
+# qddot_res = MX(Sparsity.dense(nv, n_replay))
+# X_res = MX(Sparsity.dense(nx, n_replay+1))
+#
+# q_res_full = MX(Sparsity.dense(nq_full, n_replay))
+# qdot_res_full = MX(Sparsity.dense(nv_full, n_replay))
+#
+# q_replay = MX(Sparsity.dense(DoF_full, n_replay))
+# qdot_replay = MX(Sparsity.dense(DoF_full, n_replay))
+# tau_replay = MX(Sparsity.dense(DoF_full, n_replay))
+
+q_replay = MX(Sparsity.dense(DoF, n_replay))
+qdot_replay = MX(Sparsity.dense(DoF, n_replay))
+tau_replay = MX(Sparsity.dense(DoF, n_replay))
+X_res = MX(Sparsity.dense(nx, n_replay+1))
+
+k = 0
+
+for i in range(touch_wall_node):
+    for j in range(int(round(h_hist_value[0, i]/dt))):
+
+        n_prev = int(round(T_i[i]/dt))
+
+        if j == 0:
+            integrator_1 = F_int(x0=X[i], p=Qddot[i])
+            X_res[0:nx, k+1] = integrator_1['xf']
+        else:
+            integrator_2 = F_int(x0=X_res[0:nx, k], p=Qddot[i])
+            X_res[0:nx, k+1] = integrator_2['xf']
+
+        # q_res[0:nq, k] = X_res[0:nq, k+1]
+        # qdot_res[0:nv, k] = X_res[nq:nx, k+1]
+        # qddot_res[0:nv, k] = Qddot[i]
+        #
+        # q_res_full[0:nq_full, k] = State_Extension(q_red=q_res[0:nq, k], qdot_red=qdot_res[0:nv, k], qddot_red=qddot_res[0:nv, k])['q_full']
+        # qdot_res_full[0:nv_full, k] = State_Extension(q_red=q_res[0:nq, k], qdot_red=qdot_res[0:nv, k], qddot_red=qddot_res[0:nv, k])['qdot_full']
+        #
+        # q_replay[0:DoF_full, k] = q_res_full[7:nq_full, k]
+        # qdot_replay[0:DoF_full, k] = qdot_res_full[6:nv_full, k]
+        # tau_replay[0:DoF_full, k] = tau_a_history[0:DoF_full, i]
+
+        q_replay[0:DoF, k] = X_res[7:nq, k+1]
+        qdot_replay[0:DoF, k] = X_res[nq+6:nx, k+1]
+        tau_replay[0:DoF, k] = tau_a_history[0:DoF, i]
+
+        k += 1
+
+Resampler_replay = Function("Resampler_replay", [V], [q_replay, qdot_replay, tau_replay], ['V'], ['q_replay', 'qdot_replay', 'tau_replay'])
+
+q_replay = Resampler_replay(V=w_opt)['q_replay'].full()
+qdot_replay = Resampler_replay(V=w_opt)['qdot_replay'].full()
+tau_replay = Resampler_replay(V=w_opt)['tau_replay'].full()
+
+logger.add('q_replay', q_replay)
+logger.add('qdot_replay', qdot_replay)
+logger.add('tau_replay', tau_replay)
 
 del(logger)
 
