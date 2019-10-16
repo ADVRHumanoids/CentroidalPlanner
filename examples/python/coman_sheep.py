@@ -149,7 +149,7 @@ def gen_com_planner(contacts, mass) :
     com_pl = cpl.CoMPlanner(contacts, mass)
 
     # WEIGHTS
-    mu_com_pl = 0.2
+    mu_com_pl = 0.3
     com_pl.SetMu(mu_com_pl)
     com_pl.SetCoMWeight(1000000000000)  # 100000.0
     com_pl.SetForceWeight(0.)  # 0.0000001
@@ -346,7 +346,10 @@ def surface_reacher_foot(robot, ft_map, end_effector) :
     else:
         print 'WRONG FOOT'
 
+    #SETTING VELOCITY
     ci.setControlMode(end_effector, pyci.ControlType.Velocity)
+
+
 
     contact_treshold = 250
     direction = 2
@@ -364,7 +367,7 @@ def surface_reacher_foot(robot, ft_map, end_effector) :
         else :
             n_cycle = 0
 
-        if n_cycle > 100 :
+        if n_cycle > 50 :
             contact_sensed = True
             print end_effector, ': Contact sensed.'
             n_cycle = 0
@@ -377,6 +380,30 @@ def surface_reacher_foot(robot, ft_map, end_effector) :
 
     ci.setControlMode(end_effector, pyci.ControlType.Position)
 
+def lower_ankle_impedance(robot, end_effector) :
+
+    if end_effector == 'l_sole':
+        anklePitch = 'LAnkePitch'
+    elif end_effector == 'r_sole':
+        anklePitch = 'RAnkePitch'
+    else:
+        print 'WRONG FOOT'
+
+    # LOWERING STIFFNESS AND DAMPING
+    print "lowering stiffness and impedance of ankle ..."
+    stiffness = robot.getStiffnessMap()
+    damping = robot.getDampingMap()
+
+    stiffness[anklePitch] = 0
+    damping[anklePitch] = 0
+
+    robot.setStiffness(stiffness)
+    robot.setDamping(damping)
+
+    print "Stiffness of robot:", stiffness
+    print "Damping of robot: ", damping
+
+    robot.move()
 def force_detection(robot, ft, direction, magnitude) :
 
 
@@ -594,7 +621,7 @@ def foot_positioning_wall(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet
     force_threshold = 300
     direction = 2
 
-    distance_for_reaching = - 0.03
+    distance_for_reaching = - 0.05
 
     move_time_com = 2
     lift_time = 5
@@ -699,6 +726,10 @@ def foot_positioning_wall(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet
         ci.update()
         print foot_i, ': task finished.'
 
+        # lowering stiffness of ankle of foot_i
+        lower_ankle_impedance(robot, foot_i)
+
+        # reaching for the wall with foot_i
         surface_reacher_foot(robot, ft_map, foot_i)
 
         # WAIST ENABLE
