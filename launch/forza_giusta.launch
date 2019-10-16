@@ -1,0 +1,27 @@
+<launch>
+
+<rosparam command="load" param="cartesian/torque_offset" file="$(find centroidal_planner)/configs/tau_offset.yaml"/>
+
+
+<node pkg="centroidal_planner"
+      type="forza_giusta_node"
+      name="forza_giusta_node_torque_ffwd"
+      output="screen">
+
+      <arg name="rate" value="100.0"/>
+
+      <remap from="~torque_offset" to="cartesian/torque_offset"/>
+
+      <param name="mu" value="0.00001"/>
+
+      <param name="log" type="bool" value="true"/>
+
+      <param name="is_model_floating_base" value="true"/>
+      <param name="model_type" value="RBDL"/>
+
+      <param name="links" type="yaml"
+             value="[l_sole, r_sole, l_ball_tip, r_ball_tip]"/>
+
+</node>
+
+</launch>

@@ -5,7 +5,8 @@ solver_options:
 stack:
     - ["LFoot", "RFoot"] #PosturalPennacchio
     - ["LArm", "RArm"]
-    - ["CoM", "Torso", "WaistZ"]
+    - ["Torso"]
+    - ["CoM", "WaistZ"]
     - ["Postural"]
     
 constraints: ["JointLimits", "VelocityLimits"]

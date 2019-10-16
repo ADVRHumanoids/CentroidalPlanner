@@ -66,13 +66,33 @@ void ForzaGiusta::setFixedBaseTorque(const Eigen::VectorXd& fixed_base_torque)
     }
     
     _x_ref_fb = fixed_base_torque.head<6>();
+//    std::cout << "fl base torque: " << _x_ref_fb.transpose() << std::endl;
 }
 
 
 void ForzaGiusta::_update(const Eigen::VectorXd& x)
 {
     _task.setZero(_wrenches[0].getInputSize(), 6);
-    
+
+//    Eigen::Vector3d poseCoM;
+//    _model->getCOM(poseCoM);
+//    std::cout << "COM: " << poseCoM.transpose() << std::endl;
+//    Eigen::Affine3d poseSole;
+//    _model->getPose("l_sole", poseSole);
+//    std::cout << "L_SOLE: " << poseSole.matrix() << std::endl;
+
+//    double h = fabs(poseCoM(2) - poseSole.translation()[2]);
+//    std::cout << "h:" << h << std::endl;
+
+//    double dist_x = poseCoM[0] - poseSole.translation()[0];
+//    std::cout << "dist_x: " << dist_x << std::endl;
+
+//    double angle = std::tanh(dist_x/h);
+//    std::cout << "angle: " << angle * 180/M_PI << std::endl;
+
+//    double torque_y = _model->getMass() * 9.8 * sin(angle);
+//    std::cout << "torque_y: " << torque_y << std::endl;
+
     for(int i = 0; i < _enabled_contacts.size(); i++)
     {
         if(!_enabled_contacts[i]){
@@ -117,6 +137,7 @@ public:
 
     void log(XBot::MatLogger::Ptr logger);
 
+    bool initConstraints(std::map<std::string, Eigen::VectorXd> links);
     bool setConstraints(std::map<std::string, Eigen::VectorXd> constraint_links);
     bool resetConstraints(std::vector<std::string> reset_links);
 
@@ -192,7 +213,7 @@ forza_giusta::ForceOptimization::ForceOptimization(XBot::ModelInterface::Ptr mod
     _Wrenches = boost::make_shared<OpenSoT::tasks::force::Wrenches>(_contact_links,_wrenches);
 
     /* Set Wrenches limits */
-    setConstraints(constraint_links);
+    initConstraints(constraint_links);
     
     /* Define friction cones */
     OpenSoT::constraints::force::FrictionCones::friction_cones friction_cones;
@@ -211,14 +232,20 @@ forza_giusta::ForceOptimization::ForceOptimization(XBot::ModelInterface::Ptr mod
     _forza_giusta = boost::make_shared<ForzaGiusta>(_model, _wrenches, _contact_links);
     
     /* Define optimization problem */
+//    _autostack = boost::make_shared<OpenSoT::AutoStack>(_forza_giusta);
+//    _autostack/=_Wrenches;
+//    //_autostack << boost::make_shared<OpenSoT::constraints::TaskToConstraint>(_forza_giusta);
+//    _autostack << _friction_cones;
+//    _autostack << _Wrenches_limits;
+
+
     _autostack = boost::make_shared<OpenSoT::AutoStack>(_Wrenches);
     _autostack << boost::make_shared<OpenSoT::constraints::TaskToConstraint>(_forza_giusta);
     _autostack << _friction_cones;
     _autostack << _Wrenches_limits;
-    
     _autostack->update(Eigen::VectorXd());
     
-    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(), _autostack->getBounds(), 1e6);
+    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(), _autostack->getBounds(), 1e3);
     
 }
 
@@ -238,6 +265,7 @@ bool forza_giusta::ForceOptimization::compute(const Eigen::VectorXd& fixed_base_
     
     Eigen::Matrix6d weight;
     weight.setIdentity();
+//    weight.block(3,3,3,3) *= 0.001;
     
     for(const auto& pair : Fref_ifopt_map)
     {
@@ -291,8 +319,7 @@ bool forza_giusta::ForceOptimization::compute(const Eigen::VectorXd& fixed_base_
     
     for(int i = 0; i < _contact_links.size(); i++)
     {
-        _wrenches[i].getValue(_x_value, Fc_map[_contact_links[i]]);
-        
+        _wrenches[i].getValue(_x_value, Fc_map[_contact_links[i]]);    
     }
     
     return true;
@@ -302,14 +329,6 @@ bool forza_giusta::ForceOptimization::compute(const Eigen::VectorXd& fixed_base_
 bool forza_giusta::ForceOptimization::setConstraints(std::map<std::string, Eigen::VectorXd> constraint_links)
 {
     std::vector<Eigen::VectorXd> vec_lowerLims, vec_upperLims;
-
-    //     for (auto const& x : constraint_links)
-    //     {
-    //         std::cout << x.first
-    //                   << ':'
-    //                   << x.second.transpose()
-    //                   << std::endl ;
-    //     }
 
     for(auto cl : _contact_links)
     {
@@ -344,21 +363,10 @@ bool forza_giusta::ForceOptimization::setConstraints(std::map<std::string, Eigen
     }
 
 
-     for(auto elem : _contact_links)
-     {
-         vec_lowerLims.push_back(_map_lowerLims[elem]);
-         vec_upperLims.push_back(_map_upperLims[elem]);
-     }
-
-     for (auto const& x : _map_upperLims)
-     {
-         std::cout << x.first
-                   << ':'
-                   << x.second.transpose()
-                   << std::endl ;
-     }
-
-    _Wrenches_limits = boost::make_shared<OpenSoT::constraints::force::WrenchesLimits>(_contact_links, vec_lowerLims, vec_upperLims, _wrenches);
+    for(auto elem : _contact_links)
+    {
+        _Wrenches_limits->getWrenchLimits(elem)->setWrenchLimits(_map_lowerLims[elem], _map_upperLims[elem]);
+    }
 
 }
 
@@ -389,21 +397,56 @@ bool forza_giusta::ForceOptimization::resetConstraints(std::vector<std::string> 
 
     for(auto elem : _contact_links)
     {
-        vec_lowerLims.push_back(_map_lowerLims[elem]);
-         vec_upperLims.push_back(_map_upperLims[elem]);
-     }
+        _Wrenches_limits->getWrenchLimits(elem)->setWrenchLimits(_map_lowerLims[elem], _map_upperLims[elem]);
+    }
 
-     for (auto const& x : _map_upperLims)
-     {
-         std::cout << x.first
-                   << ':'
-                   << x.second.transpose()
-                   << std::endl ;
-     }
+
+}
+
+bool forza_giusta::ForceOptimization::initConstraints(std::map<std::string, Eigen::VectorXd> links)
+{
+    std::vector<Eigen::VectorXd> vec_lowerLims, vec_upperLims;
+
+
+    for(auto cl : _contact_links)
+    {
+        Eigen::VectorXd lowerLims(6), upperLims(6);
+
+        if ( links.find(cl) == links.end() )
+        {
+            lowerLims.setOnes(); lowerLims*= -1e3;
+//            lowerLims.tail(3) << -10.,-10.,-10.;
+            _map_lowerLims[cl] = lowerLims;
+            upperLims.setOnes(); upperLims*= 1e3;
+//            upperLims.tail(3) << 10.,10.,10.;
+            _map_upperLims[cl] = upperLims;
+
+            std::cout << "Constraints of link '" << cl <<  "' initialized to: [" << _map_upperLims[cl].transpose() << "]" <<std::endl;
+        }
+        else
+        {
+            lowerLims = - links[cl];
+            upperLims =   links[cl];
+
+            _map_lowerLims[cl] = lowerLims;
+            _map_upperLims[cl] = upperLims;
+
+            std::cout << "Constraints of link '" << cl <<  "' initialized to: [" << _map_upperLims[cl].transpose() << "]" <<std::endl;
+        }
+    }
+
+
+    for(auto elem : _contact_links)
+    {
+        vec_lowerLims.push_back(_map_lowerLims[elem]);
+        vec_upperLims.push_back(_map_upperLims[elem]);
+    }
 
     _Wrenches_limits = boost::make_shared<OpenSoT::constraints::force::WrenchesLimits>(_contact_links, vec_lowerLims, vec_upperLims, _wrenches);
 
 }
+
+
 void forza_giusta::ForceOptimization::log(XBot::MatLogger::Ptr logger)
 {
     _autostack->log(logger);

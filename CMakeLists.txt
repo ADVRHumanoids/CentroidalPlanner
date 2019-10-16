@@ -46,7 +46,7 @@ endif()
 
 add_service_files(
   FILES
-  SetLiftedContacts.srv
+  vectorStringLinks.srv
 )
 
 

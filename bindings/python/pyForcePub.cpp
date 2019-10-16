@@ -16,6 +16,10 @@ PYBIND11_MODULE(pyforcepub, m) {
         .def("sendForce", (void (ForcePublisher::*)(const Eigen::VectorXd&))                           &ForcePublisher::send_force)
         .def("sendForce", (void (ForcePublisher::*)(std::vector<std::string>, const Eigen::VectorXd&)) &ForcePublisher::send_force)
         .def("sendNormal", &ForcePublisher::send_normal)
+        .def("setLiftedContacts", &ForcePublisher::setLiftedContacts)
+        .def("setContacts",  &ForcePublisher::setContacts)
+        .def("setPointContacts",  &ForcePublisher::setPointContacts)
+        .def("switchController", &ForcePublisher::switch_controller)
 //        .def("sendWrenchManip", &ForcePublisher::send_wrench_manip)
 //        .def("sendForceArms", &ForcePublisher::send_force_arms)
         ;

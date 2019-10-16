@@ -22,10 +22,10 @@ boost::shared_ptr<forza_giusta::ForceOptimization> force_opt;
 
 void on_joint_pos_recv(const sensor_msgs::JointStateConstPtr& msg, XBot::JointNameMap * jmap)
 {
-    for(int i = 0; i < msg->name.size(); i++)
-    {
-        (*jmap)[msg->name.at(i)] = msg->position.at(i);
-    }
+//    for(int i = 0; i < msg->name.size(); i++)
+//    {
+//        (*jmap)[msg->name.at(i)] = msg->position.at(i);
+//    }
 }
 
 void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string l)
@@ -118,7 +118,7 @@ bool setLiftedContacts(centroidal_planner::SetLiftedContactsRequest& req, centro
 {
 
     Eigen::Vector6d default_constraints;
-    default_constraints << 1000, 1000, 1000, 0, 0, 0;
+    default_constraints << 0, 0, 0, 0, 0, 0;
     std::map<std::string, Eigen::VectorXd> constraint_links;
 
     /* generate constraint on selected link */
@@ -143,7 +143,7 @@ bool setLiftedContacts(centroidal_planner::SetLiftedContactsRequest& req, centro
     return true;
 }
 
-bool resetLiftedContacts(centroidal_planner::SetLiftedContactsRequest& req, centroidal_planner::SetLiftedContactsResponse& res)
+bool setContacts(centroidal_planner::SetLiftedContactsRequest& req, centroidal_planner::SetLiftedContactsResponse& res)
 {
 
     /* SET CONSTRAINTS */
@@ -156,7 +156,35 @@ bool resetLiftedContacts(centroidal_planner::SetLiftedContactsRequest& req, cent
         {
             output += (it) + ", ";
         }
-        res.message = "Successfully resetted link: " + output.substr(0, output.size() - 2 );
+        res.message = "Successfully set contact for links: " + output.substr(0, output.size() - 2 );
+    }
+    res.success = true;
+    return true;
+}
+
+bool setPointContacts(centroidal_planner::SetLiftedContactsRequest& req, centroidal_planner::SetLiftedContactsResponse& res)
+{
+    Eigen::Vector6d default_constraints;
+    default_constraints << 1000, 1000, 1000, 0, 0, 0;
+    std::map<std::string, Eigen::VectorXd> constraint_links;
+
+    /* generate constraint on selected link */
+    for (auto const& value : req.link)
+    {
+        constraint_links[value] = default_constraints;
+    }
+
+    /* SET CONSTRAINTS */
+    if (force_opt)
+    {
+        force_opt->setConstraints(constraint_links);
+
+        std::string output = "";
+        for (auto it = constraint_links.cbegin(); it != constraint_links.cend(); it++)
+        {
+            output += (it->first) + ", ";
+        }
+        res.message = "Successfully set point contact constraints for links: " + output.substr(0, output.size() - 2 );
     }
     res.success = true;
     return true;
@@ -176,10 +204,12 @@ int main(int argc, char ** argv)
     auto model = XBot::ModelInterface::getModel(cfg);
 
     auto imu = robot->getImu().begin()->second;
-    robot->sense(false);
+    robot->sense();
     Eigen::Matrix3d tmp;
     imu->getOrientation(tmp);
     imu_R_w0 = tmp.transpose();
+
+    imu_R_w0.setIdentity();
     
     XBot::JointNameMap jmap;
     robot->getMotorPosition(jmap);
@@ -241,13 +271,22 @@ int main(int argc, char ** argv)
 
     item_sender sender;
     ros::ServiceServer switch_srv;
-    switch_srv = nh.advertiseService("send_forces/", &item_sender::send_wrenches, &sender);
+    switch_srv = nh.advertiseService("switch_controller/", &item_sender::send_wrenches, &sender);
 
     ros::ServiceServer lifted_contacts_srv;
     lifted_contacts_srv = nh.advertiseService("set_lifted_contacts/", setLiftedContacts);
 
-    ros::ServiceServer reset_contacts_srv;
-    reset_contacts_srv = nh.advertiseService("reset_lifted_contacts/", resetLiftedContacts);
+    ros::ServiceServer contacts_srv;
+    contacts_srv = nh.advertiseService("set_contacts/", setContacts);
+
+    ros::ServiceServer point_contacts_srv;
+    point_contacts_srv = nh.advertiseService("set_point_contacts/", setPointContacts);
+
+    std::map<std::string, ros::Publisher> force_pub;
+    for (auto elem : links)
+    {
+        force_pub[elem] = nh.advertise<geometry_msgs::WrenchStamped>("wrenches_exerted/" + elem, 1);
+    }
 
     for(auto l : links)
     {
@@ -323,8 +362,8 @@ int main(int argc, char ** argv)
 
     Eigen::VectorXd lim_l_hand(6), lim_r_hand(6);
 
-    lim_l_hand << 1000, 1000, 1000, 0, 0, 0;
-    lim_r_hand << 1000, 1000, 1000, 0, 0, 0;
+//    lim_l_hand << 1000, 1000, 1000, 0, 0, 0;
+//    lim_r_hand << 1000, 1000, 1000, 0, 0, 0;
 
 //    constraint_links["l_ball_tip"] = lim_l_hand;
 //    constraint_links["r_ball_tip"] = lim_r_hand;
@@ -343,7 +382,7 @@ int main(int argc, char ** argv)
 
     if (log)
         logger = XBot::MatLogger::getLogger(ss.str());
-    
+
     while(ros::ok())
     {
         ros::spinOnce();
@@ -359,17 +398,39 @@ int main(int argc, char ** argv)
 
         /* Compute gcomp */
         model->computeGravityCompensation(tau);
-        tau -= tau_offset;
-        tau.head(6) += wrench_manip;
+//        tau -= tau_offset;
+//        tau.head(6) += wrench_manip;
+
+//        std::cout << "tau_offset: " << tau_offset.transpose() << std::endl;
+//        std::cout << "wrench_manip: " << wrench_manip.transpose() << std::endl;
+
+//        std::cout << "tau (size: " << tau.size() << "): "  << std::endl;
+//        int i = 0;
+//        for (auto item : model->getEnabledJointNames())
+//        {
+//            std::cout << item << ": " << tau[i] << std::endl;
+//            i++;
+//        }
+//        std::cout << "-------------------------------------" << std::endl;
+
+//        std::cout << "fb_pose: " << std::endl << fb_pose.matrix() << std::endl;
+
+
 
         force_opt->compute(tau, w_ref_map, RotM_map, w_ForzaGiusta_map);
         
         force_opt->log(logger);
 
+//        for (auto r_item : RotM_map)
+//        {
+//            std::cout << "RotM " << r_item.first << ": " << std::endl << r_item.second.transpose() << std::endl;
+//        }
+
         for(const auto& pair : w_ref_map)
         {
             Eigen::Vector6d f_world = pair.second;
-            
+//            std::cout << "w_ref_map of: '" << pair.first << "' is: " << f_world.transpose() << std::endl;
+
             if (log)
             {
                 logger->add("F_ifopt_" + pair.first, f_world);
@@ -387,7 +448,14 @@ int main(int argc, char ** argv)
 
             Eigen::Vector6d w_world = pair.second;
 
-//            std::cout << "W_" + pair.first + ": " << w_world.head(6).transpose() << std::endl;
+//            std::cout << "W_" + pair.first + ": " << w_world.transpose() << std::endl;
+
+            geometry_msgs::WrenchStamped wrench_msg;
+            wrench_msg.header.frame_id = "world";
+//            w_world.tail(3) *= -1;
+            tf::wrenchEigenToMsg( w_world, wrench_msg.wrench);
+
+            force_pub[pair.first].publish(wrench_msg);
 
             if (log)
             {
@@ -396,6 +464,7 @@ int main(int argc, char ** argv)
             }
             
             Eigen::MatrixXd J;
+            Eigen::Matrix3d R;
             model->getJacobian(pair.first, J);
 
             tau -= J.transpose() * w_world;
@@ -407,30 +476,30 @@ int main(int argc, char ** argv)
         //	{
 //        Eigen::Vector6d f_world = pair.second;
 //	    f_world.tail(3).setZero();
-	    
+
 //	    if (log)
 //            {
 //                logger->add("F_" + pair.first, f_world);
-                                      
+
 //            }
-                 
+
 //        Eigen::MatrixXd J;
 //        model->getJacobian(pair.first, J);
 
 //        tau -= J.transpose() * f_world;
 //	}
-	
+
 //    for(const auto& pair : w_est_map)
 //        {
-	   
+
 //	   Eigen::Affine3d pose;
 //	   model->getPose(pair.first, pose);
-	   
+
 //	   Eigen::Vector3d f_est_world;
 //	   f_est_world = pose.linear() * pair.second.head(3);
-	   
+
 //	   logger->add("F_est_" + pair.first, f_est_world);
-	   
+
 //	}
         
         if (sender.isSending())

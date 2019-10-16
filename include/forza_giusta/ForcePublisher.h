@@ -1,6 +1,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <Eigen/Dense>
+#include <centroidal_planner/vectorStringLinks.h>
+#include <std_srvs/SetBool.h>
 
 namespace force_publisher {
     
@@ -16,7 +18,13 @@ namespace force_publisher {
       void send_normal(const Eigen::VectorXd& n_opt);
 //      void send_wrench_manip(const Eigen::VectorXd& tau_manip);
 //      void send_force_arms(const Eigen::VectorXd& f_arms);
-      
+      void setLiftedContacts(std::vector<std::string> lifted_links);
+      void setContacts(std::vector<std::string> contact_links);
+      void setPointContacts(std::vector<std::string> point_contact_links);
+
+      void switch_controller(bool flag);
+
+
   private:
       
       std::map<std::string, ros::Publisher> _pubs_force;
@@ -31,7 +39,9 @@ namespace force_publisher {
 //      ros::Publisher _pub_wrench_manip;
       std::vector<std::string> _contact_links;
 //      std::vector<std::string> _pushing_links;
-      
+
+      ros::ServiceClient _lift_client, _contact_client, _point_contact_client;
+      ros::ServiceClient _switch_client;
   };
 
   ForcePublisher::ForcePublisher(std::vector<std::string> contact_links)
@@ -58,6 +68,16 @@ namespace force_publisher {
           }
       }
       
+      _switch_client = nh.serviceClient<std_srvs::SetBool>("forza_giusta/switch_controller/");
+
+      _lift_client = nh.serviceClient<centroidal_planner::vectorStringLinks>("forza_giusta/set_lifted_contacts");
+
+      _contact_client = nh.serviceClient<centroidal_planner::vectorStringLinks>("forza_giusta/set_contacts");
+
+      _point_contact_client = nh.serviceClient<centroidal_planner::vectorStringLinks>("forza_giusta/set_point_contacts");
+
+
+
 //      _pub_wrench_manip = nh.advertise<geometry_msgs::WrenchStamped>("forza_giusta/wrench_manip/", 1);
       
 //      std::vector<std::string> pushing_links  = {""};
@@ -175,7 +195,96 @@ namespace force_publisher {
       }
       
   }
-  
+
+
+  void ForcePublisher::setLiftedContacts(std::vector<std::string> lifted_links)
+  {
+      centroidal_planner::vectorStringLinks srv;
+
+      for (auto l : lifted_links)
+      {
+           srv.request.link.push_back(l);
+      }
+
+      for (auto l : srv.request.link)
+      {
+          std::cout << l << std::endl;
+      }
+
+      if (_lift_client.call(srv))
+      {
+          ROS_INFO("Success to call service 'set_lifted_contacts' for links: \n");
+          for (auto elem : lifted_links)
+          {
+              ROS_INFO(elem.c_str());
+          }
+      }
+      else
+      {
+          ROS_INFO("Failed to call service 'set_lifted_contacts'");
+      }
+
+  }
+
+  void ForcePublisher::setContacts(std::vector<std::string> contact_links)
+  {
+      centroidal_planner::vectorStringLinks srv;
+      for (auto l : contact_links)
+      {
+          srv.request.link.push_back(l);
+      }
+
+      if (_contact_client.call(srv))
+      {
+          ROS_INFO("Success to call service 'set_contacts' for links: \n");
+          for (auto elem : contact_links)
+          {
+              ROS_INFO(elem.c_str());
+          }
+      }
+      else
+      {
+          ROS_INFO("Failed to call service 'set_contacts'");
+      }
+
+  }
+
+  void ForcePublisher::setPointContacts(std::vector<std::string> point_contact_links)
+  {
+      centroidal_planner::vectorStringLinks srv;
+      for (auto l : point_contact_links)
+      {
+          srv.request.link.push_back(l);
+      }
+
+      if (_point_contact_client.call(srv))
+      {
+          ROS_INFO("Success to call service 'set_point_contact_links' for links: \n");
+          for (auto elem : point_contact_links)
+          {
+              ROS_INFO(elem.c_str());
+          }
+      }
+      else
+      {
+          ROS_INFO("Failed to call service 'set_point_contact_links'");
+      }
+
+  }
+  void ForcePublisher::switch_controller(bool flag)
+  {
+      std_srvs::SetBool srv;
+      srv.request.data = flag;
+
+      if (_switch_client.call(srv))
+      {
+          ROS_INFO("Success to call service 'switch_controller'");
+      }
+      else
+      {
+          ROS_ERROR("Failed to call service 'switch_controller'");
+      }
+  }
 //  void ForcePublisher::send_force_arms(const Eigen::VectorXd &f_arms)
 //  {
       

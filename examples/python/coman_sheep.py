@@ -40,17 +40,28 @@ def sensors_init() :
 
 def homing(ci) :
 
-    foot_one = ci.getPoseReference(feet_list[0])[0].translation
-    foot_two = ci.getPoseReference(feet_list[1])[0].translation
-    foot_ci_one = Affine3(pos=foot_one)
-    foot_ci_two = Affine3(pos=foot_two)
 
-    ci.setTargetPose(feet_list[0], foot_ci_one, 5)
-    ci.setTargetPose(feet_list[1], foot_ci_two, 5)
 
-    ci.waitReachCompleted(feet_list[0])
-    ci.waitReachCompleted(feet_list[1])
+    straight_com = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+    straight_com[0] += 0.02
+    straight_com = Affine3(pos=straight_com)
+    print "homing ...."
+    ci.setTargetPose('com', straight_com, 5.0)
+    ci.waitReachCompleted('com')
     ci.update()
+
+    # foot_one = ci.getPoseReference(feet_list[0])[0].translation
+    # foot_two = ci.getPoseReference(feet_list[1])[0].translation
+    #
+    # foot_ci_one = Affine3(pos=foot_one)
+    # foot_ci_two = Affine3(pos=foot_two)
+    #
+    # ci.setTargetPose(feet_list[0], foot_ci_one, 5)
+    # ci.setTargetPose(feet_list[1], foot_ci_two, 5)
+    #
+    # ci.waitReachCompleted(feet_list[0])
+    # ci.waitReachCompleted(feet_list[1])
+    # ci.update()
 
     ci.setControlMode('Waist', pyci.ControlType.Disabled)
 
@@ -68,10 +79,6 @@ def init_param():
 
     # get cartesio ros client
     ci = pyci.CartesianInterfaceRos()
-    #select contacts of COMAN+
-    feet_list = ['l_sole', 'r_sole']
-    hands_list = ['l_ball_tip', 'r_ball_tip']
-    contacts = feet_list + hands_list
 
     mass = 70.0
 
@@ -83,7 +90,7 @@ def init_param():
     # size of the bound region for solver
     bound_size = 0.25
 
-    return ci, feet_list, hands_list, contacts, mass, world_odom_T_world, dist_hands, bound_size
+    return ci, mass, world_odom_T_world, dist_hands, bound_size
 
 
 def optimal_pos_sheep(ci, contacts, hands_list, feet_list, mass, dist_hands, bound_size) :
@@ -142,8 +149,8 @@ def gen_com_planner(contacts, mass) :
     com_pl = cpl.CoMPlanner(contacts, mass)
 
     # WEIGHTS
-    mu = 0.5
-    com_pl.SetMu(mu)
+    mu_com_pl = 0.2
+    com_pl.SetMu(mu_com_pl)
     com_pl.SetCoMWeight(1000000000000)  # 100000.0
     com_pl.SetForceWeight(0.)  # 0.0000001
 
@@ -213,7 +220,7 @@ def foot_positioning(ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_cen
 
         # lift sole
         sole_ci = ci.getPoseReference(foot_i)[0]
-        sole_ci.translation_ref()[2] += 0.05
+        sole_ci.translation_ref()[2] += 0.1
         ci.setTargetPose(foot_i, sole_ci, reach_time/2.0)
         ci.waitReachCompleted(foot_i)
         ci.update()
@@ -247,7 +254,7 @@ def foot_positioning(ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_cen
     ci.waitReachCompleted('com')
     ci.update()
 
-def hand_positioning(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_centroidal, com_pl, forcepub) :
+def hand_positioning(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_centroidal, com_pl) :
     # ==================================================================================================================
     # SET HANDS WRT WORLD
     for hand_i in hands_list:
@@ -257,7 +264,7 @@ def hand_positioning(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet_list
     stop_before_contact = 0.05
 
     # PLACE HANDS ON THE GROUND
-    reach_time_hand = 20
+    reach_time_hand = 30
     dist_from_ground = 0.15 + stop_before_contact
 
 
@@ -307,24 +314,22 @@ def surface_reacher(robot, ft_map) :
     ci.setControlMode(hands_list[1], pyci.ControlType.Velocity)
 
 
-    contact_treshold = 70
+    contact_treshold = 50
     direction = 2
 
     while not force_detection(robot, ft_map['l_arm_ft'], direction, contact_treshold) or not force_detection(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
 
-        ci.setVelocityReference(hands_list[0], vel_hands)
-        ci.setVelocityReference(hands_list[1], vel_hands)
 
-        if force_detection(robot, ft_map['l_arm_ft'], direction, contact_treshold) :
-            print 'l_arm contact'
+        if not force_detection(robot, ft_map['l_arm_ft'], direction, contact_treshold) :
+            ci.setVelocityReference(hands_list[0], vel_hands)
 
-        if force_detection(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
-            print 'r_arm contact'
+        if not force_detection(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
+            ci.setVelocityReference(hands_list[1], vel_hands)
 
         robot.sense()
 
-    ci.setControlMode(hands_list[0], pyci.ControlType.Position)
-    ci.setControlMode(hands_list[1], pyci.ControlType.Position)
+    # ci.setControlMode(hands_list[0], pyci.ControlType.Position)
+    # ci.setControlMode(hands_list[1], pyci.ControlType.Position)
 
     ci.update()
 
@@ -343,8 +348,7 @@ def surface_reacher_foot(robot, ft_map, end_effector) :
 
     ci.setControlMode(end_effector, pyci.ControlType.Velocity)
 
-
-    contact_treshold = 200
+    contact_treshold = 250
     direction = 2
 
     contact_sensed = False
@@ -360,7 +364,7 @@ def surface_reacher_foot(robot, ft_map, end_effector) :
         else :
             n_cycle = 0
 
-        if n_cycle > 10 :
+        if n_cycle > 100 :
             contact_sensed = True
             print end_effector, ': Contact sensed.'
             n_cycle = 0
@@ -385,11 +389,11 @@ def force_detection(robot, ft, direction, magnitude) :
     return detect_bool
 
 
-def advance_com(ci) :
+def advance_com(ci, x_position) :
 
     print "advancing with com..."
     com_advance = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
-    com_advance[0] = 0.1
+    com_advance[0] = x_position
     com_ci = Affine3(pos=com_advance)
     reach_time = 4.0
     ci.setTargetPose('com', com_ci, reach_time)
@@ -400,7 +404,7 @@ def advance_com(ci) :
 def optimal_pos_wall(ci, contacts, hands_list, feet_list, mass) :
 
 
-    print "starting foot positioning on wall .."
+    print "starting OPTIMIZATION for foot positioning on wall .."
 
     # get x position of feet
     contact_foot_x = ci.getPoseReference(feet_list[0])[0].translation[0]
@@ -409,7 +413,7 @@ def optimal_pos_wall(ci, contacts, hands_list, feet_list, mass) :
 
     # point from which the superquadric is computed
     p = [contact_foot_x, 0, contact_hand_z]   # point in between the two soles, at height of hands
-    print "p: ", p
+    print "point from which the superquadric is computed: ", p
 
     # distance of wall from p
     wall_distance = 0.7 #x
@@ -419,7 +423,7 @@ def optimal_pos_wall(ci, contacts, hands_list, feet_list, mass) :
 
     # p w.r.t superquadric
     d = [wall_distance, 0.0,  ground_distance]
-    print "d: ", d
+    print "p w.r.t superquadric: ", d
 
     # height from superquadricd
     height_contact = 0.4
@@ -429,8 +433,11 @@ def optimal_pos_wall(ci, contacts, hands_list, feet_list, mass) :
     bound_size_hands = 0.1
 
     superquadric_env = cpl.Superquadric()
-    mu = 0.5
-    superquadric_env.SetMu(mu)
+    mu_feet = 0.2
+    superquadric_env.SetMu(mu_feet)
+    print superquadric_env.GetMu()
+
+    com_pl.SetForceWeight(100.)  # 0.0000001
 
     C_translation = [10, 0, 10]
 
@@ -442,8 +449,8 @@ def optimal_pos_wall(ci, contacts, hands_list, feet_list, mass) :
 
     superquadric_env.SetParameters(C,R,P)
 
-    print "C: ", C
-    print "R: ", R
+    print "center of superquadric: ", C
+    print "radius of superquadric: ", R
 
     # create a centroidal planner
     ctrl_pl = cpl.CentroidalPlanner(contacts, mass, superquadric_env)
@@ -493,8 +500,8 @@ def optimal_pos_wall(ci, contacts, hands_list, feet_list, mass) :
 def hand_positioning_wall(robot, ci, ctrl_pl, contacts, hands_list, feet_list, mass, sol_centroidal, com_pl) :
 
     # WEIGHTS
-    mu = 0.5
-    com_pl.SetMu(mu)
+    mu_hand = 0.2
+    com_pl.SetMu(mu_hand)
     com_pl.SetCoMWeight(1000000000000)  # 100000.0
     com_pl.SetForceWeight(0.)  # 0.0000001
 
@@ -587,7 +594,7 @@ def foot_positioning_wall(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet
     force_threshold = 300
     direction = 2
 
-    distance_for_reaching = - 0.01
+    distance_for_reaching = - 0.03
 
     move_time_com = 2
     lift_time = 5
@@ -613,12 +620,6 @@ def foot_positioning_wall(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet
     print 'Setting com to: ', com_ref
     com_pl.SetCoMRef(com_ref)
 
-    # SEND FORCE
-    forcepub.sendForce(sol_centroidal.contact_values_map[hands_list[0]].force[0],
-                       sol_centroidal.contact_values_map[hands_list[1]].force[0],
-                       sol_centroidal.contact_values_map[feet_list[0]].force[0],
-                       sol_centroidal.contact_values_map[feet_list[1]].force[0])
-
 
     print("Starting foot placing...")
 
@@ -636,20 +637,47 @@ def foot_positioning_wall(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet
         print 'RESETTING LIFT ', foot_i
         # send commands to cartesio
 
+
+        # SEND FORCE
+
+        forces_sheep = [sol.contact_values_map[feet_list[0]].force[0],
+                        sol.contact_values_map[feet_list[0]].force[1],
+                        sol.contact_values_map[feet_list[0]].force[2],
+                        sol.contact_values_map[feet_list[1]].force[0],
+                        sol.contact_values_map[feet_list[1]].force[1],
+                        sol.contact_values_map[feet_list[1]].force[2],
+                        sol.contact_values_map[hands_list[0]].force[0],
+                        sol.contact_values_map[hands_list[0]].force[1],
+                        sol.contact_values_map[hands_list[0]].force[2],
+                        sol.contact_values_map[hands_list[1]].force[0],
+                        sol.contact_values_map[hands_list[1]].force[1],
+                        sol.contact_values_map[hands_list[1]].force[2]]
+
+        print "contact_joints: ", contact_joints
+        print "forces_sheep is: ", forces_sheep
+
+        forcepub.sendForce(contact_joints, forces_sheep)
+
+
+
         # move com
+        print "Starting displacement of CoM ..."
         com_disp = [sol.com[0], sol.com[1], world_odom_T_world]
-        print(com_disp)
+
         com_ci = Affine3(pos=com_disp)
         ci.setTargetPose('com', com_ci, move_time_com)
         ci.waitReachCompleted('com')
         ci.update()
+        print "Done: ", com_disp
 
 
+        ci.setControlMode(foot_i, pyci.ControlType.Position)
         # prepare ROTATION OF SOLE
         theta = [0, 0, 0]
         rot_mat = rotation(theta)
 
         # lift sole
+        print "lifting sole..."
         sole_ci = ci.getPoseReference(foot_i)[0]
         sole_ci.translation_ref()[2] += lift_heigth
         sole_ci.linear = rot_mat
@@ -657,11 +685,11 @@ def foot_positioning_wall(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet
         ci.waitReachCompleted(foot_i)
         ci.update()
 
-
         theta = [0, - np.pi / 2, 0]
         rot_mat = rotation(theta)
 
         # move foot
+        print "moving foot..."
         goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0], sol_centroidal.contact_values_map[foot_i].position[1], sol_centroidal.contact_values_map[foot_i].position[2]]
         goal_wall[0] -= distance_for_reaching
         foot_ci = Affine3(pos=goal_wall)
@@ -670,25 +698,6 @@ def foot_positioning_wall(robot, ft_map, ci, ctrl_pl, contacts, hands_list, feet
         ci.waitReachCompleted(foot_i)
         ci.update()
         print foot_i, ': task finished.'
-
-        # contact_flag = 0
-        #
-        # if foot_i == 'l_sole' :
-        #     ft = ft_map['l_leg_ft']
-        # elif foot_i == 'r_sole' :
-        #     ft = ft_map['r_leg_ft']
-        # else :
-        #     print 'WRONG FOOT'
-        #
-        # while not contact_flag :
-        #
-        #     contact_flag = ci.waitReachCompleted(foot_i, 0.001)
-        #
-        #     if force_detection(robot, ft, direction, force_threshold) :
-        #         print foot_i, ': contact detected, stopping task.'
-        #         contact_flag = 1
-        #
-        #     robot.sense()
 
         surface_reacher_foot(robot, ft_map, foot_i)
 
@@ -724,58 +733,108 @@ if __name__ == '__main__':
 
     roscpp_init('coman_sheep', [])
     # define contacts for the ForcePublisher
-    contact_joints = ['l_sole', 'r_sole', 'l_ball_tip', 'r_ball_tip']
+    #select contacts of COMAN+
+    feet_list = ['l_sole', 'r_sole']
+    hands_list = ['l_ball_tip', 'r_ball_tip']
+    contact_joints = feet_list + hands_list
+    print contact_joints
 
 
-    forcepub = fp.ForcePublisher(contact_joints)
+    # forcepub = fp.ForcePublisher(contact_joints)
 
+    # FOR OPT:
     # set zero forces on the links NOT IN CONTACTS (l_ball_tip, r_ball_tip)
-    zero_arm_forces = [0., 0., 400,
-                       0., 0., 400,
-                       0., 0., 0.,
-                       0., 0., 0.]
+    # zero_arm_forces = [0., 0., 400,
+    #                    0., 0., 400,
+    #                    0., 0., 0.,
+    #                    0., 0., 0.]
 
-    forcepub.sendForce(zero_arm_forces)
+    # forcepub.sendForce(zero_arm_forces)
+
+    # hands_list
+    # lift_list = ['l_ball_tip', 'r_ball_tip']
+
+    # forcepub.setLiftedContacts(lift_list)
+    # print "Set contacts ", lift_list, "as LIFTED CONTACTS"
+    # forcepub.switchController(True)
+    # print "Switched ON forza_giusta"
+    # DO NOT SEND FORCE NOW!!!!!!!!!
+
+    # SET FEET AS POINT CONTACTS
+    # forcepub.setPointContacts(feet_list)
+    # print "Set contacts ", feet_list, "as POINT CONTACTS"
 
     robot = get_robot()
     robot.sense()
 
-    xbotstiff.set_legs_default_stiffness(robot, [2000, 2000, 2000, 2000, 2000, 2000])
-    xbotdamp.set_legs_default_damping(robot, [10, 10, 10, 10, 10, 10])
-
-    exit(0)
+    ci, mass, world_odom_T_world, dist_hands, bound_size = init_param()
 
     ft_map = sensors_init()
 
-    ci, feet_list, hands_list, contacts, mass, world_odom_T_world, dist_hands, bound_size = init_param()
-
-
     homing(ci)
 
-    com_pl = gen_com_planner(contacts, mass)
+    com_pl = gen_com_planner(contact_joints, mass)
 
-    ctrl_pl_sheep, sol_centroidal_sheep = optimal_pos_sheep(ci, contacts, hands_list, feet_list, mass, dist_hands, bound_size)
+    ctrl_pl_sheep, sol_centroidal_sheep = optimal_pos_sheep(ci, contact_joints, hands_list, feet_list, mass, dist_hands, bound_size)
 
     # # foot_positioning(ci, ctrl_pl_sheep, contacts, hands_list, feet_list, mass, sol_centroidal_sheep, com_pl)
 
-    hand_positioning(robot, ft_map, ci, ctrl_pl_sheep, contacts, hands_list, feet_list, mass, sol_centroidal_sheep, com_pl, forcepub)
+    hand_positioning(robot, ft_map, ci, ctrl_pl_sheep, contact_joints, hands_list, feet_list, mass, sol_centroidal_sheep, com_pl)
 
     surface_reacher(robot, ft_map)
 
+    # ADVANCE WITH COM
+    advance_com(ci, sol_centroidal_sheep.com[0])
+
+    print "waiting for forza_giusta node ...."
+    forcepub = fp.ForcePublisher(contact_joints)
+    print "connected to forza_giusta."
+
+    # SET FEET POINT CONTACT
+    forcepub.setPointContacts(feet_list)
+
+    # SET HANDS POINT CONTACT
+    forcepub.setPointContacts(hands_list)
+
+
+    forces_sheep = [sol_centroidal_sheep.contact_values_map[feet_list[0]].force[0],
+                    sol_centroidal_sheep.contact_values_map[feet_list[0]].force[1],
+                    sol_centroidal_sheep.contact_values_map[feet_list[0]].force[2],
+                    sol_centroidal_sheep.contact_values_map[feet_list[1]].force[0],
+                    sol_centroidal_sheep.contact_values_map[feet_list[1]].force[1],
+                    sol_centroidal_sheep.contact_values_map[feet_list[1]].force[2],
+                    sol_centroidal_sheep.contact_values_map[hands_list[0]].force[0],
+                    sol_centroidal_sheep.contact_values_map[hands_list[0]].force[1],
+                    sol_centroidal_sheep.contact_values_map[hands_list[0]].force[2],
+                    sol_centroidal_sheep.contact_values_map[hands_list[1]].force[0],
+                    sol_centroidal_sheep.contact_values_map[hands_list[1]].force[1],
+                    sol_centroidal_sheep.contact_values_map[hands_list[1]].force[2]]
+
+    print "contact_joints: ", contact_joints
+    print "forces are: ", forces_sheep
+
     # sending forces ..
-    forcepub.sendForce(0.1, 0.1, 200,
-                       0.1, 0.1, 200,
-                       sol_centroidal_sheep.contact_values_map[hands_list[0]].force[0],
-                       sol_centroidal_sheep.contact_values_map[hands_list[1]].force[0])
+    forcepub.sendForce(contact_joints, forces_sheep)
 
-    advance_com(ci)
+    # SWITCH ON FORZA GIUSTA
+    forcepub.switchController(True)
+    print "Switched ON forza_giusta"
 
-    ctrl_pl_wall, sol_centroidal_wall = optimal_pos_wall(ci, contacts, hands_list, feet_list, mass)
+    # PREPARE FOR FORCE CONTROL
+    default_stiffness = 1000
+    default_damping = 10
+    xbotstiff.set_legs_default_stiffness(robot, [default_stiffness, default_stiffness, default_stiffness, default_stiffness, default_stiffness, default_stiffness])
+    xbotdamp.set_legs_default_damping(robot, [default_damping, default_damping, default_damping, default_damping, default_damping, default_damping])
+
+
+
+    ctrl_pl_wall, sol_centroidal_wall = optimal_pos_wall(ci, contact_joints, hands_list, feet_list, mass)
 
     # # hand_positioning_wall(ci, ctrl_pl_wall, contacts, hands_list, feet_list, mass, sol_centroidal_wall, com_pl)
 
-    foot_positioning_wall(robot, ft_map, ci, ctrl_pl_wall, contacts, hands_list, feet_list, mass, sol_centroidal_wall, com_pl, forcepub)
+    foot_positioning_wall(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, mass, sol_centroidal_wall, com_pl, forcepub)
 
+    exit(0)
 
 
 
@@ -824,3 +883,22 @@ if __name__ == '__main__':
 
     # # ==================================================================================================================
     # # ==================================================================================================================
+
+    # contact_flag = 0
+    #
+    # if foot_i == 'l_sole' :
+    #     ft = ft_map['l_leg_ft']
+    # elif foot_i == 'r_sole' :
+    #     ft = ft_map['r_leg_ft']
+    # else :
+    #     print 'WRONG FOOT'
+    #
+    # while not contact_flag :
+    #
+    #     contact_flag = ci.waitReachCompleted(foot_i, 0.001)
+    #
+    #     if force_detection(robot, ft, direction, force_threshold) :
+    #         print foot_i, ': contact detected, stopping task.'
+    #         contact_flag = 1
+    #
+    #     robot.sense()
