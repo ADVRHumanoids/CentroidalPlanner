@@ -6,7 +6,7 @@ import rospy
 import xbot_interface.config_options as cfg
 import xbot_interface.xbot_interface as xbot
 
-logger = matl.MatLogger2('/tmp/centauro_full_wall_log')
+logger = matl.MatLogger2('/tmp/centauro_full_jumping_log')
 logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
 # get cartesio ros client
@@ -220,18 +220,13 @@ C2_pos_ground = FK2(q=q_full_init)['ee_pos']
 C3_pos_ground = FK3(q=q_full_init)['ee_pos']
 C4_pos_ground = FK4(q=q_full_init)['ee_pos']
 
-C3_pos_wall = FK3(q=q_full_init)['ee_pos']
-C3_pos_wall[0] -= 0.1
-C3_pos_wall[2] += 0.3
-
-C4_pos_wall = FK4(q=q_full_init)['ee_pos']
-C4_pos_wall[0] -= 0.1
-C4_pos_wall[2] += 0.3
-
 Waist_pos_init = FK_waist(q=q_full_init)['ee_pos']
 
+Waist_pos_jump = FK_waist(q=q_full_init)['ee_pos']
+Waist_pos_jump[2] += 0.3
+
 lift_node = 10
-touch_wall_node = 20
+touch_down_node = 20
 
 # Start with an empty NLP
 NV = nx*(ns+1) + (nv + nf)*ns + ns
@@ -400,26 +395,25 @@ for k in range(ns):
             mtimes(C3_jac.T, vertcat(Force[k][6:9], MX.zeros(3, 1))) + \
             mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
 
-    Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
+    if lift_node <= k < touch_down_node:
+        Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau']
+
+    if k < lift_node or k >= touch_down_node:
+        Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
+
     Tau_red = Torque_Reduction(tau_full=Tau_k)['tau_red']
 
-    J += 1000.*Time[k]
+    J += 100.*Time[k]
     J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
 
-    if k <= touch_wall_node:
-        J += 100.*dot(Qdot_k, Qdot_k)
-    else:
-        J += 10000.*dot(Qdot_k, Qdot_k)
+    # if k <= lift_node or k >= touch_down_node:
+    J += 100.*dot(Qdot_k, Qdot_k)
 
-    # J += 1000.*dot(Waist_pos - Waist_pos_init, Waist_pos - Waist_pos_init)
+    if lift_node <= k < touch_down_node:
+        J += 1000.*dot(Waist_pos - Waist_pos_jump, Waist_pos - Waist_pos_jump)
 
-    J += 100.*dot(C1_vel, C1_vel)
-    J += 100.*dot(C2_vel, C2_vel)
-    J += 100.*dot(C3_vel, C3_vel)
-    J += 100.*dot(C4_vel, C4_vel)
-
-    if k >= touch_wall_node:
-        J += 0.0001*dot(Force[k], Force[k])
+    # if k <= lift_node:
+    #     J += 1000.*dot(Waist_vel, Waist_vel)
 
     g += [integrator_out['xf'] - X[k+1]]
     g_min += [0] * X[k + 1].size1()
@@ -433,44 +427,36 @@ for k in range(ns):
     # g_min += np.append(np.zeros((6, 1)), np.full((DoF, 1), -400.)).tolist()
     # g_max += np.append(np.zeros((6, 1)), np.full((DoF, 1), 400.)).tolist()
 
-    g += [C1_pos, C2_pos]
-    g_min += [C1_pos_ground, C2_pos_ground]
-    g_max += [C1_pos_ground, C2_pos_ground]
+    if lift_node <= k < touch_down_node:
+        g += [Force[k]]
+        g_min += np.zeros((nf, 1)).tolist()
+        g_max += np.zeros((nf, 1)).tolist()
 
-    if k < lift_node:
-        g += [C3_pos, C4_pos]
-        g_min += [C3_pos_ground, C4_pos_ground]
-        g_max += [C3_pos_ground, C4_pos_ground]
+    if k <= lift_node:
+        g += [C1_pos, C2_pos, C3_pos, C4_pos]
+        g_min += [C1_pos_ground, C2_pos_ground, C3_pos_ground, C4_pos_ground]
+        g_max += [C1_pos_ground, C2_pos_ground, C3_pos_ground, C4_pos_ground]
 
-    if k >= touch_wall_node:
-        g += [C3_pos, C4_pos]
-        g_min += [C3_pos_wall, C4_pos_wall]
-        g_max += [C3_pos_wall, C4_pos_wall]
+    if k >= touch_down_node:
+        g += [C1_pos, C2_pos, C3_pos, C4_pos]
+        g_min += [C1_pos_ground, C2_pos_ground, C3_pos_ground, C4_pos_ground]
+        g_max += [C1_pos_ground, C2_pos_ground, C3_pos_ground, C4_pos_ground]
 
-    if k >= touch_wall_node:
-        g += [C3_vel, C4_vel]
-        g_min += np.zeros((12, 1)).tolist()
-        g_max += np.zeros((12, 1)).tolist()
+    if k >= 24:
+        g += [Waist_pos]
+        g_min += [Waist_pos_init]
+        g_max += [Waist_pos_init]
 
-    if lift_node <= k < touch_wall_node:
-        g += [Force[k][6:12]]
+    if k >= 24:
+        g += [Waist_vel]
         g_min += np.zeros((6, 1)).tolist()
         g_max += np.zeros((6, 1)).tolist()
 
     # Linearized friction cones
-    g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6])]
-    g_min += np.full((10, 1), -inf).tolist()
-    g_max += np.zeros((10, 1)).tolist()
-
-    if k < lift_node:
-        g += [mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
-        g_min += np.full((10, 1), -inf).tolist()
-        g_max += np.zeros((10, 1)).tolist()
-
-    if k >= touch_wall_node:
-        g += [mtimes(A_fr_R, Force[k][6:9]), mtimes(A_fr_R, Force[k][9:12])]
-        g_min += np.full((10, 1), -inf).tolist()
-        g_max += np.zeros((10, 1)).tolist()
+    g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6]),
+          mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
+    g_max += np.zeros((20, 1)).tolist()
+    g_min += np.full((20, 1), -inf).tolist()
 
     Waist_pos_hist[0:3, k] = Waist_pos
     Waist_vel_hist[0:6, k] = Waist_vel
@@ -652,7 +638,7 @@ logger.add('F_resample', F_hist_res)
 Tf = 0.0
 T_i = {}
 
-node_replay = touch_wall_node
+node_replay = touch_down_node
 
 for k in range(node_replay):
     if k == 0:
