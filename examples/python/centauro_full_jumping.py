@@ -83,7 +83,7 @@ qddot_min = np.full((1, nv), -1000.)
 qddot_max = np.full((1, nv), 1000.)
 qddot_init = np.zeros_like(qddot_min)
 
-f_min = np.tile(np.array([-1000., -1000., -1000.]), 4)
+f_min = np.tile(np.array([-1000., -1000., 0.]), 4)
 f_max = np.tile(np.array([1000., 1000., 1000.]), 4)
 f_init = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
 
@@ -215,15 +215,37 @@ Torque_Reduction = Function('Torque_Reduction', [tau_full], [tau_red], ['tau_ful
 
 q_full_init = State_Extension(q_red=q_init, qdot_red=qdot_init, qddot_red=qddot_init)['q_full']
 
-C1_pos_ground = FK1(q=q_full_init)['ee_pos']
-C2_pos_ground = FK2(q=q_full_init)['ee_pos']
-C3_pos_ground = FK3(q=q_full_init)['ee_pos']
-C4_pos_ground = FK4(q=q_full_init)['ee_pos']
+jump_disp = [0.0, 0.0, 0.2]
+
+C1_pos_init = FK1(q=q_full_init)['ee_pos']
+C2_pos_init = FK2(q=q_full_init)['ee_pos']
+C3_pos_init = FK3(q=q_full_init)['ee_pos']
+C4_pos_init = FK4(q=q_full_init)['ee_pos']
+
+C1_pos_land = FK1(q=q_full_init)['ee_pos']
+C2_pos_land = FK2(q=q_full_init)['ee_pos']
+C3_pos_land = FK3(q=q_full_init)['ee_pos']
+C4_pos_land = FK4(q=q_full_init)['ee_pos']
+
+C1_pos_land[0] += jump_disp[0]
+C2_pos_land[0] += jump_disp[0]
+C3_pos_land[0] += jump_disp[0]
+C4_pos_land[0] += jump_disp[0]
 
 Waist_pos_init = FK_waist(q=q_full_init)['ee_pos']
 
 Waist_pos_jump = FK_waist(q=q_full_init)['ee_pos']
-Waist_pos_jump[2] += 0.3
+Waist_pos_jump[0] += 0.5*jump_disp[0]
+Waist_pos_jump[2] += jump_disp[2]
+
+Waist_pos_land = FK_waist(q=q_full_init)['ee_pos']
+
+Waist_pos_land = FK_waist(q=q_full_init)['ee_pos']
+Waist_pos_land[0] += jump_disp[0]
+
+print('Waist_pos_init', Waist_pos_init)
+print('Waist_pos_jump', Waist_pos_jump)
+print('Waist_pos_land', Waist_pos_land)
 
 lift_node = 10
 touch_down_node = 20
@@ -354,13 +376,6 @@ A_fr[3, 1] = -1.0
 A_fr[3, 2] = -mu_lin
 A_fr[4, 2] = -1.0
 
-R_wall = np.zeros([3, 3])
-R_wall[0, 1] = -1.0
-R_wall[1, 2] = -1.0
-R_wall[2, 0] = 1.0
-
-A_fr_R = mtimes(A_fr, R_wall)
-
 for k in range(ns):
 
     integrator_out = F_RK(x0=X[k], p=Qddot[k], time=Time[k])
@@ -395,25 +410,38 @@ for k in range(ns):
             mtimes(C3_jac.T, vertcat(Force[k][6:9], MX.zeros(3, 1))) + \
             mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
 
-    if lift_node <= k < touch_down_node:
-        Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau']
+    # if lift_node <= k < touch_down_node:
+    #     Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau']
+    #
+    # if k < lift_node or k >= touch_down_node:
+    #     Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
 
-    if k < lift_node or k >= touch_down_node:
-        Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
+    Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
 
     Tau_red = Torque_Reduction(tau_full=Tau_k)['tau_red']
 
-    J += 100.*Time[k]
-    J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
+    # # J += 100.*Time[k]
+    # J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
+    # J += 100.*dot(Qdot_k, Qdot_k)
+    #
+    # if lift_node <= k < touch_down_node:
+    #     J += 1000.*dot(Waist_pos - Waist_pos_jump, Waist_pos - Waist_pos_jump)
+    # # else:
+    # #     J += 1000.*dot(Waist_pos - Waist_pos_init, Waist_pos - Waist_pos_init)
 
-    # if k <= lift_node or k >= touch_down_node:
+    J += 10*integrator_out['qf']
+    J += 100.*Time[k]
+    J += 10000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
     J += 100.*dot(Qdot_k, Qdot_k)
 
     if lift_node <= k < touch_down_node:
         J += 1000.*dot(Waist_pos - Waist_pos_jump, Waist_pos - Waist_pos_jump)
-
-    # if k <= lift_node:
-    #     J += 1000.*dot(Waist_vel, Waist_vel)
+    else:
+        J += 1000.*dot(Waist_pos - Waist_pos_init, Waist_pos - Waist_pos_init)
+        # J += 1000.*dot(C1_pos - C1_pos_init, C1_pos - C1_pos_init)
+        # J += 1000.*dot(C2_pos - C2_pos_init, C2_pos - C2_pos_init)
+        # J += 1000.*dot(C3_pos - C3_pos_init, C3_pos - C3_pos_init)
+        # J += 1000.*dot(C4_pos - C4_pos_init, C4_pos - C4_pos_init)
 
     g += [integrator_out['xf'] - X[k+1]]
     g_min += [0] * X[k + 1].size1()
@@ -434,29 +462,60 @@ for k in range(ns):
 
     if k <= lift_node:
         g += [C1_pos, C2_pos, C3_pos, C4_pos]
-        g_min += [C1_pos_ground, C2_pos_ground, C3_pos_ground, C4_pos_ground]
-        g_max += [C1_pos_ground, C2_pos_ground, C3_pos_ground, C4_pos_ground]
+        g_min += [C1_pos_init, C2_pos_init, C3_pos_init, C4_pos_init]
+        g_max += [C1_pos_init, C2_pos_init, C3_pos_init, C4_pos_init]
+
+        # g += [C1_vel, C2_vel, C3_vel, C4_vel]
+        # g_min += np.zeros((24, 1)).tolist()
+        # g_max += np.zeros((24, 1)).tolist()
 
     if k >= touch_down_node:
+        g += [C1_pos[2], C2_pos[2], C3_pos[2], C4_pos[2]]
+        g_min += [C1_pos_init[2], C2_pos_init[2], C3_pos_init[2], C4_pos_init[2]]
+        g_max += [C1_pos_init[2], C2_pos_init[2], C3_pos_init[2], C4_pos_init[2]]
+
+        # g += [C1_vel, C2_vel, C3_vel, C4_vel]
+        # g_min += np.zeros((24, 1)).tolist()
+        # g_max += np.zeros((24, 1)).tolist()
+
+    if k <= lift_node:
         g += [C1_pos, C2_pos, C3_pos, C4_pos]
-        g_min += [C1_pos_ground, C2_pos_ground, C3_pos_ground, C4_pos_ground]
-        g_max += [C1_pos_ground, C2_pos_ground, C3_pos_ground, C4_pos_ground]
+        g_min += [C1_pos_init, C2_pos_init, C3_pos_init, C4_pos_init]
+        g_max += [C1_pos_init, C2_pos_init, C3_pos_init, C4_pos_init]
 
-    if k >= 24:
-        g += [Waist_pos]
-        g_min += [Waist_pos_init]
-        g_max += [Waist_pos_init]
+    # if k >= touch_down_node:
+    #     g += [C1_pos, C2_pos, C3_pos, C4_pos]
+    #     g_min += [C1_pos_land, C2_pos_land, C3_pos_land, C4_pos_land]
+    #     g_max += [C1_pos_land, C2_pos_land, C3_pos_land, C4_pos_land]
 
-    if k >= 24:
-        g += [Waist_vel]
-        g_min += np.zeros((6, 1)).tolist()
-        g_max += np.zeros((6, 1)).tolist()
+    g += [Q_k[3:7]]
+    g_max += np.array([0., 0., 0., 1.]).tolist()
+    g_min += np.array([0., 0., 0., 1.]).tolist()
 
-    # Linearized friction cones
-    g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6]),
-          mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
-    g_max += np.zeros((20, 1)).tolist()
-    g_min += np.full((20, 1), -inf).tolist()
+    # g += [Waist_pos[0:2]]
+    # g_min += [Waist_pos_init[0:2]]
+    # g_max += [Waist_pos_init[0:2]]
+
+    # if k == ns/2:
+    #     g += [Waist_pos]
+    #     g_min += [Waist_pos_jump]
+    #     g_max += [Waist_pos_jump]
+
+    # if k >= touch_down_node:
+    #     g += [Waist_pos]
+    #     g_min += [Waist_pos_land]
+    #     g_max += [Waist_pos_land]
+    #
+    # if k >= touch_down_node:
+    #     g += [Waist_vel]
+    #     g_min += np.zeros((6, 1)).tolist()
+    #     g_max += np.zeros((6, 1)).tolist()
+
+    # # Linearized friction cones
+    # g += [mtimes(A_fr, Force[k][0:3]), mtimes(A_fr, Force[k][3:6]),
+    #       mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
+    # g_max += np.zeros((20, 1)).tolist()
+    # g_min += np.full((20, 1), -inf).tolist()
 
     Waist_pos_hist[0:3, k] = Waist_pos
     Waist_vel_hist[0:6, k] = Waist_vel

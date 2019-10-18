@@ -21,7 +21,7 @@
 
 <link name="Waist">
   <inertial>
-      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      <origin rpy="0 0 0" xyz="0.18 0.0 0.0"/>
       <mass value="50.0"/>
       <inertia ixx="1.0417" ixy="0.0" ixz="0.0" iyy="1.8750" iyz="0.0" izz="2.1667"/>
   </inertial>

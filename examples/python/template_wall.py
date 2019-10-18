@@ -363,10 +363,10 @@ for k in range(ns):
         g_min += np.full((10, 1), -inf).tolist()
         g_max += np.zeros((10, 1)).tolist()
 
-    # if k >= 20:
-    #     g += [mtimes(A_fr_R, Force[k][6:9]), mtimes(A_fr_R, Force[k][9:12])]
-    #     g_min += np.full((10, 1), -inf).tolist()
-    #     g_max += np.zeros((10, 1)).tolist()
+    if k >= 20:
+        g += [mtimes(A_fr_R, Force[k][6:9]), mtimes(A_fr_R, Force[k][9:12])]
+        g_min += np.full((10, 1), -inf).tolist()
+        g_max += np.zeros((10, 1)).tolist()
 
     Waist_pos_hist[0:3, k] = Waist_pos
     Waist_vel_hist[0:6, k] = Waist_vel
@@ -400,7 +400,7 @@ v_max = vertcat(*v_max)
 
 # Create an NLP solver
 prob = {'f': J, 'x': V, 'g': g}
-opts = {'ipopt.tol': 1e-5,
+opts = {'ipopt.tol': 1e-3,
         'ipopt.max_iter': 2000,
         'ipopt.linear_solver': 'ma57'}
 solver = nlpsol('solver', 'ipopt', prob, opts)
@@ -503,8 +503,6 @@ for k in range(ns):
     Tf += h_hist_value[0, k]
 
 n_res = int(round(Tf/dt))
-
-print(n_res)
 
 q_res = MX(Sparsity.dense(nq, n_res))
 qdot_res = MX(Sparsity.dense(nv, n_res))
