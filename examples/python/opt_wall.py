@@ -26,7 +26,7 @@ def compute(ci, contacts, hands_list, feet_list, mass, mu_feet) :
     print "p w.r.t superquadric: ", d
 
     # height from superquadricd
-    height_contact = 0.4
+    height_contact = 0.6
 
     # set bounds
     bound_size_wall = 0.1

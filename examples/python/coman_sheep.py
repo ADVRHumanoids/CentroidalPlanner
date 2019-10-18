@@ -114,7 +114,7 @@ if __name__ == '__main__':
 
     ft_map = sensors_init(arm_estimation_flag=True, f_est=f_est)
 
-    mu_com_pl = 0.7
+    mu_com_pl = 0.5
     com_pl = gen_com_planner(contact_joints, mass, mu_com_pl)
 
     # SET HOMING POSIITION, SLIGHTLY COM FORWARD
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     xbotdamp.set_legs_default_damping(robot, [default_damping, default_damping, default_damping, default_damping, default_damping, default_damping])
 
     # COMPUTE OPTIMAL POSE FOR WALL CONFIGURATION
-    mu_feet = 0.7
+    mu_feet = 0.5
     ctrl_pl_wall, sol_centroidal_wall = opt_pos_wall.compute(ci, contact_joints, hands_list, feet_list, mass, mu_feet)
     # REACH WITH HANDS
     foot_cmd.run(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, sol_centroidal_wall, com_pl, forcepub, world_odom_T_world)

@@ -5,13 +5,16 @@ import surface_reacher as surface_reacher
 
 def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_centroidal, com_pl, forcepub, world_odom_T_world) :
 
+
+    # com_pl.SetCoMWeight(10)  # 100000.0
+    # com_pl.SetForceWeight(1) # 0.0000001
     # SET THRESHOLD FOR FEET
     # for c in feet_list:
     #     com_pl.SetForceThreshold(c, 50.0)
     force_threshold = 300
     direction = 2
 
-    distance_for_reaching = - 0.05
+    distance_for_reaching = - 0.08
 
     move_time_com = 2
     lift_time = 5
@@ -34,7 +37,9 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         print("Setting contact position for ", c_h, " to ", com_pl.GetContactPosition(c_h))
 
     # SET COM
+
     com_ref = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+    com_ref[1] = -0.05
     print 'Setting com to: ', com_ref
     com_pl.SetCoMRef(com_ref)
 
@@ -111,6 +116,8 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         theta = [0, 0, 0]
         rot_mat = rotation(theta)
 
+        if foot_i == 'r_sole' :
+            lift_heigth = 0.08
         # lift sole
         print "lifting sole..."
         sole_ci = ci.getPoseReference(foot_i)[0]
@@ -141,14 +148,53 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         surface_reacher.run_foot(ci, robot, ft_map, foot_i)
 
 
+        if foot_i == 'r_sole' :
+        # SEND FORCE
+
+            forces_sheep = [sol_centroidal.contact_values_map[feet_list[0]].force[0],
+                            sol_centroidal.contact_values_map[feet_list[0]].force[1],
+                            sol_centroidal.contact_values_map[feet_list[0]].force[2],
+                            sol_centroidal.contact_values_map[feet_list[1]].force[0],
+                            sol_centroidal.contact_values_map[feet_list[1]].force[1],
+                            sol_centroidal.contact_values_map[feet_list[1]].force[2],
+                            sol_centroidal.contact_values_map[hands_list[0]].force[0],
+                            sol_centroidal.contact_values_map[hands_list[0]].force[1],
+                            sol_centroidal.contact_values_map[hands_list[0]].force[2],
+                            sol_centroidal.contact_values_map[hands_list[1]].force[0],
+                            sol_centroidal.contact_values_map[hands_list[1]].force[1],
+                            sol_centroidal.contact_values_map[hands_list[1]].force[2]]
+
+            normal_sheep = [sol_centroidal.contact_values_map[feet_list[0]].normal[0],
+                            sol_centroidal.contact_values_map[feet_list[0]].normal[1],
+                            sol_centroidal.contact_values_map[feet_list[0]].normal[2],
+                            sol_centroidal.contact_values_map[feet_list[1]].normal[0],
+                            sol_centroidal.contact_values_map[feet_list[1]].normal[1],
+                            sol_centroidal.contact_values_map[feet_list[1]].normal[2],
+                            sol_centroidal.contact_values_map[hands_list[0]].normal[0],
+                            sol_centroidal.contact_values_map[hands_list[0]].normal[1],
+                            sol_centroidal.contact_values_map[hands_list[0]].normal[2],
+                            sol_centroidal.contact_values_map[hands_list[1]].normal[0],
+                            sol_centroidal.contact_values_map[hands_list[1]].normal[1],
+                            sol_centroidal.contact_values_map[hands_list[1]].normal[2]]
+
+
+            print "contact_joints: ", contacts_links
+            print "Sent forces_sheep is: ", forces_sheep
+            print "Sent normals are: ", normal_sheep
+
+            forcepub.sendForce(contacts_links, forces_sheep)
+            forcepub.sendNormal(contacts_links, normal_sheep)
+
         # WAIST ENABLE
         ci.setControlMode('Waist', pyci.ControlType.Position)
 
         # get contacts references from cartesio and set them to the planner
         contact_pos = ci.getPoseReference(foot_i)[0].translation
         com_pl.SetContactPosition(foot_i, contact_pos)
-        com_pl.SetContactNormal(foot_i, [1, 0, 0])
+        normal = [1, 0, 0]
+        com_pl.SetContactNormal(foot_i, normal)
         print("Setting contact position for ", foot_i, " to ", com_pl.GetContactPosition(foot_i))
+        print "Setting normal for ", foot_i, "to ", normal
 
     # PUT BACK COM IN THE MIDDLE
     for c_f in feet_list:
