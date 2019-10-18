@@ -12,7 +12,7 @@ def run(robot, end_effector) :
     stiffness = robot.getStiffnessMap()
     damping = robot.getDampingMap()
 
-    stiffness[anklePitch] = 100
+    stiffness[anklePitch] = 10
     damping[anklePitch] = 1
 
     robot.setStiffness(stiffness)

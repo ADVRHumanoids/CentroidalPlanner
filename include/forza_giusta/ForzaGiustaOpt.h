@@ -44,7 +44,7 @@ private:
 
 };
 
-ForzaGiusta::ForzaGiusta(XBot::ModelInterface::Ptr model, 
+ForzaGiusta::ForzaGiusta(XBot::ModelInterface::Ptr model,
                          const std::vector< OpenSoT::AffineHelper >& wrenches,
                          std::vector< std::string > contact_links):
     Task< Eigen::MatrixXd, Eigen::VectorXd >("FORZA_GIUSTA", wrenches[0].getInputSize()),
@@ -174,7 +174,7 @@ private:
 
 
 
-forza_giusta::ForceOptimization::ForceOptimization(XBot::ModelInterface::Ptr model, 
+forza_giusta::ForceOptimization::ForceOptimization(XBot::ModelInterface::Ptr model,
                                                    std::vector< std::string > contact_links,
                                                    double mu,
                                                    bool optimize_contact_torque = false,
@@ -245,16 +245,16 @@ forza_giusta::ForceOptimization::ForceOptimization(XBot::ModelInterface::Ptr mod
     _autostack << _Wrenches_limits;
     _autostack->update(Eigen::VectorXd());
     
-    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(), _autostack->getBounds(), 1e3);
+    _solver = boost::make_shared<OpenSoT::solvers::iHQP>(_autostack->getStack(), _autostack->getBounds(), 1e12);
     
 }
 
 
-bool forza_giusta::ForceOptimization::compute(const Eigen::VectorXd& fixed_base_torque, 
+bool forza_giusta::ForceOptimization::compute(const Eigen::VectorXd& fixed_base_torque,
                                               const std::map<std::string, Eigen::Vector6d>& Fref_ifopt_map,
                                               const std::map<std::string, Eigen::Matrix3d>& RotM_ifopt,
                                               std::map<std::string, Eigen::Vector6d>& Fc_map)
-{    
+{
     
     std::vector<Eigen::Vector6d> Fc;
     Fc.resize(_contact_links.size());
@@ -319,7 +319,7 @@ bool forza_giusta::ForceOptimization::compute(const Eigen::VectorXd& fixed_base_
     
     for(int i = 0; i < _contact_links.size(); i++)
     {
-        _wrenches[i].getValue(_x_value, Fc_map[_contact_links[i]]);    
+        _wrenches[i].getValue(_x_value, Fc_map[_contact_links[i]]);
     }
     
     return true;
@@ -452,4 +452,7 @@ void forza_giusta::ForceOptimization::log(XBot::MatLogger::Ptr logger)
     _autostack->log(logger);
     _solver->log(logger);
 }
+
+
+
 

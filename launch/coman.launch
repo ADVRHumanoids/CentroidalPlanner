@@ -11,13 +11,13 @@
     
     <param name="cartesian/problem_description" 
         textfile="$(find centroidal_planner)/cartesio_stack/coman_stack.yaml"/>
-       
-    <!--<param name="cartesian/velocity_whitelist" type="yaml" 
-        value="[j_wheel_1, j_wheel_2, j_wheel_3, j_wheel_4]"/>-->
         
     <include file="$(find cartesian_interface)/launch/cartesio.launch">
         <arg name="rate" value="$(arg rate)"/>
         <arg name="prefix" value="$(arg prefix)"/>
     </include>    
+
+
+    <rosparam command="load" param="cartesian/torque_offset" file="$(find centroidal_planner)/configs/tau_offset.yaml"/>
 
 </launch>

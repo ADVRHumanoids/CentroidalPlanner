@@ -18,6 +18,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
     reach_time = 10
 
     lift_heigth = 0.05
+
     # SET FEET CONTACTS
     for c_f in feet_list:
         # contact_pos = ctrl_pl.GetPosRef(c_f) # should be the same
@@ -70,10 +71,26 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
                         sol.contact_values_map[hands_list[1]].force[1],
                         sol.contact_values_map[hands_list[1]].force[2]]
 
+        normal_sheep = [sol.contact_values_map[feet_list[0]].normal[0],
+                        sol.contact_values_map[feet_list[0]].normal[1],
+                        sol.contact_values_map[feet_list[0]].normal[2],
+                        sol.contact_values_map[feet_list[1]].normal[0],
+                        sol.contact_values_map[feet_list[1]].normal[1],
+                        sol.contact_values_map[feet_list[1]].normal[2],
+                        sol.contact_values_map[hands_list[0]].normal[0],
+                        sol.contact_values_map[hands_list[0]].normal[1],
+                        sol.contact_values_map[hands_list[0]].normal[2],
+                        sol.contact_values_map[hands_list[1]].normal[0],
+                        sol.contact_values_map[hands_list[1]].normal[1],
+                        sol.contact_values_map[hands_list[1]].normal[2]]
+
+
         print "contact_joints: ", contacts_links
-        print "forces_sheep is: ", forces_sheep
+        print "Sent forces_sheep is: ", forces_sheep
+        print "Sent normals are: ", normal_sheep
 
         forcepub.sendForce(contacts_links, forces_sheep)
+        forcepub.sendNormal(contacts_links, normal_sheep)
 
 
 
@@ -89,6 +106,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
 
         ci.setControlMode(foot_i, pyci.ControlType.Position)
+
         # prepare ROTATION OF SOLE
         theta = [0, 0, 0]
         rot_mat = rotation(theta)
@@ -122,14 +140,15 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         # reaching for the wall with foot_i
         surface_reacher.run_foot(ci, robot, ft_map, foot_i)
 
+
         # WAIST ENABLE
         ci.setControlMode('Waist', pyci.ControlType.Position)
 
         # get contacts references from cartesio and set them to the planner
-        for c in feet_list:
-            contact_pos = ci.getPoseReference(c)[0].translation
-            com_pl.SetContactPosition(c, contact_pos)
-            print("Setting contact position for ", c, " to ", com_pl.GetContactPosition(c))
+        contact_pos = ci.getPoseReference(foot_i)[0].translation
+        com_pl.SetContactPosition(foot_i, contact_pos)
+        com_pl.SetContactNormal(foot_i, [1, 0, 0])
+        print("Setting contact position for ", foot_i, " to ", com_pl.GetContactPosition(foot_i))
 
     # PUT BACK COM IN THE MIDDLE
     for c_f in feet_list:

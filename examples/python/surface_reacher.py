@@ -1,7 +1,7 @@
 from cartesian_interface.pyci_all import *
 import impact_detector as impact_detector
 
-def run_hand(ci, robot, ft_map, hands_list) :
+def run_hand(ci, robot, model, ft_map, hands_list, f_est) :
 
     # velocity desired
     vel_hands = [0, 0, -0.03, 0, 0, 0]
@@ -11,8 +11,8 @@ def run_hand(ci, robot, ft_map, hands_list) :
     ci.setControlMode(hands_list[1], pyci.ControlType.Velocity)
 
 
-    contact_treshold = 50
-    direction = 2
+    contact_treshold = 35
+    direction = 0
 
     while not impact_detector.run(robot, ft_map['l_arm_ft'], direction, contact_treshold) or not impact_detector.run(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
 
@@ -24,6 +24,8 @@ def run_hand(ci, robot, ft_map, hands_list) :
             ci.setVelocityReference(hands_list[1], vel_hands)
 
         robot.sense()
+        model.syncFrom(robot)
+        f_est.update()
 
     # ci.setControlMode(hands_list[0], pyci.ControlType.Position)
     # ci.setControlMode(hands_list[1], pyci.ControlType.Position)
@@ -62,7 +64,7 @@ def run_foot(ci, robot, ft_map, end_effector):
         else:
             n_cycle = 0
 
-        if n_cycle > 50:
+        if n_cycle > 0:
             contact_sensed = True
             print end_effector, ': Contact sensed.'
             n_cycle = 0

@@ -16,6 +16,7 @@ namespace force_publisher {
       void send_force(const Eigen::VectorXd& f_opt);
       void send_force(std::vector<std::string> contact_links, const Eigen::VectorXd &f_opt);
       void send_normal(const Eigen::VectorXd& n_opt);
+      void send_normal(std::vector<std::string> contact_links, const Eigen::VectorXd &n_opt);
 //      void send_wrench_manip(const Eigen::VectorXd& tau_manip);
 //      void send_force_arms(const Eigen::VectorXd& f_arms);
       void setLiftedContacts(std::vector<std::string> lifted_links);
@@ -55,6 +56,7 @@ namespace force_publisher {
 
           while (_pubs_force[l].getNumSubscribers() == 0)
           {
+//              std::cout << "waiting for forza_giusta (force_ref).." << std::endl;
               ros::Duration(0.01).sleep();
               ros::spinOnce();
           }
@@ -63,6 +65,7 @@ namespace force_publisher {
 
           while (_pubs_normal[l].getNumSubscribers() == 0)
           {
+//              std::cout << "waiting for forza_giusta (normal).." << std::endl;
               ros::Duration(0.01).sleep();
               ros::spinOnce();
           }
@@ -174,7 +177,29 @@ namespace force_publisher {
 	  
       
 //  }
-  
+  void ForcePublisher::send_normal(std::vector<std::string> contact_links, const Eigen::VectorXd &n_opt)
+  {
+
+      int i = 0;
+      for (auto l : contact_links)
+      {
+          Eigen::Vector3d n =  n_opt.segment<3>(3*i);
+
+          geometry_msgs::WrenchStamped msg;
+          msg.header.frame_id = "world";
+          msg.header.stamp = ros::Time::now();
+          msg.wrench.force.x = n.x();
+          msg.wrench.force.y = n.y();
+          msg.wrench.force.z = n.z();
+          std::cout << "link: " << l << " has normal: " << n.transpose() << std::endl;
+          _pubs_normal[l].publish(msg);
+
+          i++;
+
+      }
+
+  }
+
   void ForcePublisher::send_normal(const Eigen::VectorXd &n_opt)
   {
       
@@ -191,6 +216,8 @@ namespace force_publisher {
           msg.wrench.force.z = n.z();
 
           _pubs_normal[l].publish(msg);
+
+          i++;
 	  
       }
       

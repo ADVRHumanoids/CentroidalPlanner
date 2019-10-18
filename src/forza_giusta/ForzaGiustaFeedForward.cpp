@@ -79,6 +79,9 @@ void on_normal_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string
 	R = R_tmp.transpose();
     }
     
+    std::cout << l << std::endl;
+    std::cout << R.matrix() << std::endl;
+
     g_Rmap_ptr->at(l) = R; 
         
 }
@@ -225,6 +228,10 @@ int main(int argc, char ** argv)
     double rate = nh_priv.param("rate", 100.0);
     double mu = nh_priv.param("mu", 0.5);
     auto links = nh_priv.param("links", std::vector<std::string>());
+
+
+    std::cout << "forza_giusta started with mu: " << mu << std::endl;
+
 
     /* BLACKLISTED JOINTS */    
     auto blacklist = nh_priv.param("blacklist", std::vector<std::string>());

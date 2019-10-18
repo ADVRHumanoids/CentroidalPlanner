@@ -35,7 +35,6 @@ def compute(ci, contacts, hands_list, feet_list, mass, mu_feet) :
     superquadric_env = cpl.Superquadric()
 
     superquadric_env.SetMu(mu_feet)
-    print superquadric_env.GetMu()
 
 
     C_translation = [10, 0, 10]
