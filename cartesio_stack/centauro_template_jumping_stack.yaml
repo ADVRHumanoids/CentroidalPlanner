@@ -1,0 +1,51 @@
+solver_options:
+regularization: 1e-6
+back_end: "qpoases"
+
+
+stack:
+    - ["Wheel_FL", "Wheel_FR", "Wheel_HR", "Wheel_HL"]
+    - ["Postural"]
+    
+constraints: ["JointLimits", "VelocityLimits"]
+
+Wheel_FL:
+    type: "Cartesian"
+    distal_link: "wheel_1"
+    base_link: "pelvis"
+    indices: [0, 1, 2]
+    disabled_joints:
+        - "ankle_yaw_1"
+        - "j_wheel_1"
+
+
+Wheel_FR:
+    type: "Cartesian"
+    distal_link: "wheel_2"
+    base_link: "pelvis"
+    indices: [0, 1, 2]
+    disabled_joints:
+        - "ankle_yaw_2"
+        - "j_wheel_2"
+    
+Wheel_HL:
+    type: "Cartesian"
+    distal_link: "wheel_3"
+    base_link: "pelvis"
+    indices: [0, 1, 2]
+    disabled_joints:
+        - "ankle_yaw_3"
+        - "j_wheel_3"
+    
+Wheel_HR:
+    type: "Cartesian"
+    distal_link: "wheel_4"
+    base_link: "pelvis"
+    indices: [0, 1, 2]
+    disabled_joints:
+        - "ankle_yaw_4"
+        - "j_wheel_4"
+    
+Postural:
+    type: "Postural"
+    lambda: 0.01

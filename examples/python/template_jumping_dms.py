@@ -67,9 +67,30 @@ qddot = SX.sym('qddot', nv)
 f = SX.sym('f', nf)
 
 # Bounds and initial guess
-q_min = np.array([-inf, -inf, -inf, -inf, -inf, -inf, -inf, 0.2, 0.1, -0.5, 0.2, -0.3, -0.5, -0.4, -0.3, -0.5, -0.4, 0.1, -0.5])
-q_max = np.array([inf,  inf,  inf,  inf,  inf,  inf,  inf, 0.5, 0.3, -0.2, 0.5, -0.1, -0.1, -0.2, -0.1, -0.2, -0.1, 0.3, -0.2])
-q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5])
+# q_min = np.array([-inf, -inf, -inf, -inf, -inf, -inf, -inf, 0.2, 0.1, -0.5, 0.2, -0.3, -0.5, -0.4, -0.3, -0.5, -0.4, 0.1, -0.5])
+# q_max = np.array([inf,  inf,  inf,  inf,  inf,  inf,  inf, 0.5, 0.3, -0.2, 0.5, -0.1, -0.1, -0.2, -0.1, -0.2, -0.1, 0.3, -0.2])
+# q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5])
+
+# CENTAURO homing
+disp_z = 0.2
+
+q_min = np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,
+                  0.1, 0.1, -0.635,
+                  0.1, -0.5, -0.635,
+                  -0.6, -0.5, -0.635,
+                  -0.6, 0.1, -0.635])
+
+q_max = np.array([1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,
+                  0.6, 0.5, -0.635 + disp_z,
+                  0.6, -0.1, -0.635 + disp_z,
+                  -0.1, -0.1, -0.635 + disp_z,
+                  -0.1, 0.5, -0.635 + disp_z])
+
+q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+                   0.349999, 0.349999, -0.635,
+                   0.349999, -0.349999, -0.635,
+                   -0.349999, -0.349999, -0.635,
+                   -0.349999, 0.349999, -0.635])
 
 qdot_min = np.full((1, nv), -1000.)
 qdot_max = np.full((1, nv), 1000.)
@@ -96,7 +117,7 @@ x0_max = x_init
 xf_min = np.append(q_min, np.zeros_like(qdot_min))
 xf_max = np.append(q_max, np.zeros_like(qdot_min))
 
-t_min = 0.05
+t_min = 0.03
 t_max = 0.25
 
 # Model equations
@@ -139,7 +160,7 @@ Q = Q + DT / 6 * (k1_q + 2 * k2_q + 2 * k3_q + k4_q)
 F_RK = Function('F_RK', [X0, U, Time], [X, Q], ['x0', 'p', 'time'], ['xf', 'qf'])
 
 
-jump_disp = [0.0, 0.0, 0.2]
+jump_disp = [0.0, 0.0, 0.20]
 
 C1_pos_init = FK1(q=q_init)['ee_pos']
 C2_pos_init = FK2(q=q_init)['ee_pos']
@@ -339,14 +360,14 @@ for k in range(ns):
     Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
 
     J += 10*integrator_out['qf']
-    J += 100.*Time[k]
+    J += 1.*Time[k]
     J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
-    J += 100.*dot(Qdot_k, Qdot_k)
+    J += 1000.*dot(Qdot_k, Qdot_k)
 
     if lift_node <= k < touch_down_node:
         J += 1000.*dot(Waist_pos - Waist_pos_jump, Waist_pos - Waist_pos_jump)
     else:
-        J += 1000.*dot(Waist_pos[2] - Waist_pos_init[2], Waist_pos[2] - Waist_pos_init[2])
+        J += 1.*dot(Waist_pos[2] - Waist_pos_init[2], Waist_pos[2] - Waist_pos_init[2])
         J += 1000.*dot(C1_pos - C1_pos_init, C1_pos - C1_pos_init)
         J += 1000.*dot(C2_pos - C2_pos_init, C2_pos - C2_pos_init)
         J += 1000.*dot(C3_pos - C3_pos_init, C3_pos - C3_pos_init)
@@ -392,12 +413,12 @@ for k in range(ns):
     #     g += [C3_vel, C4_vel]
     #     g_min += np.zeros((12, 1)).tolist()
     #     g_max += np.zeros((12, 1)).tolist()
-    #
-    # if k >= touch_down_node:
+
+    # if k == 15:
     #     g += [Waist_pos]
-    #     g_min += [Waist_pos_land]
-    #     g_max += [Waist_pos_land]
-    #
+    #     g_min += [Waist_pos_jump]
+    #     g_max += [Waist_pos_jump]
+
     # if k >= touch_down_node:
     #     g += [Waist_vel]
     #     g_min += np.zeros((6, 1)).tolist()
@@ -648,6 +669,8 @@ logger.add('q_resample', q_hist_res)
 logger.add('qdot_resample', qdot_hist_res)
 logger.add('qddot_resample', qddot_hist_res)
 logger.add('F_resample', F_hist_res)
+
+logger.add('q_template_replay', q_hist_res[7:nq][0:n_res])
 
 del(logger)
 

@@ -405,12 +405,7 @@ for k in range(ns):
 
     J += 1000.*Time[k]
     J += 1000.*dot(Q_k[3:7] - MX([0., 0., 0., 1.]), Q_k[3:7] - MX([0., 0., 0., 1.]))
-
-    if k <= touch_wall_node:
-        J += 100.*dot(Qdot_k, Qdot_k)
-    else:
-        J += 10000.*dot(Qdot_k, Qdot_k)
-
+    J += 100.*dot(Qdot_k, Qdot_k)
     # J += 1000.*dot(Waist_pos - Waist_pos_init, Waist_pos - Waist_pos_init)
 
     J += 100.*dot(C1_vel, C1_vel)
@@ -647,7 +642,7 @@ logger.add('qdot_resample', qdot_hist_res)
 logger.add('qddot_resample', qddot_hist_res)
 logger.add('F_resample', F_hist_res)
 
-# RESAMPLER REPLAY TRAJECTORY
+# REPLAY TRAJECTORY
 
 Tf = 0.0
 T_i = {}
@@ -669,35 +664,9 @@ qdot_replay = MX(Sparsity.dense(DoF, n_replay))
 tau_replay = MX(Sparsity.dense(DoF, n_replay))
 X_res = MX(Sparsity.dense(nx, n_replay+1))
 
-k = 0
-
-for i in range(node_replay):
-    for j in range(int(round(h_hist_value[0, i]/dt))):
-
-        n_prev = int(round(T_i[i]/dt))
-
-        if j == 0:
-            integrator_1 = F_int(x0=X[i], p=Qddot[i])
-            X_res[0:nx, k+1] = integrator_1['xf']
-        else:
-            integrator_2 = F_int(x0=X_res[0:nx, k], p=Qddot[i])
-            X_res[0:nx, k+1] = integrator_2['xf']
-
-        q_replay[0:DoF, k] = X_res[7:nq, k+1]
-        qdot_replay[0:DoF, k] = X_res[nq+6:nx, k+1]
-        tau_replay[0:DoF, k] = tau_a_history[0:DoF, i]
-
-        k += 1
-
-Resampler_replay = Function("Resampler_replay", [V], [q_replay, qdot_replay, tau_replay], ['V'], ['q_replay', 'qdot_replay', 'tau_replay'])
-
-q_replay = Resampler_replay(V=w_opt)['q_replay'].full()
-qdot_replay = Resampler_replay(V=w_opt)['qdot_replay'].full()
-tau_replay = Resampler_replay(V=w_opt)['tau_replay'].full()
-
-logger.add('q_replay', q_replay)
-logger.add('qdot_replay', qdot_replay)
-logger.add('tau_replay', tau_replay)
+logger.add('q_replay', q_hist_res[7:nq][0:n_replay])
+logger.add('qdot_replay', qdot_hist_res[6:nx][0:n_replay])
+logger.add('tau_replay', tau_a_history[0:DoF][0:n_replay])
 
 del(logger)
 

@@ -243,9 +243,15 @@ Waist_pos_land = FK_waist(q=q_full_init)['ee_pos']
 Waist_pos_land = FK_waist(q=q_full_init)['ee_pos']
 Waist_pos_land[0] += jump_disp[0]
 
+print('C1_pos_init', C1_pos_init)
+print('C2_pos_init', C2_pos_init)
+print('C3_pos_init', C3_pos_init)
+print('C4_pos_init', C4_pos_init)
 print('Waist_pos_init', Waist_pos_init)
 print('Waist_pos_jump', Waist_pos_jump)
 print('Waist_pos_land', Waist_pos_land)
+
+exit()
 
 lift_node = 10
 touch_down_node = 20

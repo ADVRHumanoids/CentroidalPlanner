@@ -22,17 +22,17 @@
     <group name="contact4"/>
 </group>
 <group_state group="chains" name="home">
-    <joint name="Contact1_x" value="0.3"/>
-    <joint name="Contact1_y" value="0.2"/>
-    <joint name="Contact1_z" value="-0.5"/>
-    <joint name="Contact2_x" value="0.3"/>
-    <joint name="Contact2_y" value="-0.2"/>
-    <joint name="Contact2_z" value="-0.5"/>
-    <joint name="Contact3_x" value="-0.3"/>
-    <joint name="Contact3_y" value="-0.2"/>
-    <joint name="Contact3_z" value="-0.5"/>
-    <joint name="Contact4_x" value="-0.3"/>
-    <joint name="Contact4_y" value="0.2"/>
-    <joint name="Contact4_z" value="-0.5"/>
+    <joint name="Contact1_x" value="0.349999"/>
+    <joint name="Contact1_y" value="0.349999"/>
+    <joint name="Contact1_z" value="-0.635"/>
+    <joint name="Contact2_x" value="0.349999"/>
+    <joint name="Contact2_y" value="-0.349999"/>
+    <joint name="Contact2_z" value="-0.635"/>
+    <joint name="Contact3_x" value="-0.349999"/>
+    <joint name="Contact3_y" value="-0.349999"/>
+    <joint name="Contact3_z" value="-0.635"/>
+    <joint name="Contact4_x" value="-0.349999"/>
+    <joint name="Contact4_y" value="0.349999"/>
+    <joint name="Contact4_z" value="-0.635"/>
 </group_state>
 </robot>
