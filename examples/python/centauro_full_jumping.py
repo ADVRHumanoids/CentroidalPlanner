@@ -1,51 +1,46 @@
 #!/usr/bin/env python
 from casadi import *
 import matlogger2.matlogger as matl
-import centroidal_planner.pycpl_casadi as cpl_cas
+import casadi_kin_dyn.pycasadi_kin_dyn as cas_kin_dyn
 import rospy
-import xbot_interface.config_options as cfg
-import xbot_interface.xbot_interface as xbot
 
 logger = matl.MatLogger2('/tmp/centauro_full_jumping_log')
 logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
-# get cartesio ros client
-opt = cfg.ConfigOptions()
-model = xbot.ModelInterface(opt)
-
 urdf = rospy.get_param('robot_description')
+kindyn = cas_kin_dyn.CasadiKinDyn(urdf)
 
-fk_waist = cpl_cas.generate_forward_kin(urdf, 'pelvis')
+fk_waist = kindyn.fk('pelvis')
 FK_waist = Function.deserialize(fk_waist)
 
-fk1 = cpl_cas.generate_forward_kin(urdf, 'wheel_1')
+fk1 = kindyn.fk('wheel_1')
 FK1 = Function.deserialize(fk1)
 
-fk2 = cpl_cas.generate_forward_kin(urdf, 'wheel_2')
+fk2 = kindyn.fk('wheel_2')
 FK2 = Function.deserialize(fk2)
 
-fk3 = cpl_cas.generate_forward_kin(urdf, 'wheel_3')
+fk3 = kindyn.fk('wheel_3')
 FK3 = Function.deserialize(fk3)
 
-fk4 = cpl_cas.generate_forward_kin(urdf, 'wheel_4')
+fk4 = kindyn.fk('wheel_4')
 FK4 = Function.deserialize(fk4)
 
-id_string = cpl_cas.generate_inv_dyn(urdf)
+id_string = kindyn.rnea()
 ID = Function.deserialize(id_string)
 
-jac_waist = cpl_cas.generate_jacobian(urdf, 'pelvis')
+jac_waist = kindyn.jacobian('pelvis')
 Jac_waist = Function.deserialize(jac_waist)
 
-jac_C1 = cpl_cas.generate_jacobian(urdf, 'wheel_1')
+jac_C1 = kindyn.jacobian('wheel_1')
 Jac_C1 = Function.deserialize(jac_C1)
 
-jac_C2 = cpl_cas.generate_jacobian(urdf, 'wheel_2')
+jac_C2 = kindyn.jacobian('wheel_2')
 Jac_C2 = Function.deserialize(jac_C2)
 
-jac_C3 = cpl_cas.generate_jacobian(urdf, 'wheel_3')
+jac_C3 = kindyn.jacobian('wheel_3')
 Jac_C3 = Function.deserialize(jac_C3)
 
-jac_C4 = cpl_cas.generate_jacobian(urdf, 'wheel_4')
+jac_C4 = kindyn.jacobian('wheel_4')
 Jac_C4 = Function.deserialize(jac_C4)
 
 tf = 1.  # Normalized time horizon
@@ -422,7 +417,7 @@ for k in range(ns):
     # if k < lift_node or k >= touch_down_node:
     #     Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
 
-    Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
+    Tau_k = ID(q=Q_full, v=Qdot_full, a=Qddot_full)['tau'] - JtF_k
 
     Tau_red = Torque_Reduction(tau_full=Tau_k)['tau_red']
 

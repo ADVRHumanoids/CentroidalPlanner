@@ -1,51 +1,47 @@
 #!/usr/bin/env python
 from casadi import *
 import matlogger2.matlogger as matl
-import centroidal_planner.pycpl_casadi as cpl_cas
+import casadi_kin_dyn.pycasadi_kin_dyn as cas_kin_dyn
 import rospy
-import xbot_interface.config_options as cfg
-import xbot_interface.xbot_interface as xbot
 
-logger = matl.MatLogger2('/tmp/centauro_full_wall_log')
+# logger = matl.MatLogger2('/home/matteo/advr-superbuild/external/CentroidalPlanner/examples/data_replay/centauro_wall')
+logger = matl.MatLogger2('/tmp/centauro_wall')
 logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
-# get cartesio ros client
-opt = cfg.ConfigOptions()
-model = xbot.ModelInterface(opt)
-
 urdf = rospy.get_param('robot_description')
+kindyn = cas_kin_dyn.CasadiKinDyn(urdf)
 
-fk_waist = cpl_cas.generate_forward_kin(urdf, 'pelvis')
+fk_waist = kindyn.fk('pelvis')
 FK_waist = Function.deserialize(fk_waist)
 
-fk1 = cpl_cas.generate_forward_kin(urdf, 'wheel_1')
+fk1 = kindyn.fk('wheel_1')
 FK1 = Function.deserialize(fk1)
 
-fk2 = cpl_cas.generate_forward_kin(urdf, 'wheel_2')
+fk2 = kindyn.fk('wheel_2')
 FK2 = Function.deserialize(fk2)
 
-fk3 = cpl_cas.generate_forward_kin(urdf, 'wheel_3')
+fk3 = kindyn.fk('wheel_3')
 FK3 = Function.deserialize(fk3)
 
-fk4 = cpl_cas.generate_forward_kin(urdf, 'wheel_4')
+fk4 = kindyn.fk('wheel_4')
 FK4 = Function.deserialize(fk4)
 
-id_string = cpl_cas.generate_inv_dyn(urdf)
+id_string = kindyn.rnea()
 ID = Function.deserialize(id_string)
 
-jac_waist = cpl_cas.generate_jacobian(urdf, 'pelvis')
+jac_waist = kindyn.jacobian('pelvis')
 Jac_waist = Function.deserialize(jac_waist)
 
-jac_C1 = cpl_cas.generate_jacobian(urdf, 'wheel_1')
+jac_C1 = kindyn.jacobian('wheel_1')
 Jac_C1 = Function.deserialize(jac_C1)
 
-jac_C2 = cpl_cas.generate_jacobian(urdf, 'wheel_2')
+jac_C2 = kindyn.jacobian('wheel_2')
 Jac_C2 = Function.deserialize(jac_C2)
 
-jac_C3 = cpl_cas.generate_jacobian(urdf, 'wheel_3')
+jac_C3 = kindyn.jacobian('wheel_3')
 Jac_C3 = Function.deserialize(jac_C3)
 
-jac_C4 = cpl_cas.generate_jacobian(urdf, 'wheel_4')
+jac_C4 = kindyn.jacobian('wheel_4')
 Jac_C4 = Function.deserialize(jac_C4)
 
 tf = 1.  # Normalized time horizon
@@ -400,7 +396,7 @@ for k in range(ns):
             mtimes(C3_jac.T, vertcat(Force[k][6:9], MX.zeros(3, 1))) + \
             mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
 
-    Tau_k = ID(q=Q_full, qdot=Qdot_full, qddot=Qddot_full)['tau'] - JtF_k
+    Tau_k = ID(q=Q_full, v=Qdot_full, a=Qddot_full)['tau'] - JtF_k
     Tau_red = Torque_Reduction(tau_full=Tau_k)['tau_red']
 
     J += 1000.*Time[k]
@@ -432,17 +428,17 @@ for k in range(ns):
     g_min += [C1_pos_ground, C2_pos_ground]
     g_max += [C1_pos_ground, C2_pos_ground]
 
-    if k < lift_node:
-        g += [C3_pos, C4_pos]
-        g_min += [C3_pos_ground, C4_pos_ground]
-        g_max += [C3_pos_ground, C4_pos_ground]
+    # if k < lift_node:
+    #     g += [C3_pos, C4_pos]
+    #     g_min += [C3_pos_ground, C4_pos_ground]
+    #     g_max += [C3_pos_ground, C4_pos_ground]
 
     if k >= touch_wall_node:
         g += [C3_pos, C4_pos]
         g_min += [C3_pos_wall, C4_pos_wall]
         g_max += [C3_pos_wall, C4_pos_wall]
 
-    if k >= touch_wall_node:
+    if k <= lift_node or k >= touch_wall_node:
         g += [C3_vel, C4_vel]
         g_min += np.zeros((12, 1)).tolist()
         g_max += np.zeros((12, 1)).tolist()
@@ -659,14 +655,20 @@ for k in range(node_replay):
 
 n_replay = int(round(Tf/dt))
 
-q_replay = MX(Sparsity.dense(DoF, n_replay))
-qdot_replay = MX(Sparsity.dense(DoF, n_replay))
 tau_replay = MX(Sparsity.dense(DoF, n_replay))
-X_res = MX(Sparsity.dense(nx, n_replay+1))
+
+k = 0
+
+for i in range(node_replay):
+    for j in range(int(round(h_hist_value[0, i]/dt))):
+        tau_replay[0:DoF, k] = tau_a_history[0:DoF, i]
+        k += 1
+
+Tau_replay = Function("Tau_replay", [V], [tau_replay], ['V'], ['tau_replay'])
 
 logger.add('q_replay', q_hist_res[7:nq][0:n_replay])
 logger.add('qdot_replay', qdot_hist_res[6:nx][0:n_replay])
-logger.add('tau_replay', tau_a_history[0:DoF][0:n_replay])
+logger.add('tau_replay', Tau_replay(V=w_opt)['tau_replay'].full())
 
 del(logger)
 

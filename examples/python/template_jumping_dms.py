@@ -1,53 +1,47 @@
 #!/usr/bin/env python
 from casadi import *
-from cartesian_interface.pyci_all import *
 import matlogger2.matlogger as matl
-import centroidal_planner.pycpl_casadi as cpl_cas
+import casadi_kin_dyn.pycasadi_kin_dyn as cas_kin_dyn
 import rospy
-import xbot_interface.config_options as cfg
-import xbot_interface.xbot_interface as xbot
 
-logger = matl.MatLogger2('/tmp/template_jumping_dms_log')
+# logger = matl.MatLogger2('/home/matteo/advr-superbuild/external/CentroidalPlanner/examples/data_replay/template_jumping')
+logger = matl.MatLogger2('/tmp/template_jumping')
 logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
-# get cartesio ros client
-ci = pyci.CartesianInterfaceRos()
-opt = cfg.ConfigOptions()
-model = xbot.ModelInterface(opt)
-
 urdf = rospy.get_param('robot_description')
+kindyn = cas_kin_dyn.CasadiKinDyn(urdf)
 
-fk_waist = cpl_cas.generate_forward_kin(urdf, 'Waist')
+fk_waist = kindyn.fk('Waist')
 FK_waist = Function.deserialize(fk_waist)
 
-fk1 = cpl_cas.generate_forward_kin(urdf, 'Contact1')
+fk1 = kindyn.fk('Contact1')
 FK1 = Function.deserialize(fk1)
 
-fk2 = cpl_cas.generate_forward_kin(urdf, 'Contact2')
+fk2 = kindyn.fk('Contact2')
 FK2 = Function.deserialize(fk2)
 
-fk3 = cpl_cas.generate_forward_kin(urdf, 'Contact3')
+fk3 = kindyn.fk('Contact3')
 FK3 = Function.deserialize(fk3)
 
-fk4 = cpl_cas.generate_forward_kin(urdf, 'Contact4')
+fk4 = kindyn.fk('Contact4')
 FK4 = Function.deserialize(fk4)
 
-id_string = cpl_cas.generate_inv_dyn(urdf)
+id_string = kindyn.rnea()
 ID = Function.deserialize(id_string)
 
-jac_waist = cpl_cas.generate_jacobian(urdf, 'Waist')
+jac_waist = kindyn.jacobian('Waist')
 Jac_waist = Function.deserialize(jac_waist)
 
-jac_C1 = cpl_cas.generate_jacobian(urdf, 'Contact1')
+jac_C1 = kindyn.jacobian('Contact1')
 Jac_C1 = Function.deserialize(jac_C1)
 
-jac_C2 = cpl_cas.generate_jacobian(urdf, 'Contact2')
+jac_C2 = kindyn.jacobian('Contact2')
 Jac_C2 = Function.deserialize(jac_C2)
 
-jac_C3 = cpl_cas.generate_jacobian(urdf, 'Contact3')
+jac_C3 = kindyn.jacobian('Contact3')
 Jac_C3 = Function.deserialize(jac_C3)
 
-jac_C4 = cpl_cas.generate_jacobian(urdf, 'Contact4')
+jac_C4 = kindyn.jacobian('Contact4')
 Jac_C4 = Function.deserialize(jac_C4)
 
 tf = 2.  # Normalized time horizon
@@ -67,9 +61,6 @@ qddot = SX.sym('qddot', nv)
 f = SX.sym('f', nf)
 
 # Bounds and initial guess
-# q_min = np.array([-inf, -inf, -inf, -inf, -inf, -inf, -inf, 0.2, 0.1, -0.5, 0.2, -0.3, -0.5, -0.4, -0.3, -0.5, -0.4, 0.1, -0.5])
-# q_max = np.array([inf,  inf,  inf,  inf,  inf,  inf,  inf, 0.5, 0.3, -0.2, 0.5, -0.1, -0.1, -0.2, -0.1, -0.2, -0.1, 0.3, -0.2])
-# q_init = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.3, 0.2, -0.5, 0.3, -0.2, -0.5, -0.3, -0.2, -0.5, -0.3, 0.2, -0.5])
 
 # CENTAURO homing
 disp_z = 0.2
@@ -100,8 +91,6 @@ qddot_min = np.full((1, nv), -1000.)
 qddot_max = np.full((1, nv), 1000.)
 qddot_init = np.zeros_like(qddot_min)
 
-# f_min = np.tile(np.array([-100, -100, 20]), 4)
-# f_min[2] = 0
 f_min = np.tile(np.array([-1000., -1000., 0.]), 4)
 f_max = np.tile(np.array([1000., 1000., 1000.]), 4)
 f_init = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
@@ -351,13 +340,7 @@ for k in range(ns):
             mtimes(C3_jac.T, vertcat(Force[k][6:9], MX.zeros(3, 1))) + \
             mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
 
-    # if lift_node <= k < touch_down_node:
-    #     Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau']
-    #
-    # if k < lift_node or k >= touch_down_node:
-    #     Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
-
-    Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
+    Tau_k = ID(q=Q_k, v=Qdot_k, a=Qddot[k])['tau'] - JtF_k
 
     J += 10*integrator_out['qf']
     J += 1.*Time[k]
@@ -367,7 +350,7 @@ for k in range(ns):
     if lift_node <= k < touch_down_node:
         J += 1000.*dot(Waist_pos - Waist_pos_jump, Waist_pos - Waist_pos_jump)
     else:
-        J += 1.*dot(Waist_pos[2] - Waist_pos_init[2], Waist_pos[2] - Waist_pos_init[2])
+        J += 10000.*dot(Waist_pos[2] - Waist_pos_init[2], Waist_pos[2] - Waist_pos_init[2])
         J += 1000.*dot(C1_pos - C1_pos_init, C1_pos - C1_pos_init)
         J += 1000.*dot(C2_pos - C2_pos_init, C2_pos - C2_pos_init)
         J += 1000.*dot(C3_pos - C3_pos_init, C3_pos - C3_pos_init)
@@ -404,26 +387,6 @@ for k in range(ns):
         g_min += np.zeros((24, 1)).tolist()
         g_max += np.zeros((24, 1)).tolist()
 
-    # if k >= touch_down_node:
-    #     g += [C1_pos, C2_pos, C3_pos, C4_pos]
-    #     g_min += [C1_pos_land, C2_pos_land, C3_pos_land, C4_pos_land]
-    #     g_max += [C1_pos_land, C2_pos_land, C3_pos_land, C4_pos_land]
-    #
-    # if k >= touch_down_node:
-    #     g += [C3_vel, C4_vel]
-    #     g_min += np.zeros((12, 1)).tolist()
-    #     g_max += np.zeros((12, 1)).tolist()
-
-    # if k == 15:
-    #     g += [Waist_pos]
-    #     g_min += [Waist_pos_jump]
-    #     g_max += [Waist_pos_jump]
-
-    # if k >= touch_down_node:
-    #     g += [Waist_vel]
-    #     g_min += np.zeros((6, 1)).tolist()
-    #     g_max += np.zeros((6, 1)).tolist()
-
     # # Collisions Waist/rear legs
     # g += [Waist_pos[2]-C1_pos[2], Waist_pos[2]-C2_pos[2], Waist_pos[2]-C3_pos[2], Waist_pos[2]-C4_pos[2]]
     # g_min += np.array([0.3, 0.3, 0.3, 0.3]).tolist()
@@ -434,10 +397,6 @@ for k in range(ns):
     #       mtimes(A_fr, Force[k][6:9]), mtimes(A_fr, Force[k][9:12])]
     # g_max += np.zeros((20, 1)).tolist()
     # g_min += np.full((20, 1), -inf).tolist()
-
-    # g += [Q_k[3:7]]
-    # g_max += np.array([0., 0., 0., 1.]).tolist()
-    # g_min += np.array([0., 0., 0., 1.]).tolist()
 
     Waist_pos_hist[0:3, k] = Waist_pos
     Waist_vel_hist[0:6, k] = Waist_vel

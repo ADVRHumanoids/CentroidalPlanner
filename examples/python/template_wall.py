@@ -1,53 +1,46 @@
 #!/usr/bin/env python
 from casadi import *
-from cartesian_interface.pyci_all import *
 import matlogger2.matlogger as matl
-import centroidal_planner.pycpl_casadi as cpl_cas
+import casadi_kin_dyn.pycasadi_kin_dyn as cas_kin_dyn
 import rospy
-import xbot_interface.config_options as cfg
-import xbot_interface.xbot_interface as xbot
 
 logger = matl.MatLogger2('/tmp/template_legs_wall_log')
 logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
-# get cartesio ros client
-ci = pyci.CartesianInterfaceRos()
-opt = cfg.ConfigOptions()
-model = xbot.ModelInterface(opt)
-
 urdf = rospy.get_param('robot_description')
+kindyn = cas_kin_dyn.CasadiKinDyn(urdf)
 
-fk_waist = cpl_cas.generate_forward_kin(urdf, 'Waist')
+fk_waist = kindyn.fk('Waist')
 FK_waist = Function.deserialize(fk_waist)
 
-fk1 = cpl_cas.generate_forward_kin(urdf, 'Contact1')
+fk1 = kindyn.fk('Contact1')
 FK1 = Function.deserialize(fk1)
 
-fk2 = cpl_cas.generate_forward_kin(urdf, 'Contact2')
+fk2 = kindyn.fk('Contact2')
 FK2 = Function.deserialize(fk2)
 
-fk3 = cpl_cas.generate_forward_kin(urdf, 'Contact3')
+fk3 = kindyn.fk('Contact3')
 FK3 = Function.deserialize(fk3)
 
-fk4 = cpl_cas.generate_forward_kin(urdf, 'Contact4')
+fk4 = kindyn.fk('Contact4')
 FK4 = Function.deserialize(fk4)
 
-id_string = cpl_cas.generate_inv_dyn(urdf)
+id_string = kindyn.rnea()
 ID = Function.deserialize(id_string)
 
-jac_waist = cpl_cas.generate_jacobian(urdf, 'Waist')
+jac_waist = kindyn.jacobian('Waist')
 Jac_waist = Function.deserialize(jac_waist)
 
-jac_C1 = cpl_cas.generate_jacobian(urdf, 'Contact1')
+jac_C1 = kindyn.jacobian('Contact1')
 Jac_C1 = Function.deserialize(jac_C1)
 
-jac_C2 = cpl_cas.generate_jacobian(urdf, 'Contact2')
+jac_C2 = kindyn.jacobian('Contact2')
 Jac_C2 = Function.deserialize(jac_C2)
 
-jac_C3 = cpl_cas.generate_jacobian(urdf, 'Contact3')
+jac_C3 = kindyn.jacobian('Contact3')
 Jac_C3 = Function.deserialize(jac_C3)
 
-jac_C4 = cpl_cas.generate_jacobian(urdf, 'Contact4')
+jac_C4 = kindyn.jacobian('Contact4')
 Jac_C4 = Function.deserialize(jac_C4)
 
 tf = 2.  # Normalized time horizon
@@ -292,7 +285,7 @@ for k in range(ns):
             mtimes(C3_jac.T, vertcat(Force[k][6:9], MX.zeros(3, 1))) + \
             mtimes(C4_jac.T, vertcat(Force[k][9:12], MX.zeros(3, 1)))
 
-    Tau_k = ID(q=Q_k, qdot=Qdot_k, qddot=Qddot[k])['tau'] - JtF_k
+    Tau_k = ID(q=Q_k, v=Qdot_k, a=Qddot[k])['tau'] - JtF_k
 
     J += integrator_out['qf']
     J += 100*Time[k]
