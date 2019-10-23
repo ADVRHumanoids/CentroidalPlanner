@@ -8,10 +8,10 @@ def run(robot, ft_map, ci, hands_list, sol_centroidal) :
         ci.setBaseLink(hand_i, 'world')
 
     # for FEEDBACK CONTACT
-    stop_before_contact = 0.05
+    stop_before_contact = 0.02
 
     # PLACE HANDS ON THE GROUND
-    reach_time_hand = 30
+    reach_time_hand = 20
     dist_from_ground = 0.15 + stop_before_contact
 
     # SET POSITION MODE FOR HANDS
@@ -24,8 +24,8 @@ def run(robot, ft_map, ci, hands_list, sol_centroidal) :
     hand_one = Affine3(pos=hand_one)
     hand_two = Affine3(pos=hand_two)
 
-    ci.setTargetPose(hands_list[0], hand_one, reach_time_hand / 2.0)
-    ci.setTargetPose(hands_list[1], hand_two, reach_time_hand / 2.0)
+    ci.setTargetPose(hands_list[0], hand_one, reach_time_hand)
+    ci.setTargetPose(hands_list[1], hand_two, reach_time_hand)
 
 
     # SEND COMMAND WITH CONTACT DETECTION

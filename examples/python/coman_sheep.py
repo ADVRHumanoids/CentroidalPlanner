@@ -83,8 +83,8 @@ def advance_com(ci, x_position) :
 if __name__ == '__main__':
 
     np.set_printoptions(precision=3, suppress=True)
-    rospy.init_node('coman_sheep_commander')
 
+    rospy.init_node('coman_sheep_commander')
     roscpp_init('coman_sheep', [])
     # define contacts for the ForcePublisher
     #select contacts of COMAN+
@@ -175,8 +175,8 @@ if __name__ == '__main__':
     print "Switched ON forza_giusta"
 
     # PREPARE FOR FORCE CONTROL
-    default_stiffness = 1000
-    default_damping = 10
+    default_stiffness = 1500
+    default_damping = 50
 
     xbotstiff.set_legs_default_stiffness(robot, [default_stiffness, default_stiffness, default_stiffness, default_stiffness, default_stiffness, default_stiffness])
     xbotdamp.set_legs_default_damping(robot, [default_damping, default_damping, default_damping, default_damping, default_damping, default_damping])
@@ -187,6 +187,7 @@ if __name__ == '__main__':
     # REACH WITH HANDS
     foot_cmd.run(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, sol_centroidal_wall, com_pl, forcepub, world_odom_T_world)
 
+    
     exit(0)
 
 

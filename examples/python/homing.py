@@ -2,9 +2,9 @@ from cartesian_interface.pyci_all import *
 
 def run(ci) :
 
-    duration = 5.
+    duration = 1.
     straight_com = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
-    straight_com[0] += 0.02
+    straight_com[0] += 0.0
     straight_com = Affine3(pos=straight_com)
     print "homing ...."
     ci.setTargetPose('com', straight_com, duration)
@@ -25,3 +25,4 @@ def run(ci) :
     # ci.update()
 
     ci.setControlMode('Waist', pyci.ControlType.Disabled)
+    # ci.setControlMode('torso', pyci.ControlType.Disabled)

@@ -34,7 +34,7 @@ def run_hand(ci, robot, model, ft_map, hands_list, f_est) :
 
 def run_foot(ci, robot, ft_map, end_effector):
 
-    print('starting surface reacher for: ', end_effector)
+    print 'starting surface reacher for: ', end_effector
     # velocity desired
     vel_foot = [-0.03, 0, 0, 0, 0, 0]
 
@@ -48,8 +48,12 @@ def run_foot(ci, robot, ft_map, end_effector):
     # SETTING VELOCITY
     ci.setControlMode(end_effector, pyci.ControlType.Velocity)
 
-    contact_treshold = 250
+
+    contact_treshold = 150 #250
     direction = 2
+
+    if end_effector == "r_sole" :
+        contact_treshold = 150
 
     contact_sensed = False
     n_cycle = 0
@@ -64,13 +68,14 @@ def run_foot(ci, robot, ft_map, end_effector):
         else:
             n_cycle = 0
 
-        if n_cycle > 0:
+        if n_cycle > 10:
             contact_sensed = True
-            print end_effector, ': Contact sensed.'
+            print 'cycling for false positive..'
             n_cycle = 0
 
         robot.sense()
 
+    print end_effector, ': Contact sensed.'
     ci.update()
 
     ci.setControlMode(end_effector, pyci.ControlType.Position)

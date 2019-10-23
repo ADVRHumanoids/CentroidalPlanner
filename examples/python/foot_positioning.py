@@ -14,7 +14,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
     force_threshold = 300
     direction = 2
 
-    distance_for_reaching = - 0.08
+    distance_for_reaching = - 0.15
 
     move_time_com = 2
     lift_time = 5
@@ -130,6 +130,10 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         theta = [0, - np.pi / 2, 0]
         rot_mat = rotation(theta)
 
+
+        if foot_i == 'r_sole' :
+            distance_for_reaching = -0.15
+
         # move foot
         print "moving foot..."
         goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0], sol_centroidal.contact_values_map[foot_i].position[1], sol_centroidal.contact_values_map[foot_i].position[2]]
@@ -149,7 +153,8 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
 
         if foot_i == 'r_sole' :
-        # SEND FORCE
+            # SEND FORCE
+            print "sending force to ", foot_i
 
             forces_sheep = [sol_centroidal.contact_values_map[feet_list[0]].force[0],
                             sol_centroidal.contact_values_map[feet_list[0]].force[1],
@@ -163,6 +168,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
                             sol_centroidal.contact_values_map[hands_list[1]].force[0],
                             sol_centroidal.contact_values_map[hands_list[1]].force[1],
                             sol_centroidal.contact_values_map[hands_list[1]].force[2]]
+
 
             normal_sheep = [sol_centroidal.contact_values_map[feet_list[0]].normal[0],
                             sol_centroidal.contact_values_map[feet_list[0]].normal[1],
