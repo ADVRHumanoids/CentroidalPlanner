@@ -211,8 +211,10 @@ for k in range(ns):
     X.append(V[offset:offset+nx])
 
     if k == 0:
-        v_min += x0_min.tolist()
-        v_max += x0_max.tolist()
+        # v_min += x0_min.tolist()
+        # v_max += x0_max.tolist()
+        v_min += np.append(q_min, np.zeros_like(qdot_min)).tolist()
+        v_max += np.append(q_max, np.zeros_like(qdot_min)).tolist()
     else:
         v_min += x_min.tolist()
         v_max += x_max.tolist()
@@ -349,7 +351,7 @@ for k in range(ns):
 
     if lift_node <= k < touch_down_node:
         J += 1000.*dot(Waist_pos - Waist_pos_jump, Waist_pos - Waist_pos_jump)
-    else:
+    elif k >= touch_down_node:
         J += 10000.*dot(Waist_pos[2] - Waist_pos_init[2], Waist_pos[2] - Waist_pos_init[2])
         J += 1000.*dot(C1_pos - C1_pos_init, C1_pos - C1_pos_init)
         J += 1000.*dot(C2_pos - C2_pos_init, C2_pos - C2_pos_init)

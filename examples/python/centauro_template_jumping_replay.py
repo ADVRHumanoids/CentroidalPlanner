@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
-import matlogger2.matlogger as matl
 from cartesian_interface.pyci_all import *
 import h5py
 import rospy
-
-logger = matl.MatLogger2('/tmp/centauro_template_jumping_log')
-logger.setBufferMode(matl.BufferMode.CircularBuffer)
 
 f = h5py.File('/home/matteo/advr-superbuild/external/CentroidalPlanner/examples/data_replay/template_jumping.mat', 'r')
 q = f.get('q_template_replay')
@@ -24,6 +20,22 @@ ci.setAccelerationLimits('wheel_1', 1000, 1000)
 ci.setAccelerationLimits('wheel_2', 1000, 1000)
 ci.setAccelerationLimits('wheel_3', 1000, 1000)
 ci.setAccelerationLimits('wheel_4', 1000, 1000)
+
+wheel1_init_pos = Affine3(pos=q[0][0:3])
+wheel2_init_pos = Affine3(pos=q[0][3:6])
+wheel3_init_pos = Affine3(pos=q[0][9:12])
+wheel4_init_pos = Affine3(pos=q[0][6:9])
+
+reach_time = 3.0
+
+ci.setTargetPose('wheel_1', wheel1_init_pos, reach_time)
+ci.setTargetPose('wheel_2', wheel2_init_pos, reach_time)
+ci.setTargetPose('wheel_3', wheel3_init_pos, reach_time)
+ci.setTargetPose('wheel_4', wheel4_init_pos, reach_time)
+
+ci.waitReachCompleted('wheel_4')
+
+ci.update()
 
 rospy.init_node('centauro_template_jumping_replay')
 rate = rospy.Rate(1000.)
