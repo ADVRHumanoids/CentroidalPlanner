@@ -118,3 +118,27 @@ def set_arms_low_damping(robot) :
 
     for i in range(N_ARMS) :
         print "New Damping of ", robot.arm(i).getChainName(), " is: ", robot.arm(i).getDamping()
+
+
+def set_joint_damping(robot, joint, K_end) :
+
+    damping = robot.getDampingMap()
+    new_damping = damping
+
+    print "Current damping of ", joint, "is: ", damping[joint], "New one will be: ", K_end
+
+    K_0 = damping[joint]
+
+    global N_ITER
+
+    for k in range(N_ITER):
+        joint_damp = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
+
+        new_damping[joint] = joint_damp
+
+        robot.setDamping(new_damping)
+
+        print "Completed: ", float(k) / N_ITER * 100, "%"
+        robot.move()
+
+    print "Damping of ", joint, " is: ", robot.getDampingMap()[joint]

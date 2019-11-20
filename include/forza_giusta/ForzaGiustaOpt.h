@@ -74,24 +74,24 @@ void ForzaGiusta::_update(const Eigen::VectorXd& x)
 {
     _task.setZero(_wrenches[0].getInputSize(), 6);
 
-//    Eigen::Vector3d poseCoM;
-//    _model->getCOM(poseCoM);
-//    std::cout << "COM: " << poseCoM.transpose() << std::endl;
-//    Eigen::Affine3d poseSole;
-//    _model->getPose("l_sole", poseSole);
-//    std::cout << "L_SOLE: " << poseSole.matrix() << std::endl;
+    Eigen::Vector3d poseCoM;
+    _model->getCOM(poseCoM);
+    std::cout << "COM: " << poseCoM.transpose() << std::endl;
+    Eigen::Affine3d poseSole;
+    _model->getPose("l_sole", poseSole);
+    std::cout << "L_SOLE: " << poseSole.matrix() << std::endl;
 
-//    double h = fabs(poseCoM(2) - poseSole.translation()[2]);
-//    std::cout << "h:" << h << std::endl;
+    double h = fabs(poseCoM(2) - poseSole.translation()[2]);
+    std::cout << "h:" << h << std::endl;
 
-//    double dist_x = poseCoM[0] - poseSole.translation()[0];
-//    std::cout << "dist_x: " << dist_x << std::endl;
+    double dist_x = poseCoM[0] - poseSole.translation()[0];
+    std::cout << "dist_x: " << dist_x << std::endl;
 
-//    double angle = std::tanh(dist_x/h);
-//    std::cout << "angle: " << angle * 180/M_PI << std::endl;
+    double angle = std::tanh(dist_x/h);
+    std::cout << "angle: " << angle * 180/M_PI << std::endl;
 
-//    double torque_y = _model->getMass() * 9.8 * sin(angle);
-//    std::cout << "torque_y: " << torque_y << std::endl;
+    double torque_y = _model->getMass() * 9.8 * sin(angle) * h;
+    std::cout << "torque_y: " << torque_y / 2 << std::endl;
 
     for(int i = 0; i < _enabled_contacts.size(); i++)
     {

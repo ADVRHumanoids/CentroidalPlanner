@@ -12,13 +12,16 @@ def run(robot, end_effector) :
     stiffness = robot.getStiffnessMap()
     damping = robot.getDampingMap()
 
+    print 'Stiffness of ankle pitch: ', stiffness[anklePitch]
+    print 'Damping of ankle pitch: ', damping[anklePitch]
+
     stiffness[anklePitch] = 10
     damping[anklePitch] = 1
 
     robot.setStiffness(stiffness)
     robot.setDamping(damping)
 
-    print "Stiffness of robot:", robot.getStiffnessMap
-    print "Damping of robot: ", robot.getDampingMap
+    print "New stiffness of ankle pitch: ", robot.getStiffnessMap()[anklePitch]
+    print "New damping of ankle pitch: ", robot.getDampingMap()[anklePitch]
 
     robot.move()

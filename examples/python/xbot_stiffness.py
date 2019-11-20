@@ -119,3 +119,50 @@ def set_arms_low_stiffness(robot) :
 
     for i in range(N_ARMS) :
         print "New Stiffness of ", robot.arm(i).getChainName(), " is: ", robot.arm(i).getStiffness()
+
+def set_joint_stiffness(robot, joint, K_end) :
+
+    # mapStiffness = {joint : xbot.ControlMode.Stiffness()}
+    # robot.setControlMode(mapStiffness)
+    # robot.setControlMode(xbot.ControlMode.Stiffness())
+
+    stiffness = robot.getStiffnessMap()
+    new_stiffness = stiffness
+
+    print "Current damping of ", joint, "is: ", stiffness[joint], "New one will be: ", K_end
+
+    K_0 = stiffness[joint]
+
+    print K_0
+
+    global N_ITER
+
+    for k in range(N_ITER):
+
+        joint_stiff = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
+
+        new_stiffness[joint] = joint_stiff
+        robot.setStiffness(new_stiffness)
+
+        print "Completed: ", float(k) / N_ITER * 100, "%"
+
+        robot.move()
+        rospy.sleep(0.01)
+
+    print "Stiffness of ", joint, " is: ", robot.getStiffnessMap()[joint]
+
+def set_zero_stiffness(robot) :
+
+    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+
+    stiffness = robot.getStiffness()
+    stiffness[:] = 0
+
+
+    robot.setStiffness(stiffness)
+
+    for k in range(50):
+        robot.move()
+        rospy.sleep(0.01)
+    #
+    print "Stiffness of robot is: ", robot.getStiffnessMap()
