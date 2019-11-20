@@ -3,9 +3,8 @@ solver_options:
     back_end: "osqp"
 
 stack:
-    - ["LFoot", "RFoot"] #PosturalPennacchio
+    - ["LFoot", "RFoot", "Torso"] #PosturalPennacchio
     - ["LArm", "RArm"] #
-    - ["Torso"]
     - ["CoM", "WaistZ"]
     - ["Postural"]
     

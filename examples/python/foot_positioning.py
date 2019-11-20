@@ -192,7 +192,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             forcepub.sendNormal(contacts_links, normal_sheep)
 
         # WAIST ENABLE
-        ci.setControlMode('Waist', pyci.ControlType.Position)
+        # ci.setControlMode('Waist', pyci.ControlType.Position)
 
         # get contacts references from cartesio and set them to the planner
         contact_pos = ci.getPoseReference(foot_i)[0].translation

@@ -73,12 +73,23 @@ def advance_com(ci, x_position) :
     com_advance = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
     com_advance[0] = x_position
     com_ci = Affine3(pos=com_advance)
-    reach_time = 4.0
+    reach_time = 4.
     ci.setTargetPose('com', com_ci, reach_time)
     ci.waitReachCompleted('com')
     ci.update()
     print "CoM at: ", ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
 
+def lower_waist(ci) :
+
+    print "lowering waist..."
+    ci.setControlMode('Waist', pyci.ControlType.Position)
+    waist_pos = ci.getPoseReference('Waist')[0].translation
+    waist_pos[2] -= 0.2
+    waist_ci = Affine3(pos=waist_pos)
+    ci.setTargetPose('Waist', waist_ci, 2)
+    ci.waitReachCompleted('Waist')
+    ci.update()
+    print "Waist at: ", ci.getPoseReference('Waist')[0].translation
 
 if __name__ == '__main__':
 
@@ -123,10 +134,16 @@ if __name__ == '__main__':
     ctrl_pl_sheep, sol_centroidal_sheep = opt_pos_sheep.compute(ci, contact_joints, hands_list, feet_list, mass, dist_hands, bound_size)
     # REACH WITH HANDS AND MOVE COM
 
+    ci.setControlMode('torso', pyci.ControlType.Disabled)
+
     hand_cmd.run(robot, ft_map, ci, hands_list, sol_centroidal_sheep)
+
+    ci.setControlMode('torso', pyci.ControlType.Position)
+
     surface_reacher.run_hand(ci, robot, model, ft_map, hands_list, f_est)
     advance_com(ci, sol_centroidal_sheep.com[0])
-
+    lower_waist(ci)
+    ci.setControlMode('torso', pyci.ControlType.Disabled)
     print "waiting for forza_giusta node ...."
     forcepub = fp.ForcePublisher(contact_joints)
     print "connected to forza_giusta."
@@ -187,7 +204,12 @@ if __name__ == '__main__':
     # REACH WITH HANDS
     foot_cmd.run(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, sol_centroidal_wall, com_pl, forcepub, world_odom_T_world)
 
-    
+    ci.setControlMode('Waist', pyci.ControlType.Position)
+    waist_pos = ci.getPoseReference('Waist')[0].translation
+    waist_pos[2] += 0.1
+    waist_ci = Affine3(pos=waist_pos)
+    ci.setTargetPose('Waist', waist_ci, 5)
+
     exit(0)
 
 

@@ -12,7 +12,7 @@ def run(robot, ft_map, ci, hands_list, sol_centroidal) :
 
     # PLACE HANDS ON THE GROUND
     reach_time_hand = 20
-    dist_from_ground = 0.15 + stop_before_contact
+    dist_from_ground = 0.4 + stop_before_contact  #0.15
 
     # SET POSITION MODE FOR HANDS
     ci.setControlMode(hands_list[0], pyci.ControlType.Position)

@@ -11,7 +11,7 @@ def run_hand(ci, robot, model, ft_map, hands_list, f_est) :
     ci.setControlMode(hands_list[1], pyci.ControlType.Velocity)
 
 
-    contact_treshold = 35
+    contact_treshold = 25
     direction = 0
 
     while not impact_detector.run(robot, ft_map['l_arm_ft'], direction, contact_treshold) or not impact_detector.run(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
