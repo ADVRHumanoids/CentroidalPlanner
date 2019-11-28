@@ -11,16 +11,16 @@ def run_hand(ci, robot, model, ft_map, hands_list, f_est) :
     ci.setControlMode(hands_list[1], pyci.ControlType.Velocity)
 
 
-    contact_treshold = 25
+    contact_treshold = 15
     direction = 0
 
-    while not impact_detector.run(robot, ft_map['l_arm_ft'], direction, contact_treshold) or not impact_detector.run(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
+    while not impact_detector.run_hand(robot, ft_map['l_arm_ft'], direction, contact_treshold) or not impact_detector.run_hand(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
 
 
-        if not impact_detector.run(robot, ft_map['l_arm_ft'], direction, contact_treshold) :
+        if not impact_detector.run_hand(robot, ft_map['l_arm_ft'], direction, contact_treshold) :
             ci.setVelocityReference(hands_list[0], vel_hands)
 
-        if not impact_detector.run(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
+        if not impact_detector.run_hand(robot, ft_map['r_arm_ft'], direction, contact_treshold) :
             ci.setVelocityReference(hands_list[1], vel_hands)
 
         robot.sense()
@@ -36,7 +36,7 @@ def run_foot(ci, robot, ft_map, end_effector):
 
     print 'starting surface reacher for: ', end_effector
     # velocity desired
-    vel_foot = [-0.03, 0, 0, 0, 0, 0]
+    vel_foot = [-0.01, 0, 0, 0, 0, 0]
 
     if end_effector == 'l_sole':
         ft = ft_map['l_leg_ft']
@@ -49,11 +49,11 @@ def run_foot(ci, robot, ft_map, end_effector):
     ci.setControlMode(end_effector, pyci.ControlType.Velocity)
 
 
-    contact_treshold = 150 #250
+    contact_treshold = 80 #250
     direction = 2
 
     if end_effector == "r_sole" :
-        contact_treshold = 150
+        contact_treshold = 80 #80
 
     contact_sensed = False
     n_cycle = 0
@@ -62,7 +62,7 @@ def run_foot(ci, robot, ft_map, end_effector):
         contact_sensed = False
         ci.setVelocityReference(end_effector, vel_foot)
 
-        if impact_detector.run(robot, ft, direction, contact_treshold):
+        if impact_detector.run_foot(robot, ft, direction, contact_treshold):
             print end_effector, ': waiting..'
             n_cycle += 1
         else:

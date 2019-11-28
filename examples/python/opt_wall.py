@@ -11,7 +11,7 @@ def compute(ci, contacts, hands_list, feet_list, mass, mu_feet) :
     # height of hand
     contact_hand_z = ci.getPoseReference(hands_list[0])[0].translation[2]
 
-    # point from which the superquadric is computed
+    # p: point from which the superquadric is computed
     p = [contact_foot_x, 0, contact_hand_z]   # point in between the two soles, at height of hands
     print "point from which the superquadric is computed: ", p
 
@@ -21,7 +21,7 @@ def compute(ci, contacts, hands_list, feet_list, mass, mu_feet) :
     # distance of ground from p
     ground_distance = 0.0 #z
 
-    # p w.r.t superquadric
+    # d: p w.r.t superquadric
     d = [wall_distance, 0.0,  ground_distance]
     print "p w.r.t superquadric: ", d
 

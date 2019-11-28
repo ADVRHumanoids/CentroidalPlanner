@@ -67,26 +67,37 @@ def gen_com_planner(contacts, mass, mu) :
     return com_pl
 
 
-def advance_com(ci, x_position) :
+def advance_com(ci, x_pos, reach_time) :
 
     print "advancing with com..."
     com_advance = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
-    com_advance[0] = x_position
+    com_advance[0] += x_pos
     com_ci = Affine3(pos=com_advance)
-    reach_time = 4.
     ci.setTargetPose('com', com_ci, reach_time)
     ci.waitReachCompleted('com')
     ci.update()
     print "CoM at: ", ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
 
-def lower_waist(ci) :
+
+def position_com(ci, x_pos, reach_time) :
+
+    print "advancing with com..."
+    com_advance = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+    com_advance[0] = x_pos
+    com_ci = Affine3(pos=com_advance)
+    ci.setTargetPose('com', com_ci, reach_time)
+    ci.waitReachCompleted('com')
+    ci.update()
+    print "CoM at: ", ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+
+def lower_waist(ci, z_pos, reach_time) :
 
     print "lowering waist..."
     ci.setControlMode('Waist', pyci.ControlType.Position)
     waist_pos = ci.getPoseReference('Waist')[0].translation
-    waist_pos[2] -= 0.2
+    waist_pos[2] -= z_pos
     waist_ci = Affine3(pos=waist_pos)
-    ci.setTargetPose('Waist', waist_ci, 2)
+    ci.setTargetPose('Waist', waist_ci, reach_time)
     ci.waitReachCompleted('Waist')
     ci.update()
     print "Waist at: ", ci.getPoseReference('Waist')[0].translation
@@ -121,29 +132,30 @@ if __name__ == '__main__':
     # size of the bound region for solver
     bound_size = 0.25
 
-    f_est = pyest.ForceEstimation(model, 0.05)
+    f_est = pyest.ForceEstimation(model, 0.05) # 0.05 treshold
 
     ft_map = sensors_init(arm_estimation_flag=True, f_est=f_est)
 
     mu_com_pl = 0.5
     com_pl = gen_com_planner(contact_joints, mass, mu_com_pl)
 
-    # SET HOMING POSIITION, SLIGHTLY COM FORWARD
-    homing.run(ci)
+    # SET HOMING POSIITION
+    # homing.run(ci)
     # COMPUTE OPTIMAL POSE FOR SHEEP CONFIGURATION
     ctrl_pl_sheep, sol_centroidal_sheep = opt_pos_sheep.compute(ci, contact_joints, hands_list, feet_list, mass, dist_hands, bound_size)
     # REACH WITH HANDS AND MOVE COM
 
+    ci.setControlMode('Waist', pyci.ControlType.Disabled)
     ci.setControlMode('torso', pyci.ControlType.Disabled)
+
 
     hand_cmd.run(robot, ft_map, ci, hands_list, sol_centroidal_sheep)
 
     ci.setControlMode('torso', pyci.ControlType.Position)
 
     surface_reacher.run_hand(ci, robot, model, ft_map, hands_list, f_est)
-    advance_com(ci, sol_centroidal_sheep.com[0])
-    lower_waist(ci)
-    ci.setControlMode('torso', pyci.ControlType.Disabled)
+    position_com(ci, sol_centroidal_sheep.com[0] - 0.08, 15.)     #reach_time = 15.
+
     print "waiting for forza_giusta node ...."
     forcepub = fp.ForcePublisher(contact_joints)
     print "connected to forza_giusta."
@@ -188,27 +200,49 @@ if __name__ == '__main__':
     forcepub.sendForce(contact_joints, forces_sheep)
     forcepub.sendNormal(contact_joints, normal_sheep)
     # SWITCH ON FORZA GIUSTA
+
+    raw_input("Press Enter to switch ON forza giusta and lower the impedance.")
+
     forcepub.switchController(True)
     print "Switched ON forza_giusta"
 
     # PREPARE FOR FORCE CONTROL
-    default_stiffness = 1500
-    default_damping = 50
+    default_stiffness_leg = 500 #1500
+    default_damping_leg = 10
 
-    xbotstiff.set_legs_default_stiffness(robot, [default_stiffness, default_stiffness, default_stiffness, default_stiffness, default_stiffness, default_stiffness])
-    xbotdamp.set_legs_default_damping(robot, [default_damping, default_damping, default_damping, default_damping, default_damping, default_damping])
+    default_stiffness_arm = 500 #1500
+    default_damping_arm = 10
+
+    default_stiffness_wrist = 350
+
+    # TO AVOID THE HIP TO REACH JOINT LIMITS
+    default_stiffness_hip_pitch = 500
+
+    xbotstiff.set_legs_default_stiffness(robot, [default_stiffness_leg, default_stiffness_hip_pitch, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+    xbotdamp.set_legs_default_damping(robot, [default_damping_leg, default_stiffness_hip_pitch, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg])
+
+    xbotstiff.set_arms_default_stiffness(robot, [default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_wrist, default_stiffness_wrist, default_stiffness_wrist])
+    xbotdamp.set_arms_default_damping(robot, [default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm])
+
+    raw_input("Press Enter to advance com.")
+    advance_com(ci, 0.06, 15.)
+
+    # raw_input("Press Enter to lower waist.")
+    # lower_waist(ci, 0.05, 10)
+
 
     # COMPUTE OPTIMAL POSE FOR WALL CONFIGURATION
     mu_feet = 0.5
     ctrl_pl_wall, sol_centroidal_wall = opt_pos_wall.compute(ci, contact_joints, hands_list, feet_list, mass, mu_feet)
-    # REACH WITH HANDS
+
+    # REACH WITH FEET
     foot_cmd.run(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, sol_centroidal_wall, com_pl, forcepub, world_odom_T_world)
 
-    ci.setControlMode('Waist', pyci.ControlType.Position)
-    waist_pos = ci.getPoseReference('Waist')[0].translation
-    waist_pos[2] += 0.1
-    waist_ci = Affine3(pos=waist_pos)
-    ci.setTargetPose('Waist', waist_ci, 5)
+    # ci.setControlMode('Waist', pyci.ControlType.Position)
+    # waist_pos = ci.getPoseReference('Waist')[0].translation
+    # waist_pos[2] += 0.1
+    # waist_ci = Affine3(pos=waist_pos)
+    # ci.setTargetPose('Waist', waist_ci, 5)
 
     exit(0)
 

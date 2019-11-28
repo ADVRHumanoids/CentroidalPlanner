@@ -8,7 +8,7 @@ def run(robot, ft_map, ci, hands_list, sol_centroidal) :
         ci.setBaseLink(hand_i, 'world')
 
     # for FEEDBACK CONTACT
-    stop_before_contact = 0.02
+    stop_before_contact = 0.08
 
     # PLACE HANDS ON THE GROUND
     reach_time_hand = 20
@@ -37,13 +37,13 @@ def run(robot, ft_map, ci, hands_list, sol_centroidal) :
 
 
         contact_flag_l = ci.waitReachCompleted(hands_list[0], 0.001)
-        if impact_detector.run(robot, ft_map['l_arm_ft'], direction, force_threshold) :
+        if impact_detector.run_hand(robot, ft_map['l_arm_ft'], direction, force_threshold) :
             print hands_list[0], ': contact detected, stopping task.'
             contact_flag_l = 1
 
 
         contact_flag_r = ci.waitReachCompleted(hands_list[1], 0.001)
-        if impact_detector.run(robot, ft_map['r_arm_ft'], direction, force_threshold) :
+        if impact_detector.run_hand(robot, ft_map['r_arm_ft'], direction, force_threshold) :
             print hands_list[1], ': contact detected, stopping task.'
             contact_flag_r = 1
 

@@ -3,8 +3,8 @@ solver_options:
     back_end: "osqp"
 
 stack:
-    - ["LFoot", "RFoot", "Torso"] #PosturalPennacchio
-    - ["LArm", "RArm"] #
+    - ["LFoot", "RFoot", "Torso"]
+    - ["LArm", "RArm"]
     - ["CoM", "WaistZ"]
     - ["Postural"]
     
@@ -82,5 +82,3 @@ Torso:
     lambda: 0.1
     indices: [3,4,5]
     weight: 0.001
-
-

@@ -17,10 +17,10 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
     distance_for_reaching = - 0.15
 
     move_time_com = 2
-    lift_time = 5
-    reach_time = 10
+    lift_time = 10
+    reach_time = 25
 
-    lift_heigth = 0.05
+    lift_heigth = 0.05 #0.05
 
     # SET FEET CONTACTS
     for c_f in feet_list:
@@ -97,8 +97,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         forcepub.sendForce(contacts_links, forces_sheep)
         forcepub.sendNormal(contacts_links, normal_sheep)
 
-
-
+        raw_input("Press Enter to move CoM.")
         # move com
         print "Starting displacement of CoM ..."
         com_disp = [sol.com[0], sol.com[1], world_odom_T_world]
@@ -109,6 +108,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         ci.update()
         print "Done: ", com_disp
 
+        raw_input("Press Enter to move foot.")
 
         ci.setControlMode(foot_i, pyci.ControlType.Position)
 
@@ -136,7 +136,10 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         # move foot
         print "moving foot..."
-        goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0], sol_centroidal.contact_values_map[foot_i].position[1], sol_centroidal.contact_values_map[foot_i].position[2]]
+        goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0],
+                     sol_centroidal.contact_values_map[foot_i].position[1],
+                     sol_centroidal.contact_values_map[foot_i].position[2]]
+
         goal_wall[0] -= distance_for_reaching
         foot_ci = Affine3(pos=goal_wall)
         foot_ci.linear = rot_mat
@@ -148,6 +151,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         # lowering stiffness of ankle of foot_i
         lower_ankle_impedance.run(robot, foot_i)
 
+        raw_input("Press Enter to start surface reacher.")
         # reaching for the wall with foot_i
         surface_reacher.run_foot(ci, robot, ft_map, foot_i)
 

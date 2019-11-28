@@ -200,9 +200,10 @@ int main(int argc, char ** argv)
     ros::NodeHandle nh("forza_giusta");
     ros::NodeHandle nh_priv("~");
 
-    ros::NodeHandle nh_xbotcore("xbotcore");
+//    ros::NodeHandle nh_xbotcore("xbotcore");
+//    auto cfg = XBot::ConfigOptionsFromParamServer(nh_xbotcore);
 
-    auto cfg = XBot::ConfigOptionsFromParamServer(nh_xbotcore);
+    auto cfg = XBot::ConfigOptionsFromParamServer();
     auto robot = XBot::RobotInterface::getRobot(cfg);
     auto model = XBot::ModelInterface::getModel(cfg);
 
@@ -455,18 +456,27 @@ int main(int argc, char ** argv)
 
             Eigen::Vector6d w_world = pair.second;
 
+            Eigen::Affine3d w_T_l;
+            model->getPose(pair.first, w_T_l);
+
+            Eigen::Matrix6d Adj; Adj.setZero();
+            Adj.block(0,0,3,3) = Adj.block(3,3,3,3) = w_T_l.linear().matrix().transpose();
+
+            Eigen::Vector6d w_local = Adj*w_world;
+
 //            std::cout << "W_" + pair.first + ": " << w_world.transpose() << std::endl;
 
             geometry_msgs::WrenchStamped wrench_msg;
-            wrench_msg.header.frame_id = "world";
+            wrench_msg.header.frame_id = pair.first;
 //            w_world.tail(3) *= -1;
-            tf::wrenchEigenToMsg( w_world, wrench_msg.wrench);
+            tf::wrenchEigenToMsg( w_local, wrench_msg.wrench);
 
             force_pub[pair.first].publish(wrench_msg);
 
             if (log)
             {
-                logger->add("W_" + pair.first, w_world);
+                logger->add("W_world_" + pair.first, w_world);
+                logger->add("W_local_" + pair.first, w_local);
 
             }
             
