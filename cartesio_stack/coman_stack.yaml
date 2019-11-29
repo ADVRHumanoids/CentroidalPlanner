@@ -7,7 +7,7 @@ stack:
     - ["LArm", "RArm"]
     - ["CoM", "WaistZ"]
     - ["Postural"]
-    
+
 constraints: ["JointLimits", "VelocityLimits"]
 
 ################################################
@@ -51,7 +51,7 @@ CoMZ:
     type: "Com"
     lambda: 1
     indices: [2]
- 
+
 PosturalPennacchio:
     type: "Postural"
     lambda: 1.0

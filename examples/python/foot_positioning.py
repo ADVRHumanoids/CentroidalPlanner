@@ -108,7 +108,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         ci.update()
         print "Done: ", com_disp
 
-        raw_input("Press Enter to move foot.")
+        raw_input("Press Enter to lift foot.")
 
         ci.setControlMode(foot_i, pyci.ControlType.Position)
 
@@ -118,6 +118,8 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         if foot_i == 'r_sole' :
             lift_heigth = 0.08
+
+
         # lift sole
         print "lifting sole..."
         sole_ci = ci.getPoseReference(foot_i)[0]
@@ -134,6 +136,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         if foot_i == 'r_sole' :
             distance_for_reaching = -0.15
 
+        raw_input("Press Enter to move foot.")
         # move foot
         print "moving foot..."
         goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0],
