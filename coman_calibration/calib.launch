@@ -1,0 +1,14 @@
+<launch>
+
+     <node pkg="xbot_ros" 
+          type="torque_offset_calib" 
+          name="torque_offset_calib"
+          output="screen">
+          
+
+        <param name="robot_description" 
+            textfile="$(env ROBOTOLOGY_ROOT)/robots/iit-cogimon-ros-pkg/cogimon_urdf/urdf/cogimon.urdf"/>
+        
+    </node>
+
+</launch>

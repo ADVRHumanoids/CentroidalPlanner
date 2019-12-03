@@ -18,8 +18,7 @@
     </include>    
 
 
-    <rosparam command="load" param="cartesian/torque_offset" file="$(find centroidal_planner)/configs/tau_offset.yaml"/>
-
+    <rosparam command="load" param="cartesian/torque_offset" file="$(env ROBOTOLOGY_ROOT)/build/external/xbot_ros/tau_offset.yaml"/>
 
      <node pkg="cartesian_interface" 
           type="force_estimation_node" 
