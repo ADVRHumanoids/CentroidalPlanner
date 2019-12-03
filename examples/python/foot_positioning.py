@@ -4,6 +4,7 @@ import lower_ankle_impedance as lower_ankle_impedance
 import surface_reacher as surface_reacher
 import xbot_stiffness as xbotstiff
 import xbot_damping as xbotdamp
+import send_Force_and_Normal as send_F_n
 
 def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_centroidal, com_pl, forcepub, world_odom_T_world) :
 
@@ -22,7 +23,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
     lift_time = 10
     reach_time = 25
 
-    lift_heigth = 0.05 #0.05
+    lift_heigth = 0.05
 
     # SET FEET CONTACTS
     for c_f in feet_list:
@@ -39,9 +40,8 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         print("Setting contact position for ", c_h, " to ", com_pl.GetContactPosition(c_h))
 
     # SET COM
-
     com_ref = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
-    com_ref[1] = -0.05
+    com_ref[1] = -0.05 # MOVE COM ON THE SIDE!
     print 'Setting com to: ', com_ref
     com_pl.SetCoMRef(com_ref)
 
@@ -51,6 +51,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
     # putting feet in the right position
     for foot_i in feet_list:
 
+        # lifting foot in solver to find optimal solution of the CoM
         com_pl.SetLiftingContact(foot_i)
         print 'LIFTING ', foot_i
 
@@ -63,41 +64,9 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         # send commands to cartesio
 
 
-        # SEND FORCE
-
-        forces_sheep = [sol.contact_values_map[feet_list[0]].force[0],
-                        sol.contact_values_map[feet_list[0]].force[1],
-                        sol.contact_values_map[feet_list[0]].force[2],
-                        sol.contact_values_map[feet_list[1]].force[0],
-                        sol.contact_values_map[feet_list[1]].force[1],
-                        sol.contact_values_map[feet_list[1]].force[2],
-                        sol.contact_values_map[hands_list[0]].force[0],
-                        sol.contact_values_map[hands_list[0]].force[1],
-                        sol.contact_values_map[hands_list[0]].force[2],
-                        sol.contact_values_map[hands_list[1]].force[0],
-                        sol.contact_values_map[hands_list[1]].force[1],
-                        sol.contact_values_map[hands_list[1]].force[2]]
-
-        normal_sheep = [sol.contact_values_map[feet_list[0]].normal[0],
-                        sol.contact_values_map[feet_list[0]].normal[1],
-                        sol.contact_values_map[feet_list[0]].normal[2],
-                        sol.contact_values_map[feet_list[1]].normal[0],
-                        sol.contact_values_map[feet_list[1]].normal[1],
-                        sol.contact_values_map[feet_list[1]].normal[2],
-                        sol.contact_values_map[hands_list[0]].normal[0],
-                        sol.contact_values_map[hands_list[0]].normal[1],
-                        sol.contact_values_map[hands_list[0]].normal[2],
-                        sol.contact_values_map[hands_list[1]].normal[0],
-                        sol.contact_values_map[hands_list[1]].normal[1],
-                        sol.contact_values_map[hands_list[1]].normal[2]]
-
-
-        print "contact_joints: ", contacts_links
-        print "Sent forces_sheep is: ", forces_sheep
-        print "Sent normals are: ", normal_sheep
-
-        forcepub.sendForce(contacts_links, forces_sheep)
-        forcepub.sendNormal(contacts_links, normal_sheep)
+        # SEND FORCE ------
+        send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol)
+        # -----------------
 
         raw_input("Press Enter to move CoM.")
         # move com
@@ -152,6 +121,30 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         if foot_i == 'r_sole' :
             distance_for_reaching = -0.15
 
+        # if foot_i == 'r_sole' :
+
+            # print 'sending current reference for postural ...'
+            # joint_pos = robot.getJointPositionMap()
+            # postural_map = {'RKneePitch': joint_pos['RKneePitch'],
+            #                 'RHipSag': joint_pos['RHipSag'],
+            #                 'RHipLat': joint_pos['RHipLat'],
+            #                 'RAnklePitch': joint_pos['RAnklePitch'],
+            #                 'RAnkleRoll': joint_pos['RAnkleRoll'],
+            #                 'RHipYaw': joint_pos['RHipYaw'],
+            #                 }
+            #
+            #
+            # ci.setReferencePosture(postural_map)
+            # ci.update()
+            #
+            # print 'Disabling Task on right leg.'
+            # while i < 20 :
+            #     ci.setControlMode('r_sole', pyci.ControlType.Disabled)
+            #     i = i+1
+            #
+            # print 'Enabling Task on right leg.'
+            # ci.setControlMode('r_sole', pyci.ControlType.Position)
+
         raw_input("Press Enter to move foot.")
         # move foot
         print "moving foot..."
@@ -193,45 +186,12 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         if foot_i == 'r_sole' :
             # SEND FORCE
             print "sending force to ", foot_i
-
-            forces_sheep = [sol_centroidal.contact_values_map[feet_list[0]].force[0],
-                            sol_centroidal.contact_values_map[feet_list[0]].force[1],
-                            sol_centroidal.contact_values_map[feet_list[0]].force[2],
-                            sol_centroidal.contact_values_map[feet_list[1]].force[0],
-                            sol_centroidal.contact_values_map[feet_list[1]].force[1],
-                            sol_centroidal.contact_values_map[feet_list[1]].force[2],
-                            sol_centroidal.contact_values_map[hands_list[0]].force[0],
-                            sol_centroidal.contact_values_map[hands_list[0]].force[1],
-                            sol_centroidal.contact_values_map[hands_list[0]].force[2],
-                            sol_centroidal.contact_values_map[hands_list[1]].force[0],
-                            sol_centroidal.contact_values_map[hands_list[1]].force[1],
-                            sol_centroidal.contact_values_map[hands_list[1]].force[2]]
-
-
-            normal_sheep = [sol_centroidal.contact_values_map[feet_list[0]].normal[0],
-                            sol_centroidal.contact_values_map[feet_list[0]].normal[1],
-                            sol_centroidal.contact_values_map[feet_list[0]].normal[2],
-                            sol_centroidal.contact_values_map[feet_list[1]].normal[0],
-                            sol_centroidal.contact_values_map[feet_list[1]].normal[1],
-                            sol_centroidal.contact_values_map[feet_list[1]].normal[2],
-                            sol_centroidal.contact_values_map[hands_list[0]].normal[0],
-                            sol_centroidal.contact_values_map[hands_list[0]].normal[1],
-                            sol_centroidal.contact_values_map[hands_list[0]].normal[2],
-                            sol_centroidal.contact_values_map[hands_list[1]].normal[0],
-                            sol_centroidal.contact_values_map[hands_list[1]].normal[1],
-                            sol_centroidal.contact_values_map[hands_list[1]].normal[2]]
-
-
-            print "contact_joints: ", contacts_links
-            print "Sent forces_sheep is: ", forces_sheep
-            print "Sent normals are: ", normal_sheep
-
-            forcepub.sendForce(contacts_links, forces_sheep)
-            forcepub.sendNormal(contacts_links, normal_sheep)
+            send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol_centroidal)
 
         # WAIST ENABLE
         # ci.setControlMode('Waist', pyci.ControlType.Position)
 
+        # SET NEW CONTACT POSITION AND NORMAL
         # get contacts references from cartesio and set them to the planner
         contact_pos = ci.getPoseReference(foot_i)[0].translation
         com_pl.SetContactPosition(foot_i, contact_pos)
@@ -239,6 +199,8 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         com_pl.SetContactNormal(foot_i, normal)
         print("Setting contact position for ", foot_i, " to ", com_pl.GetContactPosition(foot_i))
         print "Setting normal for ", foot_i, "to ", normal
+
+
 
     # PUT BACK COM IN THE MIDDLE
     for c_f in feet_list:
