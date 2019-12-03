@@ -2,6 +2,8 @@ from cartesian_interface.pyci_all import *
 import numpy as np
 import lower_ankle_impedance as lower_ankle_impedance
 import surface_reacher as surface_reacher
+import xbot_stiffness as xbotstiff
+import xbot_damping as xbotdamp
 
 def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_centroidal, com_pl, forcepub, world_odom_T_world) :
 
@@ -110,6 +112,20 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         raw_input("Press Enter to lift foot.")
 
+        # RISE STIFFNESS AND DAMPING FOR MOVEMENT IN AIR ---------------------------------------------------------------
+
+        default_stiffness_leg = 1000  # 1500
+        default_damping_leg = 10
+
+        xbotstiff.set_leg_stiffness(robot, foot_i,
+                                    [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
+                                     default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+
+        xbotdamp.set_leg_damping(robot, foot_i,
+                                 [default_damping_leg, default_damping_leg, default_damping_leg,
+                                  default_damping_leg, default_damping_leg, default_damping_leg])
+
+        # --------------------------------------------------------------------------------------------------------------
         ci.setControlMode(foot_i, pyci.ControlType.Position)
 
         # prepare ROTATION OF SOLE
@@ -157,6 +173,21 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         raw_input("Press Enter to start surface reacher.")
         # reaching for the wall with foot_i
         surface_reacher.run_foot(ci, robot, ft_map, foot_i)
+
+        # LOWER STIFFNESS AND DAMPING FOR FORCE CONTROL ---------------------------------------------------------------
+
+        default_stiffness_leg = 200  # 1500
+        default_damping_leg = 10
+
+        xbotstiff.set_leg_stiffness(robot, foot_i,
+                                    [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
+                                     default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+
+        xbotdamp.set_leg_damping(robot, foot_i,
+                                 [default_damping_leg, default_damping_leg, default_damping_leg,
+                                  default_damping_leg, default_damping_leg, default_damping_leg])
+
+        # --------------------------------------------------------------------------------------------------------------
 
 
         if foot_i == 'r_sole' :

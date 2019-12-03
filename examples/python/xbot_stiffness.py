@@ -119,3 +119,35 @@ def set_arms_low_stiffness(robot) :
 
     for i in range(N_ARMS) :
         print "New Stiffness of ", robot.arm(i).getChainName(), " is: ", robot.arm(i).getStiffness()
+
+
+
+def set_leg_stiffness(robot, ee, K_end) :
+
+    if ee == 'l_sole' :
+        selected_leg = robot.leg(0)
+    elif ee == 'r_sole' :
+        selected_leg = robot.leg(1)
+
+    robot_map = dict()
+
+    for i in selected_leg.getJointNames() :
+        if i not in robot_map :
+            robot_map[i] = xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping()
+
+    robot.setControlMode(robot_map)
+    K_0 = selected_leg.getStiffness()
+    #
+    global N_ITER
+
+    for k in range(N_ITER):
+
+        leg_values = np.array(selected_leg.getJointNum())
+        leg_values = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
+        selected_leg.setStiffness(leg_values)
+
+        print "Completed: ", float(k) / N_ITER * 100, "%"
+        robot.move()
+        rospy.sleep(0.01)
+
+    print "New Stiffness of ", selected_leg.getChainName(), " is: ", selected_leg.getStiffness()

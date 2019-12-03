@@ -118,3 +118,34 @@ def set_arms_low_damping(robot) :
 
     for i in range(N_ARMS) :
         print "New Damping of ", robot.arm(i).getChainName(), " is: ", robot.arm(i).getDamping()
+
+
+def set_leg_damping(robot, ee, K_end) :
+
+    if ee == 'l_sole' :
+        selected_leg = robot.leg(0)
+    elif ee == 'r_sole' :
+        selected_leg = robot.leg(1)
+
+    robot_map = dict()
+
+    for i in selected_leg.getJointNames() :
+        if i not in robot_map :
+            robot_map[i] = xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping()
+
+    robot.setControlMode(robot_map)
+    K_0 = selected_leg.getDamping()
+    #
+    global N_ITER
+
+    for k in range(N_ITER):
+
+        leg_values = np.array(selected_leg.getJointNum())
+        leg_values = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
+        selected_leg.setDamping(leg_values)
+
+        print "Completed: ", float(k) / N_ITER * 100, "%"
+        robot.move()
+        rospy.sleep(0.01)
+
+    print "New Damping of ", selected_leg.getChainName(), " is: ", selected_leg.getDamping()
