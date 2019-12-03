@@ -62,13 +62,13 @@ def run_foot(ci, robot, ft_map, end_effector):
     ci.setControlMode(end_effector, pyci.ControlType.Velocity)
 
 
-    force_treshold = 80 #250
+    force_treshold = 90 #250
     direction = 2
 
 
 
     if end_effector == "r_sole" :
-        force_treshold = 80 #80
+        force_treshold = 90 #80
 
     contact_sensed = False
     n_cycle = 0

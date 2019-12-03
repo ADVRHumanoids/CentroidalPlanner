@@ -119,7 +119,6 @@ if __name__ == '__main__':
     robot.sense()
     model.syncFrom(robot)
 
-
     # get cartesio ros client
     ci = pyci.CartesianInterfaceRos()
     mass = 70.0
@@ -148,12 +147,15 @@ if __name__ == '__main__':
     ci.setControlMode('Waist', pyci.ControlType.Disabled)
     ci.setControlMode('torso', pyci.ControlType.Disabled)
 
-
+    # MOVE HANDS DOWN
     hand_cmd.run(robot, ft_map, ci, hands_list, sol_centroidal_sheep)
 
     ci.setControlMode('torso', pyci.ControlType.Position)
 
+    # REACH WITH HANDS THE BRICKS
     surface_reacher.run_hand(ci, robot, model, ft_map, hands_list, f_est)
+
+    #MOVE COM
     position_com(ci, sol_centroidal_sheep.com[0] - 0.08, 15.)     #reach_time = 15.
 
     print "waiting for forza_giusta node ...."
@@ -199,8 +201,8 @@ if __name__ == '__main__':
     # sending forces ..
     forcepub.sendForce(contact_joints, forces_sheep)
     forcepub.sendNormal(contact_joints, normal_sheep)
-    # SWITCH ON FORZA GIUSTA
 
+    # SWITCH ON FORZA GIUSTA
     raw_input("Press Enter to switch ON forza giusta and lower the impedance.")
 
     forcepub.switchController(True)
@@ -216,10 +218,10 @@ if __name__ == '__main__':
     default_stiffness_wrist = 350
 
     # TO AVOID THE HIP TO REACH JOINT LIMITS
-    default_stiffness_hip_pitch = 500
+    # default_stiffness_hip_pitch = 800
 
-    xbotstiff.set_legs_default_stiffness(robot, [default_stiffness_leg, default_stiffness_hip_pitch, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
-    xbotdamp.set_legs_default_damping(robot, [default_damping_leg, default_stiffness_hip_pitch, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg])
+    xbotstiff.set_legs_default_stiffness(robot, [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+    xbotdamp.set_legs_default_damping(robot, [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg])
 
     xbotstiff.set_arms_default_stiffness(robot, [default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_wrist, default_stiffness_wrist, default_stiffness_wrist])
     xbotdamp.set_arms_default_damping(robot, [default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm])
@@ -235,7 +237,7 @@ if __name__ == '__main__':
     mu_feet = 0.5
     ctrl_pl_wall, sol_centroidal_wall = opt_pos_wall.compute(ci, contact_joints, hands_list, feet_list, mass, mu_feet)
 
-    # REACH WITH FEET
+    # REACH WALL WITH FEET
     foot_cmd.run(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, sol_centroidal_wall, com_pl, forcepub, world_odom_T_world)
 
     # ci.setControlMode('Waist', pyci.ControlType.Position)
