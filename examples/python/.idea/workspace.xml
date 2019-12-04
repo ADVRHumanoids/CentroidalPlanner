@@ -2,57 +2,29 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cf6c56f5-3ea0-4d47-a8fb-9d1630a39d6b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/CoMPlanner.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/CoMPlanner.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Environment.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Environment.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Ground.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Ground.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Superquadric.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Environment/Superquadric.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/CentroidalStatics.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/CentroidalStatics.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/EnvironmentConstraint.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/EnvironmentConstraint.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/EnvironmentNormal.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/EnvironmentNormal.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/FrictionCone.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Constraints/FrictionCone.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/MinimizeCentroidalVariables.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/MinimizeCentroidalVariables.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Variable3D.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../include/CentroidalPlanner/Ifopt/Variable3D.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/Constraints/CentroidalStatics.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Constraints/CentroidalStatics.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/Constraints/EnvironmentConstraint.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Constraints/EnvironmentConstraint.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/Constraints/EnvironmentNormal.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Constraints/EnvironmentNormal.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/Constraints/FrictionCone.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Constraints/FrictionCone.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/CplProblem.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/CplProblem.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/Ground.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Ground.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/MinimizeCentroidalVariables.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/MinimizeCentroidalVariables.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/Superquadric.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Superquadric.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../src/Variable3D.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/Variable3D.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/python.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/python.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coman_sheep.py" beforeDir="false" afterPath="$PROJECT_DIR$/coman_sheep.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/impact_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/impact_detector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/surface_reacher.py" beforeDir="false" afterPath="$PROJECT_DIR$/surface_reacher.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../launch/coman_forza_giusta.launch" beforeDir="false" afterPath="$PROJECT_DIR$/../../launch/coman_forza_giusta.launch" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/test.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="765">
-              <caret line="51" column="10" selection-start-line="51" selection-start-column="10" selection-end-line="51" selection-end-column="10" />
-              <folding>
-                <element signature="e#23#61#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
-  </component>
-  <component name="IdeDocumentHistory">
-    <option name="CHANGED_PATHS">
-      <list>
-        <option value="$PROJECT_DIR$/test.py" />
-      </list>
-    </option>
   </component>
   <component name="ProjectConfigurationFiles">
     <option name="files">
@@ -61,50 +33,20 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="65" />
-    <option name="y" value="1076" />
-    <option name="width" value="1855" />
-    <option name="height" value="1084" />
-  </component>
+  <component name="ProjectId" id="1UI8da8kYnktYiHQIEetBjERvNx" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
-  <component name="ProjectView">
-    <navigator proportions="" version="1">
-      <foldersAlwaysOnTop value="true" />
-    </navigator>
-    <panes>
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="python" type="b2602c69:ProjectViewProjectNode" />
-              <item name="python" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-      <pane id="Scope" />
-    </panes>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/coman_sheep.py" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager">
-    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="coman_sheep" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="python" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -116,7 +58,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/coman_sheep.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -127,9 +69,21 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.test" />
+        <item itemvalue="Python.coman_sheep" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="ServiceViewManager">
+    <option name="viewStates">
+      <list>
+        <serviceView>
+          <treeState>
+            <expand />
+            <select />
+          </treeState>
+        </serviceView>
+      </list>
+    </option>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -144,38 +98,59 @@
     </task>
     <servers />
   </component>
-  <component name="ToolWindowManager">
-    <frame x="65" y="1076" width="1855" height="1084" extended-state="6" />
-    <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.18777293" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.32925585" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Python Console" order="10" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-    </layout>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
-  <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="765">
-          <caret line="51" column="10" selection-start-line="51" selection-start-column="10" selection-end-line="51" selection-end-column="10" />
-          <folding>
-            <element signature="e#23#61#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+  <component name="WindowStateProjectService">
+    <state x="4176" y="182" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1575395132325">
+      <screen x="3840" y="0" width="1680" height="1050" />
+    </state>
+    <state x="4176" y="182" key="#com.intellij.execution.impl.EditConfigurationsDialog/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@3840.0.1680.1050" timestamp="1575395132325" />
+    <state x="4499" y="282" key="FileChooserDialogImpl" timestamp="1575395130123">
+      <screen x="3840" y="0" width="1680" height="1050" />
+    </state>
+    <state x="4499" y="282" key="FileChooserDialogImpl/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@3840.0.1680.1050" timestamp="1575395130123" />
+    <state width="783" height="295" key="GridCell.Tab.0.bottom" timestamp="1575457140628">
+      <screen x="3840" y="0" width="1680" height="1050" />
+    </state>
+    <state width="1832" height="295" key="GridCell.Tab.0.bottom/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@1920.0.1920.1080" timestamp="1575451574293" />
+    <state width="783" height="295" key="GridCell.Tab.0.bottom/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@3840.0.1680.1050" timestamp="1575457140628" />
+    <state width="1832" height="295" key="GridCell.Tab.0.bottom/65.24.1855.1056@65.24.1855.1056" timestamp="1575449077759" />
+    <state width="1832" height="295" key="GridCell.Tab.0.bottom/65.24.5455.1056@65.24.5455.1056" timestamp="1575449680937" />
+    <state width="783" height="295" key="GridCell.Tab.0.center" timestamp="1575457140627">
+      <screen x="3840" y="0" width="1680" height="1050" />
+    </state>
+    <state width="1832" height="295" key="GridCell.Tab.0.center/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@1920.0.1920.1080" timestamp="1575451574290" />
+    <state width="783" height="295" key="GridCell.Tab.0.center/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@3840.0.1680.1050" timestamp="1575457140627" />
+    <state width="1832" height="295" key="GridCell.Tab.0.center/65.24.1855.1056@65.24.1855.1056" timestamp="1575449077756" />
+    <state width="1832" height="295" key="GridCell.Tab.0.center/65.24.5455.1056@65.24.5455.1056" timestamp="1575449680936" />
+    <state width="783" height="295" key="GridCell.Tab.0.left" timestamp="1575457140627">
+      <screen x="3840" y="0" width="1680" height="1050" />
+    </state>
+    <state width="1832" height="295" key="GridCell.Tab.0.left/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@1920.0.1920.1080" timestamp="1575451574290" />
+    <state width="783" height="295" key="GridCell.Tab.0.left/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@3840.0.1680.1050" timestamp="1575457140627" />
+    <state width="1832" height="295" key="GridCell.Tab.0.left/65.24.1855.1056@65.24.1855.1056" timestamp="1575449077754" />
+    <state width="1832" height="295" key="GridCell.Tab.0.left/65.24.5455.1056@65.24.5455.1056" timestamp="1575449680936" />
+    <state width="783" height="295" key="GridCell.Tab.0.right" timestamp="1575457140628">
+      <screen x="3840" y="0" width="1680" height="1050" />
+    </state>
+    <state width="1832" height="295" key="GridCell.Tab.0.right/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@1920.0.1920.1080" timestamp="1575451574291" />
+    <state width="783" height="295" key="GridCell.Tab.0.right/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@3840.0.1680.1050" timestamp="1575457140628" />
+    <state width="1832" height="295" key="GridCell.Tab.0.right/65.24.1855.1056@65.24.1855.1056" timestamp="1575449077759" />
+    <state width="1832" height="295" key="GridCell.Tab.0.right/65.24.5455.1056@65.24.5455.1056" timestamp="1575449680937" />
+    <state x="2580" y="201" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1575378801630">
+      <screen x="1920" y="0" width="1920" height="1080" />
+    </state>
+    <state x="2580" y="201" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/65.24.1855.1056/1920.0.1920.1080/3840.0.1680.1050@1920.0.1920.1080" timestamp="1575378801630" />
   </component>
 </project>
