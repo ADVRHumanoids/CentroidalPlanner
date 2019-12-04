@@ -33,9 +33,6 @@
         
         <param name="links" type="yaml" value="[l_ball_tip, r_ball_tip]"/>
         <param name="chains" type="yaml" value="[left_arm, right_arm]"/>
-
-        <param name="arm1_8/dofs"  type="yaml" value="[0, 1, 2]"/>
-        <param name="arm2_8/dofs"  type="yaml" value="[0, 1, 2]"/>
         
     </node>
     
