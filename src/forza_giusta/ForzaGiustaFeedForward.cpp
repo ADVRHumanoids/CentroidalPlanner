@@ -296,6 +296,12 @@ int main(int argc, char ** argv)
         force_pub[elem] = nh.advertise<geometry_msgs::WrenchStamped>("wrenches_exerted/" + elem, 1);
     }
 
+//    std::map<std::string, ros::Publisher> force_pub_world;
+//    for (auto elem : links)
+//    {
+//        force_pub_world[elem] = nh.advertise<geometry_msgs::WrenchStamped>("wrenches_exerted_world/" + elem, 1);
+//    }
+
     for(auto l : links)
     {
         auto sub_force = nh.subscribe<geometry_msgs::WrenchStamped>("force_ref/" + l,
@@ -466,12 +472,18 @@ int main(int argc, char ** argv)
 
 //            std::cout << "W_" + pair.first + ": " << w_world.transpose() << std::endl;
 
-            geometry_msgs::WrenchStamped wrench_msg;
-            wrench_msg.header.frame_id = pair.first;
+            geometry_msgs::WrenchStamped wrench_local_msg;
+            wrench_local_msg.header.frame_id = pair.first;
 //            w_world.tail(3) *= -1;
-            tf::wrenchEigenToMsg( w_local, wrench_msg.wrench);
+            tf::wrenchEigenToMsg( w_local, wrench_local_msg.wrench);
 
-            force_pub[pair.first].publish(wrench_msg);
+            force_pub[pair.first].publish(wrench_local_msg);
+
+//            geometry_msgs::WrenchStamped wrench_world_msg;
+//            wrench_world_msg.header.frame_id = "world";
+//            tf::wrenchEigenToMsg( w_world, wrench_world_msg.wrench);
+
+//            force_pub_world[pair.first].publish(wrench_world_msg);
 
             if (log)
             {
