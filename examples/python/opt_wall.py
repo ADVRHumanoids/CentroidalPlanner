@@ -27,6 +27,8 @@ def compute(ci, contacts, hands_list, feet_list, mass, mu_feet) :
 
     # height from superquadricd
     height_contact = 0.3
+    # distance foot from center (how distanced feet are from the center of the superquadric)
+    d_feet = ci.getPoseReference("l_sole")[0].translation[1] + ci.getPoseReference("l_sole")[0].translation[1]
 
     # set bounds
     bound_size_wall = 0.1
@@ -78,8 +80,13 @@ def compute(ci, contacts, hands_list, feet_list, mass, mu_feet) :
 
     # # set position reference and bounds for FEET
     for foot in feet_list:
-        contact_foot = [p[0] - d[0], p[1] - d[1] + ci.getPoseReference(foot)[0].translation[1], p[2] - d[2] + height_contact]
 
+        if foot == 'l_sole' :
+            dist = d_feet/2
+        else :
+            dist = - d_feet/2
+
+        contact_foot = [p[0] - d[0], p[1] - d[1] + dist, p[2] - d[2] + height_contact]
         p = [contact_foot_x, 0, contact_hand_z]
         ctrl_pl.SetPosRef(foot, contact_foot)
         print "Setting contact position for", foot, " to ", ctrl_pl.GetPosRef(foot)
