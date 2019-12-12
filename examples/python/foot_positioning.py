@@ -117,6 +117,12 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         theta = [0, - np.pi / 2, 0]
         rot_mat = rotation(theta)
 
+        if foot_i == 'l_sole' :
+            print 'setting LHipYaw postural reference'
+            LHipYaw_map = dict()
+            LHipYaw_map['LHipYaw'] = 0.10
+            ci.setReferencePosture(LHipYaw_map)
+
 
         if foot_i == 'r_sole' :
             distance_for_reaching = -0.15
@@ -158,6 +164,8 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             ci.setControlMode('Waist', pyci.ControlType.Disabled)
 
         raw_input("Press Enter to move foot.")
+
+
         # move foot
         print "moving foot..."
         goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0],
