@@ -146,6 +146,7 @@ private:
 
     XBot::ModelInterface::Ptr _model;
     std::vector<std::string> _contact_links;
+    std::vector<std::string> _base_links;
     std::vector< OpenSoT::AffineHelper > _wrenches;
     std::vector<OpenSoT::tasks::MinimizeVariable::Ptr> _min_wrench;
     std::map<std::string, Eigen::VectorXd> _map_lowerLims, _map_upperLims;
@@ -210,7 +211,12 @@ forza_giusta::ForceOptimization::ForceOptimization(XBot::ModelInterface::Ptr mod
     std::cout << "_wrenches.getInputSize()" << _wrenches[0].getInputSize() << std::endl;
     std::cout << "_wrenches.getOutputSize()" << _wrenches[0].getOutputSize() << std::endl;
     
-    _Wrenches = boost::make_shared<OpenSoT::tasks::force::Wrenches>(_contact_links,_wrenches);
+    for (auto elem : _contact_links)
+    {
+        _base_links.push_back("world");
+    }
+
+    _Wrenches = boost::make_shared<OpenSoT::tasks::force::Wrenches>("wrenches", _contact_links, _base_links, _wrenches);
 
     /* Set Wrenches limits */
     initConstraints(constraint_links);
