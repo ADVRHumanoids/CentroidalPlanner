@@ -5,6 +5,9 @@ import surface_reacher as surface_reacher
 import xbot_stiffness as xbotstiff
 import xbot_damping as xbotdamp
 import send_Force_and_Normal as send_F_n
+import cartesio_planner as cp
+import rospy
+import xbot_interface.xbot_interface as xbot
 
 def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_centroidal, com_pl, forcepub, world_odom_T_world) :
 
@@ -79,49 +82,69 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         ci.update()
         print "Done: ", com_disp
 
-        raw_input("Press Enter to lift foot.")
-
-        # RISE STIFFNESS AND DAMPING FOR MOVEMENT IN AIR ---------------------------------------------------------------
-
-        default_stiffness_leg = 1000  # 1500
-        default_damping_leg = 10
-
-        xbotstiff.set_leg_stiffness(robot, foot_i,
-                                    [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
-                                     default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
-
-        xbotdamp.set_leg_damping(robot, foot_i,
-                                 [default_damping_leg, default_damping_leg, default_damping_leg,
-                                  default_damping_leg, default_damping_leg, default_damping_leg])
-
-        # --------------------------------------------------------------------------------------------------------------
-        ci.setControlMode(foot_i, pyci.ControlType.Position)
-
-        # prepare ROTATION OF SOLE
-        theta = [0, 0, 0]
-        rot_mat = rotation(theta)
-
-        if foot_i == 'r_sole' :
-            lift_heigth = 0.08
+        if foot_i == 'l_sole':
+            raw_input("Press Enter start planner.")
 
 
-        # lift sole
-        print "lifting sole..."
-        sole_ci = ci.getPoseReference(foot_i)[0]
-        sole_ci.translation_ref()[2] += lift_heigth
-        # sole_ci.linear = rot_mat
-        ci.setTargetPose(foot_i, sole_ci, lift_time / 2.0)
-        ci.waitReachCompleted(foot_i)
-        ci.update()
+            joint_map_start = {}
 
-        theta = [0, - np.pi / 2, 0]
-        rot_mat = rotation(theta)
+            joint_names = ["VIRTUALJOINT_1", "VIRTUALJOINT_2", "VIRTUALJOINT_3", "VIRTUALJOINT_4", "VIRTUALJOINT_5",
+                           "VIRTUALJOINT_6",
+                           "LHipLat", "LHipSag", "LHipYaw", "LKneePitch", "LAnklePitch", "LAnkleRoll", "RHipLat", "RHipSag",
+                           "RHipYaw", "RKneePitch", "RAnklePitch", "RAnkleRoll", "WaistLat", "WaistYaw", "LShSag", "LShLat",
+                           "LShYaw", "LElbj", "LForearmPlate", "LWrj1", "LWrj2", "RShSag", "RShLat", "RShYaw", "RElbj",
+                           "RForearmPlate",
+                           "RWrj1", "RWrj2"]
+            goal_pos = [0.034024568029280396, -0.07504811373351948, -0.13005339070165617, 0.5389633459902076,
+                             1.1316223514550658, -0.5782745461699126,
+                             0.12017636588623921, -1.3675381173889825, 0.2861684800879465, 2.3004434846336106,
+                             -0.5554418427259643, -0.06447166956915328,
+                             0.13446850110139266, -1.2784161487093035, 0.3594922487120925, -1.0567824419490034e-06,
+                             0.15151463334427212, -0.023498357083749467,
+                             -0.14791747591957194, 0.02249369930571717, 0.055043039095789156, 0.40445979282440764,
+                             0.44855455623617274, -1.2711413691047815, 0.05843132761777578,
+                             -0.15068438165289186, 2.065246981657416e-05, -0.2084342669783355, -0.2603362661793475,
+                             -0.18636649374679587, -1.2425577397166045, -0.02686941655774241,
+                             -0.12371413442781486, 1.883659982707331e-05]
 
-        if foot_i == 'l_sole' :
-            print 'setting LHipYaw postural reference'
-            LHipYaw_map = dict()
-            LHipYaw_map['LHipYaw'] = 0.10
-            ci.setReferencePosture(LHipYaw_map)
+            joint_map_goal = dict(zip(joint_names, goal_pos))
+            frames_in_contact = ["TCP_L", "TCP_R", "r_foot_upper_right_link", "r_foot_upper_left_link",
+                                 "r_foot_lower_right_link", "r_foot_lower_left_link"]
+            max_time = 10.0
+            planner_type = 'RRTConnect'
+            interpolation_time = 0.01
+
+            mapJointTraj = cp.compute(joint_map_start, joint_map_goal, frames_in_contact, max_time, planner_type, interpolation_time)
+
+            # RISE STIFFNESS AND DAMPING FOR MOVEMENT IN AIR ---------------------------------------------------------------
+
+            default_stiffness_leg = 1000  # 1500
+            default_damping_leg = 10
+
+            xbotstiff.set_leg_stiffness(robot, foot_i,
+                                        [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
+                                         default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+
+            xbotdamp.set_leg_damping(robot, foot_i,
+                                     [default_damping_leg, default_damping_leg, default_damping_leg,
+                                      default_damping_leg, default_damping_leg, default_damping_leg])
+
+            # --------------------------------------------------------------------------------------------------------------
+
+            raw_input("Press Enter to execute planning. Remember to disable Cartesio")
+
+            vect_map = dict()
+            sizeMap = mapJointTraj[mapJointTraj.keys()[0]].size
+            robot.setControlMode(xbot.ControlMode.Position())
+            for val in range(0, int(sizeMap)):
+
+                for key in mapJointTraj:
+                    vect_map[key] = mapJointTraj[key][val]
+
+
+                robot.setPositionReference(vect_map)
+                robot.move()
+                rospy.sleep(0.01)
 
 
         if foot_i == 'r_sole' :
@@ -132,7 +155,6 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             print 'sending current reference for postural ...'
             joint_pos = robot.getJointPositionMap()
             postural_map = joint_pos
-
             # postural_map = {'RKneePitch': joint_pos['RKneePitch'],
             #                 'RHipSag': joint_pos['RHipSag'],
             #                 'RHipLat': joint_pos['RHipLat'],
@@ -140,8 +162,6 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             #                 'RAnkleRoll': joint_pos['RAnkleRoll'],
             #                 'RHipYaw': joint_pos['RHipYaw']
             #                 }
-
-
             ci.setReferencePosture(postural_map)
 
             print 'Enabling Task on Waist.'
@@ -163,23 +183,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             print 'Disabling Task on Waist.'
             ci.setControlMode('Waist', pyci.ControlType.Disabled)
 
-        raw_input("Press Enter to move foot.")
-
-
-        # move foot
-        print "moving foot..."
-        goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0],
-                     sol_centroidal.contact_values_map[foot_i].position[1],
-                     sol_centroidal.contact_values_map[foot_i].position[2]]
-
-        goal_wall[0] -= distance_for_reaching
-        foot_ci = Affine3(pos=goal_wall)
-        foot_ci.linear = rot_mat
-        ci.setTargetPose(foot_i, foot_ci, reach_time / 2.0)
-        ci.waitReachCompleted(foot_i)
-        ci.update()
-        print foot_i, ': task finished.'
-
+        raw_input("Press Enter to start surface reacher. Restart Cartesio.")
         # lowering stiffness of ankle of foot_i
         lower_ankle_impedance.run(robot, foot_i)
 
