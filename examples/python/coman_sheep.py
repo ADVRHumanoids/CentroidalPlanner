@@ -26,8 +26,8 @@ def get_robot() :
     # INIT FOR XBOTCORE
     opt = xbot_opt.ConfigOptions()
 
-    urdf = rospy.get_param('robot_description')
-    srdf = rospy.get_param('robot_description_semantic')
+    urdf = rospy.get_param('xbotcore/robot_description')
+    srdf = rospy.get_param('xbotcore/robot_description_semantic')
 
     opt.set_urdf(urdf)
     opt.set_srdf(srdf)
