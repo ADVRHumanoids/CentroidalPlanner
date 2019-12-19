@@ -5,6 +5,7 @@ import surface_reacher as surface_reacher
 import xbot_stiffness as xbotstiff
 import xbot_damping as xbotdamp
 import send_Force_and_Normal as send_F_n
+import query_yes_no as userinput_yn
 
 def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_centroidal, com_pl, forcepub, world_odom_T_world) :
 
@@ -123,39 +124,40 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         if foot_i == 'r_sole' :
 
-            print 'sending current reference for postural ...'
-            joint_pos = robot.getJointPositionMap()
-            postural_map = joint_pos
+            if userinput_yn.ask('is singularity avoider required?') :
+                print 'sending current reference for postural ...'
+                joint_pos = robot.getJointPositionMap()
+                postural_map = joint_pos
 
-            # postural_map = {'RKneePitch': joint_pos['RKneePitch'],
-            #                 'RHipSag': joint_pos['RHipSag'],
-            #                 'RHipLat': joint_pos['RHipLat'],
-            #                 'RAnklePitch': joint_pos['RAnklePitch'],
-            #                 'RAnkleRoll': joint_pos['RAnkleRoll'],
-            #                 'RHipYaw': joint_pos['RHipYaw']
-            #                 }
+                # postural_map = {'RKneePitch': joint_pos['RKneePitch'],
+                #                 'RHipSag': joint_pos['RHipSag'],
+                #                 'RHipLat': joint_pos['RHipLat'],
+                #                 'RAnklePitch': joint_pos['RAnklePitch'],
+                #                 'RAnkleRoll': joint_pos['RAnkleRoll'],
+                #                 'RHipYaw': joint_pos['RHipYaw']
+                #                 }
 
 
-            ci.setReferencePosture(postural_map)
+                ci.setReferencePosture(postural_map)
 
-            print 'Enabling Task on Waist.'
-            ci.setControlMode('Waist', pyci.ControlType.Position)
+                print 'Enabling Task on Waist.'
+                ci.setControlMode('Waist', pyci.ControlType.Position)
 
-            print 'Disabling Task on right leg.'
-            ci.setControlMode('r_sole', pyci.ControlType.Disabled)
+                print 'Disabling Task on right leg.'
+                ci.setControlMode('r_sole', pyci.ControlType.Disabled)
 
-            knee_pos_map = dict()
-            knee_pos_map['RKneePitch'] = robot.getJointPositionMap()['RKneePitch'] + 0.6
-            print 'Changing postural for Right Knee'
-            ci.setReferencePosture(knee_pos_map)
+                knee_pos_map = dict()
+                knee_pos_map['RKneePitch'] = robot.getJointPositionMap()['RKneePitch'] + 0.6
+                print 'Changing postural for Right Knee'
+                ci.setReferencePosture(knee_pos_map)
 
-            raw_input('Press Enter to Enable Task on foot and Disable Task on Waist')
+                raw_input('Press Enter to Enable Task on foot and Disable Task on Waist')
 
-            print 'Enabling Task on right leg.'
-            ci.setControlMode('r_sole', pyci.ControlType.Position)
+                print 'Enabling Task on right leg.'
+                ci.setControlMode('r_sole', pyci.ControlType.Position)
 
-            print 'Disabling Task on Waist.'
-            ci.setControlMode('Waist', pyci.ControlType.Disabled)
+                print 'Disabling Task on Waist.'
+                ci.setControlMode('Waist', pyci.ControlType.Disabled)
 
         raw_input("Press Enter to move foot.")
         # move foot
