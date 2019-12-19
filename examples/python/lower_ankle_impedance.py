@@ -1,3 +1,5 @@
+import xbot_interface.xbot_interface as xbot
+
 def run(robot, end_effector) :
 
     if end_effector == 'l_sole':
@@ -11,18 +13,26 @@ def run(robot, end_effector) :
 
     # LOWERING STIFFNESS AND DAMPING
     print "lowering stiffness and impedance of ankle ..."
-    stiffness = robot.getStiffnessMap()
-    damping = robot.getDampingMap()
+    # stiffness = robot.getStiffnessMap()[anklePitch]
+    # damping = robot.getDampingMap()
 
-    stiffness[anklePitch] = 1
-    damping[anklePitch] = 0.1
+    stiffness_map = dict()
+    damping_map = dict()
 
-    stiffness[ankleRoll] = 1
-    damping[ankleRoll] = 0.1
+    stiffness_map[anklePitch] = 1
+    damping_map[anklePitch] = 0.1
 
 
-    robot.setStiffness(stiffness)
-    robot.setDamping(damping)
+    stiffness_map[ankleRoll] = 1
+    damping_map[ankleRoll] = 0.1
+
+    mapEnd_effector = dict()
+    mapEnd_effector[anklePitch] = xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping()
+    mapEnd_effector[ankleRoll] = xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping()
+    robot.setControlMode(mapEnd_effector)
+
+    robot.setStiffness(stiffness_map)
+    robot.setDamping(damping_map)
 
     print "Stiffness of ankle: Pitch -> ", robot.getStiffnessMap()[anklePitch], " Roll -> ", robot.getStiffnessMap()[ankleRoll]
     print "Damping of ankle: Pitch -> ", robot.getDampingMap()[anklePitch], " Roll -> ", robot.getDampingMap()[ankleRoll]

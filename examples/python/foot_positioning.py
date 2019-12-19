@@ -146,6 +146,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
                 robot.move()
                 rospy.sleep(0.01)
 
+        robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
         if foot_i == 'r_sole' :
             distance_for_reaching = -0.15
