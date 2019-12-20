@@ -38,5 +38,8 @@
         <param name="arm2_8/dofs"  type="yaml" value="[0, 1, 2]"/>
         
     </node>
+    
+    <node pkg="tf" type="static_transform_publisher" name="world_connecter"
+        args="0 0 0 0 0 0 ci/base_link world 30"/>
 
 </launch>
