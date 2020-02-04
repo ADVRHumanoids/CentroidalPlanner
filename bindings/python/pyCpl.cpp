@@ -5,7 +5,7 @@
 #include <pybind11/operators.h>
 #include <CentroidalPlanner/CentroidalPlanner.h>
 #include <CentroidalPlanner/CoMPlanner.h>
-#include <CentroidalPlanner/Utils.h>
+#include <CentroidalPlanner/Utils/Utils.h>
 
 namespace py = pybind11;
 using namespace cpl;
@@ -26,6 +26,11 @@ PYBIND11_MODULE(pycpl, m) {
     py::class_<env::Ground, env::EnvironmentClass, std::shared_ptr<env::Ground>>(m, "Ground")
         .def(py::init())
         .def("SetGroundZ", &env::Ground::SetGroundZ);
+
+    py::class_<env::Superquadric, env::EnvironmentClass, std::shared_ptr<env::Superquadric>>(m, "Superquadric")
+        .def(py::init())
+        .def("SetParameters", &env::Superquadric::SetParameters)
+        .def("GetParameters", &env::Superquadric::GetParameters);
         
     py::class_<solver::ContactValues>(m, "ContactValues")
         .def_readonly("force", &solver::ContactValues::force_value)
@@ -46,7 +51,11 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetPosWeight", &CentroidalPlanner::SetPosWeight)
     .def("SetForceWeight", &CentroidalPlanner::SetForceWeight)
     .def("SetCoMRef", &CentroidalPlanner::SetCoMRef)
+    .def("SetPosRef", &CentroidalPlanner::SetPosRef)
     .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold)
+    .def("SetPosBounds", &CentroidalPlanner::SetPosBounds)
+    .def("SetForceBounds", &CentroidalPlanner::SetForceBounds)
+    .def("SetManipulationWrench", &CentroidalPlanner::SetManipulationWrench)
     .def("GetForceThreshold", &CentroidalPlanner::GetForceThreshold);
     
     
@@ -61,10 +70,10 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetMu", &CoMPlanner::SetMu);
 
 
-    py::class_<utils::SurfaceReacher>(m, "SurfaceReacher")
+    py::class_<cpl::utils::SurfaceReacher>(m, "SurfaceReacher")
     .def(py::init<std::vector<std::string>>())
-    .def("ReachSurface", &utils::SurfaceReacher::ReachSurface);
+    .def("ReachSurface", &cpl::utils::SurfaceReacher::ReachSurface);
     
-    m.def("GetAffineFromNormal", &utils::GetAffineFromNormal);
+    m.def("GetAffineFromNormal", &cpl::utils::GetAffineFromNormal);
 
 }

@@ -44,6 +44,18 @@ else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+# Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  SetContactForce.srv
+  SetManipWrench.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
 
 catkin_package(
    INCLUDE_DIRS include 
@@ -64,7 +76,10 @@ SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
                   
 SET(CPL_SOURCES src/CentroidalPlanner.cpp
                 src/CoMPlanner.cpp
-                src/Utils.cpp
+                src/Ros/Cpl_TorqueFeedforward.cpp
+                src/Utils/Cpl_ForceOptimization.cpp
+                src/Utils/SurfaceReacher.cpp
+                src/Utils/Utils.cpp
                 ) 
                   
 ADD_LIBRARY(Cpl SHARED
@@ -72,6 +87,8 @@ ADD_LIBRARY(Cpl SHARED
                        ${ENVIRONMENT_SOURCES}
                        ${CPL_SOURCES}
                        )
+
+add_dependencies(Cpl ${PROJECT_NAME}_generate_messages)
                     
 TARGET_LINK_LIBRARIES(Cpl PUBLIC
                                  ${OpenSoT_LIBRARIES}
@@ -80,6 +97,16 @@ TARGET_LINK_LIBRARIES(Cpl PUBLIC
                                  ${ReflexxesTypeII_LIBRARIES}
                                  ${cartesian_interface_LIBRARIES}  
                                  ifopt::ifopt_ipopt)
+
+# TorqueFeedforward executable
+add_executable(cpl_torque_feedforward_node src/Ros/Cpl_TorqueFeedforward.cpp)
+target_link_libraries(cpl_torque_feedforward_node Cpl)
+install(TARGETS cpl_torque_feedforward_node cpl_torque_feedforward_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+                             )
+
 
 INSTALL(TARGETS Cpl 
         DESTINATION lib)
@@ -102,3 +129,8 @@ if(${BUILD_TESTS})
 endif()
 
 add_subdirectory(bindings/python/)
+
+install(PROGRAMS
+   examples/python/centauro_DEMO.py
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

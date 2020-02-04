@@ -1,0 +1,4 @@
+geometry_msgs/WrenchStamped manip_wrench
+---
+bool success
+string message

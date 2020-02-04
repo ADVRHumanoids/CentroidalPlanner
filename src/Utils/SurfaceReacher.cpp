@@ -1,34 +1,10 @@
-#include <CentroidalPlanner/Utils.h>
+#include <CentroidalPlanner/Utils/Utils.h>
 
-Eigen::Affine3d cpl::utils::GetAffineFromNormal(const Eigen::Vector3d& n)
+std::map<std::string, Eigen::Vector6d> * _f_est_map_ptr;
+
+void force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string l)
 {
-    Eigen::Matrix3d R;
-    R.setZero();
-
-    R.coeffRef(0, 0) =  n.y() / ((n.head(2)).norm());
-    R.coeffRef(0, 1) = -n.x() / ((n.head(2)).norm());
-
-    R.coeffRef(1, 0) = (n.x() * n.z()) / ((n.head(2)).norm());
-    R.coeffRef(1, 1) = (n.y() * n.z()) / ((n.head(2)).norm());
-    R.coeffRef(1, 2) = - (n.head(2)).norm();
-
-    R.coeffRef(2, 0) = n.x();
-    R.coeffRef(2, 1) = n.y();
-    R.coeffRef(2, 2) = n.z();
-
-    Eigen::Affine3d pose;
-    pose.translation() = n;
-    pose.linear() =  R.transpose();
-    
-    return pose;
-}
-
-
-std::map<std::string, Eigen::Vector6d> * g_fmap_ptr;
-
-void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string l)
-{
-    tf::wrenchMsgToEigen(msg->wrench, g_fmap_ptr->at(l));
+    tf::wrenchMsgToEigen(msg->wrench, _f_est_map_ptr->at(l));
 }
 
 
@@ -36,14 +12,14 @@ cpl::utils::SurfaceReacher::SurfaceReacher(std::vector<std::string> contact_name
 {   
     for(auto& elem: contact_names)
     {
-        auto sub_force = ros::NodeHandle("cartesian").subscribe<geometry_msgs::WrenchStamped>("force_estimation/" + elem, 1, boost::bind(on_force_recv, _1, elem));   
+        auto sub_force = ros::NodeHandle("cartesian").subscribe<geometry_msgs::WrenchStamped>("force_estimation/" + elem, 1, boost::bind(force_recv, _1, elem));
         _sub_force_map[elem] = sub_force;
         _f_est_map[elem] = Eigen::Vector6d::Zero();
     
         ROS_INFO("Subscribed to topic '%s'", sub_force.getTopic().c_str());
     }
     
-    g_fmap_ptr = &_f_est_map; 
+    _f_est_map_ptr = &_f_est_map;
 }
 
 
@@ -73,7 +49,7 @@ bool cpl::utils::SurfaceReacher::ReachSurface(XBot::Cartesian::RosImpl& ci,
     {
         ros::spinOnce();
         
-        if( f_est.dot(-contact_lin_vel) >= F_thr )
+        if( f_est.dot(-contact_lin_vel.normalized()) >= F_thr )
             surface_reached = true;
         
         ci.setVelocityReference(contact_name, contact_twist);          
