@@ -24,7 +24,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
     lift_time = 10
     reach_time = 25
 
-    lift_heigth = 0.05
+    lift_heigth = 0.08
 
     # SET FEET CONTACTS
     for c_f in feet_list:
@@ -118,7 +118,6 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         theta = [0, - np.pi / 2, 0]
         rot_mat = rotation(theta)
 
-
         if foot_i == 'r_sole' :
             distance_for_reaching = -0.15
 
@@ -162,9 +161,59 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         raw_input("Press Enter to move foot.")
         # move foot
         print "moving foot..."
+
         goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0],
                      sol_centroidal.contact_values_map[foot_i].position[1],
                      sol_centroidal.contact_values_map[foot_i].position[2]]
+
+        if foot_i == 'l_sole':
+
+            theta = [0, - np.pi / 4, 0]
+            rot_mat = rotation(theta)
+            # rotate foot
+            current_pos_foot = ci.getPoseReference("l_sole")[0].translation
+            current_pos_foot_ci = Affine3(pos=current_pos_foot)
+            current_pos_foot_ci.linear = rot_mat
+            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
+            ci.waitReachCompleted(foot_i)
+            ci.update()
+            print "done rotation .."
+
+            theta = [0, - np.pi / 4, 0]
+            rot_mat = rotation(theta)
+            # move foot
+            current_pos_foot = ci.getPoseReference("l_sole")[0].translation
+            current_pos_foot[0] = current_pos_foot[0] - 0.25
+            current_pos_foot[2] = current_pos_foot[2] + 0.25
+            current_pos_foot_ci = Affine3(pos=current_pos_foot)
+            current_pos_foot_ci.linear = rot_mat
+            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
+            ci.waitReachCompleted(foot_i)
+            ci.update()
+            print "done diagonal movement .."
+
+            theta = [0, - np.pi / 2, 0]
+            rot_mat = rotation(theta)
+            # rotate foot
+            current_pos_foot = ci.getPoseReference("l_sole")[0].translation
+            current_pos_foot_ci = Affine3(pos=current_pos_foot)
+            current_pos_foot_ci.linear = rot_mat
+            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
+            ci.waitReachCompleted(foot_i)
+            ci.update()
+            print "done full rotation .."
+
+            theta = [0, - np.pi / 2, 0]
+            rot_mat = rotation(theta)
+            # rotate foot
+            current_pos_foot = ci.getPoseReference("l_sole")[0].translation
+            current_pos_foot[0] = current_pos_foot[0] - 0.25
+            current_pos_foot_ci = Affine3(pos=current_pos_foot)
+            current_pos_foot_ci.linear = rot_mat
+            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
+            ci.waitReachCompleted(foot_i)
+            ci.update()
+            print "done back movement .."
 
         goal_wall[0] -= distance_for_reaching
         foot_ci = Affine3(pos=goal_wall)
