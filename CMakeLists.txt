@@ -48,6 +48,7 @@ endif()
 add_service_files(
   FILES
   SetContactForce.srv
+  SetContactFrame.srv
   SetManipWrench.srv
 )
 

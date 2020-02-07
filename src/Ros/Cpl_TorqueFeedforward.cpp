@@ -22,29 +22,24 @@ void on_force_recv(const geometry_msgs::WrenchStampedConstPtr& msg, std::string 
 {
     tf::wrenchMsgToEigen(msg->wrench, g_fmap_ptr->at(l));
     g_timeoutmap_ptr->at(l) = ros::Time::now() + ros::Duration(FORCE_TTL);
-
-    g_fopt->setReferenceContactForce(l, g_fmap_ptr->at(l).head(3));
-
 }
 
-bool on_force_recv_srv(centroidal_planner::SetContactForceRequest& req,
-                       centroidal_planner::SetContactForceResponse& res)
+bool on_force_ref_srv(centroidal_planner::SetContactForceRequest& req,
+                      centroidal_planner::SetContactForceResponse& res)
 {
 
     auto contact_force = req.contact_force;
+    Eigen::Vector6d wref;
+    tf::wrenchMsgToEigen(contact_force.wrench, wref);
 
-    tf::wrenchMsgToEigen(contact_force.wrench, g_fmap_ptr->at(req.link_name));
-
-    g_timeoutmap_ptr->at(req.link_name) = ros::Time::now() + ros::Duration(FORCE_TTL);
-
-    g_fopt->setReferenceContactForce(req.link_name, g_fmap_ptr->at(req.link_name).head(3));
+    g_fopt->setReferenceContactForce(req.link_name, wref.head(3));
 
     std::stringstream ss;
     Eigen::IOFormat print_fmt(2, 0, ", ", ";", "", "", "[", "]");
-    ss <<  g_fmap_ptr->at(req.link_name).head(3).format(print_fmt) << std::endl;
+    ss <<  wref.head(3).format(print_fmt) << std::endl;
 
     res.success = true;
-    res.message = "Successfully changed contact force for link '" + req.link_name + "' to: "  + ss.str();
+    res.message = "Successfully changed contact force reference for link '" + req.link_name + "' to: "  + ss.str();
 
     return true;
 
@@ -101,7 +96,6 @@ int main(int argc, char ** argv)
     if(robot->getImu().size() > 0)
     {
         imu = robot->getImu().begin()->second;
-
     }
     else
     {
@@ -208,7 +202,7 @@ int main(int argc, char ** argv)
 
         /* Service to change contact force */
         contact_force_srv = nh.advertiseService("change_contact_force",
-                                                on_force_recv_srv);
+                                                on_force_ref_srv);
 
         /* Service to change manipulation wrench */
         manip_wrench_srv = nh.advertiseService("change_manipulation_wrench",
@@ -284,9 +278,10 @@ int main(int argc, char ** argv)
             }
         }
         
-        /* Add force feedforward  term */
+        /* Add force feedforward term */
         for(const auto& pair : f_map)
         {
+
             Eigen::MatrixXd J;
             Eigen::Matrix3d R;
             

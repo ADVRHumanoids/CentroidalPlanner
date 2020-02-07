@@ -118,10 +118,10 @@ void CoMPlanner::SetContactNormal(std::string contact_name, const Eigen::Vector3
         throw std::invalid_argument("Invalid contact name: '" + contact_name + "'");
     }
     
-    if ( n_ref.norm() != 1.0)
-    {
-        throw std::invalid_argument("Invalid contact normal");
-    }
+//    if ( n_ref.norm() != 1.0)
+//    {
+//        throw std::invalid_argument("Invalid contact normal");
+//    }
     
     SetNormalBounds(contact_name, 
                     n_ref, 

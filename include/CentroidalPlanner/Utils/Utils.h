@@ -24,7 +24,7 @@
 
 namespace cpl { namespace utils {
 
-    Eigen::Affine3d GetAffineFromNormal(const Eigen::Vector3d& n);
+    Eigen::Affine3d GetAffineFromNormal(const Eigen::Vector3d& p, const Eigen::Vector3d& n);
 
     /**
      * @brief This class computes the solution of a force distribution problem,
