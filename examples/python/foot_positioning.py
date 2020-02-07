@@ -170,50 +170,26 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
             theta = [0, - np.pi / 4, 0]
             rot_mat = rotation(theta)
-            # rotate foot
-            current_pos_foot = ci.getPoseReference("l_sole")[0].translation
-            current_pos_foot_ci = Affine3(pos=current_pos_foot)
-            current_pos_foot_ci.linear = rot_mat
-            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
-            ci.waitReachCompleted(foot_i)
-            ci.update()
-            print "done rotation .."
-
-            theta = [0, - np.pi / 4, 0]
-            rot_mat = rotation(theta)
             # move foot
             current_pos_foot = ci.getPoseReference("l_sole")[0].translation
-            current_pos_foot[0] = current_pos_foot[0] - 0.25
-            current_pos_foot[2] = current_pos_foot[2] + 0.25
+            current_pos_foot[0] = current_pos_foot[0] - 0.45  # 0.45
+            current_pos_foot[2] = current_pos_foot[2] + 0.1 # 0.6
             current_pos_foot_ci = Affine3(pos=current_pos_foot)
             current_pos_foot_ci.linear = rot_mat
             ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
             ci.waitReachCompleted(foot_i)
             ci.update()
-            print "done diagonal movement .."
 
+            # move foot
             theta = [0, - np.pi / 2, 0]
             rot_mat = rotation(theta)
-            # rotate foot
             current_pos_foot = ci.getPoseReference("l_sole")[0].translation
+            current_pos_foot[2] = current_pos_foot[2] + 0.5
             current_pos_foot_ci = Affine3(pos=current_pos_foot)
             current_pos_foot_ci.linear = rot_mat
             ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
             ci.waitReachCompleted(foot_i)
             ci.update()
-            print "done full rotation .."
-
-            theta = [0, - np.pi / 2, 0]
-            rot_mat = rotation(theta)
-            # rotate foot
-            current_pos_foot = ci.getPoseReference("l_sole")[0].translation
-            current_pos_foot[0] = current_pos_foot[0] - 0.25
-            current_pos_foot_ci = Affine3(pos=current_pos_foot)
-            current_pos_foot_ci.linear = rot_mat
-            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
-            ci.waitReachCompleted(foot_i)
-            ci.update()
-            print "done back movement .."
 
         goal_wall[0] -= distance_for_reaching
         foot_ci = Affine3(pos=goal_wall)
