@@ -64,9 +64,6 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         print 'RESETTING LIFT ', foot_i
         # send commands to cartesio
 
-
-        # SEND FORCE ------
-        send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol)
         # -----------------
 
         raw_input("Press Enter to move CoM.")
