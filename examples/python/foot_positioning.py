@@ -46,7 +46,6 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
     print 'Setting com to: ', com_ref
     com_pl.SetCoMRef(com_ref)
 
-
     print("Starting foot placing...")
 
     # putting feet in the right position
@@ -76,6 +75,9 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         ci.waitReachCompleted('com')
         ci.update()
         print "Done: ", com_disp
+
+        # SEND FORCE ------
+        send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol)
 
         raw_input("Press Enter to lift foot.")
 
@@ -173,7 +175,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             current_pos_foot[2] = current_pos_foot[2] + 0.1 # 0.6
             current_pos_foot_ci = Affine3(pos=current_pos_foot)
             current_pos_foot_ci.linear = rot_mat
-            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
+            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2)
             ci.waitReachCompleted(foot_i)
             ci.update()
 
@@ -184,10 +186,22 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             current_pos_foot[2] = current_pos_foot[2] + 0.5
             current_pos_foot_ci = Affine3(pos=current_pos_foot)
             current_pos_foot_ci.linear = rot_mat
-            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2.0)
+            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2)
             ci.waitReachCompleted(foot_i)
             ci.update()
 
+            # move torso
+            theta = [0, - np.pi /12, 0]
+            rot_mat = np.matrix(rotation(theta))
+            current_pos_torso = ci.getPoseReference("torso")[0]
+            current_pos_torso_ci = Affine3(current_pos_torso)
+            current_pos_torso_ci.linear = ci.getPoseReference("torso")[0].linear * rot_mat
+            ci.setTargetPose("torso", current_pos_torso_ci, 2)
+            ci.waitReachCompleted("torso")
+            ci.update()
+
+        theta = [0, - np.pi / 2, 0]
+        rot_mat = rotation(theta)
         goal_wall[0] -= distance_for_reaching
         foot_ci = Affine3(pos=goal_wall)
         foot_ci.linear = rot_mat
