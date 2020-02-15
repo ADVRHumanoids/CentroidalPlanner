@@ -238,15 +238,15 @@ forza_giusta::ForceOptimization::ForceOptimization(XBot::ModelInterface::Ptr mod
     _forza_giusta = boost::make_shared<ForzaGiusta>(_model, _wrenches, _contact_links);
     
     /* Define optimization problem */
-//    _autostack = boost::make_shared<OpenSoT::AutoStack>(_forza_giusta);
-//    _autostack/=_Wrenches;
+    _autostack = boost::make_shared<OpenSoT::AutoStack>(_forza_giusta);
+    _autostack/=_Wrenches;
 //    //_autostack << boost::make_shared<OpenSoT::constraints::TaskToConstraint>(_forza_giusta);
 //    _autostack << _friction_cones;
 //    _autostack << _Wrenches_limits;
 
 
-    _autostack = boost::make_shared<OpenSoT::AutoStack>(_Wrenches);
-    _autostack << boost::make_shared<OpenSoT::constraints::TaskToConstraint>(_forza_giusta);
+//    _autostack = boost::make_shared<OpenSoT::AutoStack>(_Wrenches);
+//    _autostack << boost::make_shared<OpenSoT::constraints::TaskToConstraint>(_forza_giusta);
     _autostack << _friction_cones;
     _autostack << _Wrenches_limits;
     _autostack->update(Eigen::VectorXd());
@@ -275,9 +275,15 @@ bool forza_giusta::ForceOptimization::compute(const Eigen::VectorXd& fixed_base_
     
     for(const auto& pair : Fref_ifopt_map)
     {
+//        std::cout << "--------------TASK----------------" <<std::endl;
+//        std::cout<<"pair.first: "<<pair.first<<std::endl;
         auto _wrench = _Wrenches->getWrenchTask(pair.first);
+//        std::cout<<"getTaskID(): "<<_wrench->getTaskID()<<std::endl;
         _wrench->setReference(pair.second);
 
+//        std::cout<<"pair.second: "<<pair.second.transpose()<<std::endl;
+//        std::cout<<"pair.second.norm: "<<pair.second.norm()<<std::endl;
+//        std::cout << "------------------------------" <<std::endl;
         if(pair.second.norm() < 1e-12)
         {
             _wrench->setWeight(1e3*weight);
@@ -306,9 +312,14 @@ bool forza_giusta::ForceOptimization::compute(const Eigen::VectorXd& fixed_base_
         {
             if (_contact_links[i] == pair.first)
             {
-                
+//                std::cout << "--------------FRICTION CONES----------------" <<std::endl;
+//                std::cout<<"pair.first: "<<pair.first<<std::endl;
+//                std::cout<<"pair.second: "<<pair.second<<std::endl;
+
                 auto _friction_cone = _friction_cones->getFrictionCone(_contact_links[i]);
+//                std::cout<<"_friction_cone->getConstraintID(): "<<_friction_cone->getConstraintID()<<std::endl;
                 _friction_cone->setContactRotationMatrix(pair.second);
+//                std::cout << "------------------------------" <<std::endl;
 
             }
         }
