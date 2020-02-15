@@ -46,7 +46,7 @@ def set_legs_default_stiffness(robot, K_end) :
             leg_k = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
             robot.leg(i).setStiffness(leg_k)
 
-        print "Completed: ", float(k)/N_ITER * 100, "%"
+        # print "Completed: ", float(k)/N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 
@@ -68,7 +68,7 @@ def set_legs_low_stiffness(robot) :
             leg_k = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
             robot.leg(i).setStiffness(leg_k)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 
@@ -90,7 +90,7 @@ def set_arms_default_stiffness(robot, K_end) :
             arm_k = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
             robot.arm(i).setStiffness(arm_k)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 
@@ -113,7 +113,7 @@ def set_arms_low_stiffness(robot) :
             arm_k = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
             robot.arm(i).setStiffness(arm_k)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 
@@ -146,7 +146,7 @@ def set_leg_stiffness(robot, ee, K_end) :
         leg_values = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
         selected_leg.setStiffness(leg_values)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 

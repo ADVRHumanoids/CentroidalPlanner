@@ -40,16 +40,27 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         com_pl.SetContactPosition(c_h, contact_pos)
         print("Setting contact position for ", c_h, " to ", com_pl.GetContactPosition(c_h))
 
-    # SET COM
-    com_ref = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
-    com_ref[1] = -0.05 # MOVE COM ON THE SIDE!
-    print 'Setting com to: ', com_ref
-    com_pl.SetCoMRef(com_ref)
+    initial_com = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+    print 'initial_com: ', initial_com
+
 
     print("Starting foot placing...")
 
     # putting feet in the right position
     for foot_i in feet_list:
+
+        # SET COM
+        com_ref = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+
+        if foot_i == 'l_sole' :
+            com_ref[1] = initial_com[1] - 0.05  # MOVE COM ON THE SIDE!
+
+        if foot_i == 'r_sole' :
+            com_ref[0] = com_ref[0] + 0.05
+            com_ref[1] = initial_com[1]  # MOVE COM IN THE MIDDLE!
+
+        print 'Setting com ref to: ', com_ref
+        com_pl.SetCoMRef(com_ref)
 
         # lifting foot in solver to find optimal solution of the CoM
         com_pl.SetLiftingContact(foot_i)
@@ -68,13 +79,13 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         raw_input("Press Enter to move CoM.")
         # move com
         print "Starting displacement of CoM ..."
-        com_disp = [sol.com[0], sol.com[1], world_odom_T_world]
+        com_disp = [sol.com[0], sol.com[1], sol.com[2]]
 
         com_ci = Affine3(pos=com_disp)
         ci.setTargetPose('com', com_ci, move_time_com)
         ci.waitReachCompleted('com')
         ci.update()
-        print "Done: ", com_disp
+        print "Done: ", ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
 
         # SEND FORCE ------
         send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol)
@@ -83,7 +94,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         # RISE STIFFNESS AND DAMPING FOR MOVEMENT IN AIR ---------------------------------------------------------------
 
-        default_stiffness_leg = 1000  # 1500
+        default_stiffness_leg = 1500  # 1500
         default_damping_leg = 10
 
         xbotstiff.set_leg_stiffness(robot, foot_i,
@@ -119,6 +130,9 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         if foot_i == 'r_sole' :
             distance_for_reaching = -0.15
+
+        if foot_i == 'r_sole' :
+            ci.setControlMode("Waist", pyci.ControlType.Position)
 
         if foot_i == 'r_sole' :
 
@@ -191,13 +205,27 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             ci.update()
 
             # move torso
-            theta = [0, - np.pi /12, 0]
+            theta = [0, - np.pi / 15, 0]
             rot_mat = np.matrix(rotation(theta))
             current_pos_torso = ci.getPoseReference("torso")[0]
             current_pos_torso_ci = Affine3(current_pos_torso)
             current_pos_torso_ci.linear = ci.getPoseReference("torso")[0].linear * rot_mat
             ci.setTargetPose("torso", current_pos_torso_ci, 2)
             ci.waitReachCompleted("torso")
+            ci.update()
+
+        if foot_i == 'r_sole' :
+
+            theta = [0, - np.pi / 4, 0]
+            rot_mat = rotation(theta)
+            # move foot
+            current_pos_foot = ci.getPoseReference("r_sole")[0].translation
+            current_pos_foot[0] = current_pos_foot[0] - 0.2  # 0.45
+            current_pos_foot[2] = current_pos_foot[2] + 0.1 # 0.6
+            current_pos_foot_ci = Affine3(pos=current_pos_foot)
+            current_pos_foot_ci.linear = rot_mat
+            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2)
+            ci.waitReachCompleted(foot_i)
             ci.update()
 
         theta = [0, - np.pi / 2, 0]
@@ -211,7 +239,6 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         print foot_i, ': task finished.'
 
         # lowering stiffness of ankle of foot_i
-        lower_ankle_impedance.run(robot, foot_i)
 
         raw_input("Press Enter to start surface reacher.")
         # reaching for the wall with foot_i
@@ -219,7 +246,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         # LOWER STIFFNESS AND DAMPING FOR FORCE CONTROL ---------------------------------------------------------------
 
-        default_stiffness_leg = 200  # 1500
+        default_stiffness_leg = 500  # 1500
         default_damping_leg = 10
 
         xbotstiff.set_leg_stiffness(robot, foot_i,
@@ -232,11 +259,10 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         # --------------------------------------------------------------------------------------------------------------
 
+        lower_ankle_impedance.run(robot, foot_i)
 
-        if foot_i == 'r_sole' :
-            # SEND FORCE
-            print "sending force to ", foot_i
-            send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol_centroidal)
+
+
 
         # WAIST ENABLE
         # ci.setControlMode('Waist', pyci.ControlType.Position)
@@ -250,22 +276,32 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         print("Setting contact position for ", foot_i, " to ", com_pl.GetContactPosition(foot_i))
         print "Setting normal for ", foot_i, "to ", normal
 
+        if foot_i == 'r_sole' :
+            # SEND FORCE
+
+            com_ref = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+            print 'Setting com ref to: ', com_ref
+            com_pl.SetCoMRef(com_ref)
+            # find solution
+            sol = com_pl.Solve()
+            print "sending force to ", foot_i
+            send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol)
 
 
-    # PUT BACK COM IN THE MIDDLE
-    for c_f in feet_list:
-        contact_pos = ctrl_pl.GetPosRef(c_f)
-        com_pl.SetContactPosition(c_f, contact_pos)
-        print("Setting contact position for ", c_f, " to ", com_pl.GetContactPosition(c_f))
-
-    sol = com_pl.Solve()
-
-    com_disp = [sol.com[0], sol.com[1], world_odom_T_world]
-    com_ci = Affine3(pos=com_disp)
-    reach_time = 2.0
-    ci.setTargetPose('com', com_ci, reach_time)
-    ci.waitReachCompleted('com')
-    ci.update()
+    # # PUT BACK COM IN THE MIDDLE
+    # for c_f in feet_list:
+    #     contact_pos = ctrl_pl.GetPosRef(c_f)
+    #     com_pl.SetContactPosition(c_f, contact_pos)
+    #     print("Setting contact position for ", c_f, " to ", com_pl.GetContactPosition(c_f))
+    #
+    # sol = com_pl.Solve()
+    #
+    # com_disp = [sol.com[0], sol.com[1], sol.com[2]]
+    # com_ci = Affine3(pos=com_disp)
+    # reach_time = 2.0
+    # ci.setTargetPose('com', com_ci, reach_time)
+    # ci.waitReachCompleted('com')
+    # ci.update()
 
 def rotation(theta):
 

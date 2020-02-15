@@ -209,13 +209,13 @@ if __name__ == '__main__':
     print "Switched ON forza_giusta"
 
     # PREPARE FOR FORCE CONTROL
-    default_stiffness_leg = 500 #1500
+    default_stiffness_leg = 1000 #1500
     default_damping_leg = 10
 
-    default_stiffness_arm = 500 #1500
+    default_stiffness_arm = 1000 #1500
     default_damping_arm = 10
 
-    default_stiffness_wrist = 350
+    default_stiffness_wrist = 500
 
     # TO AVOID THE HIP TO REACH JOINT LIMITS
     # default_stiffness_hip_pitch = 800
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     xbotdamp.set_arms_default_damping(robot, [default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm])
 
     raw_input("Press Enter to advance com.")
-    advance_com(ci, 0.06, 15.)
+    advance_com(ci, 0.06, 5.)
 
     # raw_input("Press Enter to lower waist.")
     # lower_waist(ci, 0.05, 10)

@@ -26,7 +26,7 @@ def set_legs_initial_Damping(robot) :
             leg_k = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
             robot.leg(i).setDamping(leg_k)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 
@@ -47,7 +47,7 @@ def set_legs_default_damping(robot, K_end) :
             leg_k = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
             robot.leg(i).setDamping(leg_k)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 
@@ -90,7 +90,7 @@ def set_arms_default_damping(robot, K_end) :
             arm_k = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
             robot.arm(i).setDamping(arm_k)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 
@@ -112,7 +112,7 @@ def set_arms_low_damping(robot) :
             arm_k = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
             robot.arm(i).setDamping(arm_k)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 
@@ -144,7 +144,7 @@ def set_leg_damping(robot, ee, K_end) :
         leg_values = K_0 + float(k) / (N_ITER - 1) * (K_end - K_0)
         selected_leg.setDamping(leg_values)
 
-        print "Completed: ", float(k) / N_ITER * 100, "%"
+        # print "Completed: ", float(k) / N_ITER * 100, "%"
         robot.move()
         rospy.sleep(0.01)
 

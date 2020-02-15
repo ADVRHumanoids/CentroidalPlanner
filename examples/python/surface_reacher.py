@@ -15,7 +15,7 @@ def run_hand(ci, robot, model, ft_map, hands_list, f_est) :
     direction = 0
 
     # position treshold
-    pos_treshold = 0.05
+    pos_treshold = 0.05 #0.05
     initial_pose_l_arm = ci.getPoseFromTf('ci/com', 'ci/l_ball_tip').translation[direction]
     initial_pose_r_arm = ci.getPoseFromTf('ci/com', 'ci/r_ball_tip').translation[direction]
 
@@ -62,13 +62,13 @@ def run_foot(ci, robot, ft_map, end_effector):
     ci.setControlMode(end_effector, pyci.ControlType.Velocity)
 
 
-    force_treshold = 120 #250
+    force_treshold = 65 #250
     direction = 2
 
 
 
     if end_effector == "r_sole" :
-        force_treshold = 120 #80
+        force_treshold = 35 #120
 
     contact_sensed = False
     n_cycle = 0
@@ -82,7 +82,7 @@ def run_foot(ci, robot, ft_map, end_effector):
     initial_pose_foot = ci.getPoseFromTf('ci/com', ci_end_effector).translation[direction]
     print "initial_pose_foot: ", initial_pose_foot
 
-    pos_treshold = 0.2
+    pos_treshold = 0.2 #0.2
 
     while not contact_sensed :
 
