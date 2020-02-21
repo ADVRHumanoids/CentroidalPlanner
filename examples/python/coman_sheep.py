@@ -16,6 +16,7 @@ import opt_wall as opt_pos_wall
 import hand_positioning as hand_cmd
 import foot_positioning_1 as foot_cmd
 import surface_reacher as surface_reacher
+import matlogger2.matlogger as matlog
 
 from geometry_msgs.msg import *
 
@@ -115,6 +116,9 @@ if __name__ == '__main__':
     contact_joints = feet_list + hands_list
     print contact_joints
 
+    logger = matlog.MatLogger2('/tmp/feet_on_wall')
+    logger.setBufferMode(matlog.BufferMode.CircularBuffer)
+
     robot, model = get_robot()
     robot.sense()
     model.syncFrom(robot)
@@ -144,6 +148,8 @@ if __name__ == '__main__':
     ctrl_pl_sheep, sol_centroidal_sheep = opt_pos_sheep.compute(ci, contact_joints, hands_list, feet_list, mass, dist_hands, bound_size)
     # REACH WITH HANDS AND MOVE COM
 
+    # logger.add("forces_crounching", sol_centroidal_sheep)
+
     ci.setControlMode('Waist', pyci.ControlType.Disabled)
     ci.setControlMode('torso', pyci.ControlType.Disabled)
 
@@ -153,7 +159,7 @@ if __name__ == '__main__':
     ci.setControlMode('torso', pyci.ControlType.Position)
 
     # REACH WITH HANDS THE BRICKS
-    surface_reacher.run_hand(ci, robot, model, ft_map, hands_list, f_est)
+    surface_reacher.run_hand(ci, robot, model, ft_map, hands_list, f_est, logger)
 
     #MOVE COM
     position_com(ci, sol_centroidal_sheep.com[0] - 0.08, 15.)     #reach_time = 15.
@@ -238,13 +244,15 @@ if __name__ == '__main__':
     ctrl_pl_wall, sol_centroidal_wall = opt_pos_wall.compute(ci, contact_joints, hands_list, feet_list, mass, mu_feet)
 
     # REACH WALL WITH FEET
-    foot_cmd.run(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, sol_centroidal_wall, com_pl, forcepub, world_odom_T_world)
+    foot_cmd.run(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, sol_centroidal_wall, com_pl, forcepub, world_odom_T_world, logger)
 
     # ci.setControlMode('Waist', pyci.ControlType.Position)
     # waist_pos = ci.getPoseReference('Waist')[0].translation
     # waist_pos[2] += 0.1
     # waist_ci = Affine3(pos=waist_pos)
     # ci.setTargetPose('Waist', waist_ci, 5)
+
+    del logger
 
     exit(0)
 

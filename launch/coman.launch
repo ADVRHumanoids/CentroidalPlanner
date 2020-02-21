@@ -11,12 +11,14 @@
     
     <param name="cartesian/problem_description" 
         textfile="$(find centroidal_planner)/cartesio_stack/coman_stack.yaml"/>
-        
+    
+    <param name="ros_server_node/set_world_from_param" value="true"/>
+    
+
     <include file="$(find cartesian_interface)/launch/cartesio.launch">
         <arg name="rate" value="$(arg rate)"/>
         <arg name="prefix" value="$(arg prefix)"/>
     </include>    
-
 
     <rosparam command="load" param="cartesian/torque_offset" file="$(env ROBOTOLOGY_ROOT)/build/external/xbot_ros/tau_offset.yaml"/>
 

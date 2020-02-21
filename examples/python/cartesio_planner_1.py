@@ -7,10 +7,9 @@ def compute(joint_map_start, joint_map_goal, frames_in_contact, max_time, planne
 
     planner = cpp.PlannerClient()
 
-    if not joint_map_start :
-        planner.setStartState(joint_map_start)
 
 
+    planner.setStartState(joint_map_start)
     planner.setGoalState(joint_map_goal)
     planner.setContactFrames('SET', frames_in_contact, 0.5, False, normals)
 
