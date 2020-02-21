@@ -235,9 +235,9 @@ surface_reacher = cpl.SurfaceReacher(surface_reacher_link_names)
 # Re-orientation front wheels
 change_contact_frame_client('wheel_1', pose_wheel_ref['wheel_1'].quaternion)
 change_contact_frame_client('wheel_2', pose_wheel_ref['wheel_2'].quaternion)
-ci.setTargetPose('ankle2_1', pose_wheel_ref['wheel_1'], 1.0)
+ci.setTargetPose('ankle2_1', cpl.GetAffineFromNormal(p_wheel_ref['wheel_1'], -n_wheel_ref['wheel_1']), 1.0)  # "-" is due to ankle frame orientation
 ci.waitReachCompleted('ankle2_1')
-ci.setTargetPose('ankle2_2', pose_wheel_ref['wheel_2'], 1.0)
+ci.setTargetPose('ankle2_2', cpl.GetAffineFromNormal(p_wheel_ref['wheel_2'], -n_wheel_ref['wheel_2']), 1.0)
 ci.waitReachCompleted('ankle2_2')
 
 # Set up CoM Planner
@@ -294,7 +294,7 @@ for contact_lift in contact_lift_names:
     ci.update()
 
     ci.setTargetPose(contact_lift,  pose_wheel_ref[contact_lift], 4.0)
-    ci.setTargetPose(contact_lift_map[contact_lift], pose_wheel_ref[contact_lift], 4.0)
+    ci.setTargetPose(contact_lift_map[contact_lift], cpl.GetAffineFromNormal(p_wheel_ref[contact], -n_wheel_ref[contact]), 4.0)
     ci.waitReachCompleted(contact_lift_map[contact_lift])
 
     ci.update()
