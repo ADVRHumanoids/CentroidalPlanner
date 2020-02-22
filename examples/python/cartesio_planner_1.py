@@ -7,11 +7,15 @@ def compute(joint_map_start, joint_map_goal, frames_in_contact, max_time, planne
 
     planner = cpp.PlannerClient()
 
-
-
     planner.setStartState(joint_map_start)
     planner.setGoalState(joint_map_goal)
+
+
+
     planner.setContactFrames('SET', frames_in_contact, 0.5, False, normals)
+
+    raw_input('check if start and goal position are good, then press any Key.')
+    print 'RRT started planning...'
 
     flag_ok = False
     while (not flag_ok) :

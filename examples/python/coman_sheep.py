@@ -243,6 +243,7 @@ if __name__ == '__main__':
     mu_feet = 0.5
     ctrl_pl_wall, sol_centroidal_wall = opt_pos_wall.compute(ci, contact_joints, hands_list, feet_list, mass, mu_feet)
 
+    # logger.add("forces_pos wall", sol_centroidal_wall)
     # REACH WALL WITH FEET
     foot_cmd.run(robot, ft_map, ci, ctrl_pl_wall, contact_joints, hands_list, feet_list, sol_centroidal_wall, com_pl, forcepub, world_odom_T_world, logger)
 

@@ -5,11 +5,19 @@ import surface_reacher as surface_reacher
 import xbot_stiffness as xbotstiff
 import xbot_damping as xbotdamp
 import send_Force_and_Normal as send_F_n
-import cartesio_planner as cp
+import cartesio_planner_1 as cp
 import rospy
 import xbot_interface.xbot_interface as xbot
+from sensor_msgs.msg import JointState
 
-def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_centroidal, com_pl, forcepub, world_odom_T_world) :
+start_pos = None
+
+def start_pos_callback(data):
+    global start_pos
+    start_pos = data
+
+
+def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_centroidal, com_pl, forcepub, world_odom_T_world, logger) :
 
 
     # com_pl.SetCoMWeight(10)  # 100000.0
@@ -96,8 +104,10 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         if foot_i == 'l_sole':
             raw_input("Press Enter start planner.")
 
-
-            joint_map_start = {}
+            raw_input("Press Enter to listen to starting pose from cartesian solution.")
+            rospy.Subscriber("/cartesian/solution", JointState, start_pos_callback)
+            rospy.sleep(1)
+            raw_input("Press Enter start planner left (You can now disable cartesio).")
 
             joint_names = ["VIRTUALJOINT_1", "VIRTUALJOINT_2", "VIRTUALJOINT_3", "VIRTUALJOINT_4", "VIRTUALJOINT_5",
                            "VIRTUALJOINT_6",
@@ -123,14 +133,20 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             ## without singularity
             goal_pos = [0.05573729400167113, -0.06947883510411024, -0.20751821206670207, 0.12429667516944151, 0.8849470128966822, -0.022411855389329754, -0.11666467659105043, -0.7627741830617885, -0.2734355503290767, 2.3214736573594834, -0.872665808000081, -0.19540428798391687, -0.03468311724094864, -1.7866746567944674, -0.025411763194786535, 1.496657523972716, -0.5655945029726186, -0.10496579393534855, -0.08098361306596884, -0.07331380995906533, 0.17934555560316112, 0.30786277563783015, 0.3270633311559586, -1.2694988284807516, 0.034189528418359566, -0.12636131675787898, 1.204561182183304e-05, 0.04982332460143657, -0.20438964313392347, -0.16974017674830408, -1.2428230667694045, -0.019438513997855827, -0.11188556609797803, 1.090003907467298e-05]
 
+            joint_map_start = dict(zip(joint_names, start_pos.position))
             joint_map_goal = dict(zip(joint_names, goal_pos))
-            frames_in_contact = ["TCP_L", "TCP_R", "r_foot_upper_right_link", "r_foot_upper_left_link",
-                                 "r_foot_lower_right_link", "r_foot_lower_left_link"]
+            frames_in_contact = ["TCP_L", "TCP_R", "r_sole"]
+
+            mat = rotation([0, 0, 0])
+            rot_mat = Affine3()
+            rot_mat.linear = mat
+            normals = [rot_mat.quaternion, rot_mat.quaternion, rot_mat.quaternion]
+
             max_time = 10.0
             planner_type = 'RRTConnect'
             interpolation_time = 0.01
 
-            mapJointTraj = cp.compute(joint_map_start, joint_map_goal, frames_in_contact, max_time, planner_type, interpolation_time)
+            mapJointTraj = cp.compute(joint_map_start, joint_map_goal, frames_in_contact, max_time, planner_type, interpolation_time, normals=normals)
 
             # RISE STIFFNESS AND DAMPING FOR MOVEMENT IN AIR ---------------------------------------------------------------
 
@@ -199,22 +215,29 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             ci.setControlMode('r_sole', pyci.ControlType.Position)
 
 
-        goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0],
-                     sol_centroidal.contact_values_map[foot_i].position[1],
-                     sol_centroidal.contact_values_map[foot_i].position[2]]
+            goal_wall = [sol_centroidal.contact_values_map[foot_i].position[0],
+                         sol_centroidal.contact_values_map[foot_i].position[1],
+                         sol_centroidal.contact_values_map[foot_i].position[2]]
 
-        theta = [0, - np.pi / 2, 0]
-        rot_mat = rotation(theta)
-        goal_wall[0] -= distance_for_reaching
-        foot_ci = Affine3(pos=goal_wall)
-        foot_ci.linear = rot_mat
-        ci.setTargetPose(foot_i, foot_ci, reach_time / 2.0)
-        ci.waitReachCompleted(foot_i)
-        ci.update()
-        print foot_i, ': task finished.'
+            theta = [0, - np.pi / 2, 0]
+            rot_mat = rotation(theta)
+            goal_wall[0] -= distance_for_reaching
+            foot_ci = Affine3(pos=goal_wall)
+            foot_ci.linear = rot_mat
+            ci.setTargetPose(foot_i, foot_ci, reach_time / 2.0)
+            ci.waitReachCompleted(foot_i)
+            ci.update()
+            print foot_i, ': task finished.'
 
-        raw_input("Press Enter to start surface reacher. Restart Cartesio.")
-        # lowering stiffness of ankle of foot_i
+        if foot_i == 'l_sole' :
+            raw_input("Press Enter to start surface reacher. Restart Cartesio.")
+
+            # PUT BACK STACK AS IT WAS
+            # disable Waist
+            ci.setControlMode('Waist', pyci.ControlType.Disabled)
+            # change back hands fixed in world
+            for hand_i in hands_list:
+                ci.setBaseLink(hand_i, 'world')
 
         raw_input("Press Enter to start surface reacher.")
         # reaching for the wall with foot_i
