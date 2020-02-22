@@ -14,7 +14,7 @@ import homing as homing
 import opt_sheep as opt_pos_sheep
 import opt_wall as opt_pos_wall
 import hand_positioning as hand_cmd
-import foot_positioning_1 as foot_cmd
+import foot_positioning as foot_cmd
 import surface_reacher as surface_reacher
 import matlogger2.matlogger as matlog
 
