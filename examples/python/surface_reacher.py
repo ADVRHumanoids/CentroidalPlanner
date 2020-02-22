@@ -38,9 +38,6 @@ def run_hand(ci, robot, model, ft_map, hands_list, f_est, logger) :
         model.syncFrom(robot)
         f_est.update()
 
-
-        logger.add('wrench_hand_left', ft_map['l_arm_ft'].getWrench())
-        logger.add('wrench_hand_right', ft_map['r_arm_ft'].getWrench())
     # ci.setControlMode(hands_list[0], pyci.ControlType.Position)
     # ci.setControlMode(hands_list[1], pyci.ControlType.Position)
 
