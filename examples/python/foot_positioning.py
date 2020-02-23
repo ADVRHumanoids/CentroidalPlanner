@@ -164,7 +164,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
                 robot.setPositionReference(vect_map)
                 robot.move()
-                rospy.sleep(0.01)
+                rospy.sleep(0.05)
 
         robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
@@ -190,7 +190,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             current_pos_foot[2] = current_pos_foot[2] + 0.1  # 0.6
             current_pos_foot_ci = Affine3(pos=current_pos_foot)
             current_pos_foot_ci.linear = rot_mat
-            ci.setTargetPose(foot_i, current_pos_foot_ci, reach_time / 2)
+            ci.setTargetPose(foot_i, current_pos_foot_ci, 0.1)
             ci.waitReachCompleted(foot_i)
             ci.update()
 
@@ -199,7 +199,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             goal_wall[0] -= distance_for_reaching
             foot_ci = Affine3(pos=goal_wall)
             foot_ci.linear = rot_mat
-            ci.setTargetPose(foot_i, foot_ci, reach_time / 2.0)
+            ci.setTargetPose(foot_i, foot_ci, 0.1)
             ci.waitReachCompleted(foot_i)
             ci.update()
             print foot_i, ': ghost task finished.'
