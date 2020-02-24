@@ -19,11 +19,10 @@
     
     <param name="cartesian/problem_description" 
         textfile="$(find centroidal_planner)/cartesio_stack/coman_stack.yaml"/>
+        
     
-    <param name="ros_server_node/set_world_from_param" value="true"/>
-    
-
-<group ns="$(arg namespace)">
+   
+    <group ns="$(arg namespace)">
     
         <remap if="$(arg xbot)" from="robot_description" to="xbotcore/robot_description"/>
     
@@ -39,7 +38,7 @@
             <param name="use_xbot_config" value="$(arg use_xbot_config)"/>
             <param name="rate" value="$(arg rate)"/>
             <param name="tf_prefix" value="$(arg tf_prefix)"/>
-            <param name="visual_mode" value="false"/>
+            <param name="visual_mode" value="true"/>
             <param if="$(eval arg('world_frame_link') != '!')" name="world_frame_link" value="$(arg world_frame_link)"/>
         </node>
 
@@ -48,6 +47,6 @@
         </node>
 
 
-    </group>    
+    </group> 
 
 </launch>
