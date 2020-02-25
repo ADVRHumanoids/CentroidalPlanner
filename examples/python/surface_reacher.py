@@ -82,7 +82,7 @@ def run_foot(ci, robot, ft_map, end_effector):
     initial_pose_foot = ci.getPoseFromTf('ci/com', ci_end_effector).translation[direction]
     print "initial_pose_foot: ", initial_pose_foot
 
-    pos_treshold = 0.2 #0.2
+    pos_treshold = 0.2#0.2
 
     while not contact_sensed :
 
@@ -97,7 +97,7 @@ def run_foot(ci, robot, ft_map, end_effector):
 
         if n_cycle > 10:
             contact_sensed = True
-            print 'cycling for false positive..'
+            # print 'cycling for false positive..'
             n_cycle = 0
 
         # FOR SIMULATION

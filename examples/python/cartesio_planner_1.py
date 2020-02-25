@@ -12,7 +12,7 @@ def compute(joint_map_start, joint_map_goal, frames_in_contact, max_time, planne
 
 
 
-    planner.setContactFrames('SET', frames_in_contact, 0.5, False, normals)
+    planner.setContactFrames('SET', frames_in_contact, 0.6, False, normals)
 
     raw_input('check if start and goal position are good, then press any Key.')
     print 'RRT started planning...'
