@@ -7,8 +7,6 @@ N_ITER = 50
 
 def set_legs_initial_Damping(robot) :
 
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
-
     # print robot.getEnabledJointNames
     print robot.leg(0).getJointNames()
     # print robot.leg(0).getBaseLinkName()
@@ -35,7 +33,6 @@ def set_legs_initial_Damping(robot) :
 
 def set_legs_default_damping(robot, K_end) :
 
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
     K_0 = robot.leg(0).getDamping()
 
     global N_ITER
@@ -55,8 +52,6 @@ def set_legs_default_damping(robot, K_end) :
         print "Damping of ", robot.leg(i).getChainName(), " is: ", robot.leg(i).getDamping()
 
 def set_legs_low_damping(robot) :
-
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
     K_0 = robot.leg(0).getDamping()
     K_end = [50, 50, 50, 50, 50, 50]
@@ -78,7 +73,6 @@ def set_legs_low_damping(robot) :
 
 def set_arms_default_damping(robot, K_end) :
 
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
     K_0 = robot.arm(0).getDamping()
 
     global N_ITER
@@ -98,8 +92,6 @@ def set_arms_default_damping(robot, K_end) :
         print "New Damping of ", robot.arm(i).getChainName(), " is: ", robot.arm(i).getDamping()
 
 def set_arms_low_damping(robot) :
-
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
     K_0 = robot.arm(0).getDamping()
     K_end = [1, 1, 1, 1, 1, 1, 1]
@@ -127,13 +119,6 @@ def set_leg_damping(robot, ee, K_end) :
     elif ee == 'r_sole' :
         selected_leg = robot.leg(1)
 
-    robot_map = dict()
-
-    for i in selected_leg.getJointNames() :
-        if i not in robot_map :
-            robot_map[i] = xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping()
-
-    robot.setControlMode(robot_map)
     K_0 = selected_leg.getDamping()
     #
     global N_ITER

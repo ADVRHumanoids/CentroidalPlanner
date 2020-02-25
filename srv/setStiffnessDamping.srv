@@ -1,0 +1,17 @@
+#control types
+
+#control end_effector type
+string l_sole=l_sole
+string r_sole=r_sole
+string hands=hands
+string ankles=ankles
+
+string end_effector
+
+float64[] stiffness
+float64[] damping
+---
+
+bool success
+
+

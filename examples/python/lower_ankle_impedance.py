@@ -26,11 +26,6 @@ def run(robot, end_effector) :
     stiffness_map[ankleRoll] = 1
     damping_map[ankleRoll] = 0.1
 
-    mapEnd_effector = dict()
-    mapEnd_effector[anklePitch] = xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping()
-    mapEnd_effector[ankleRoll] = xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping()
-    robot.setControlMode(mapEnd_effector)
-
     robot.setStiffness(stiffness_map)
     robot.setDamping(damping_map)
 

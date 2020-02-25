@@ -17,7 +17,7 @@ import hand_positioning as hand_cmd
 import foot_positioning as foot_cmd
 import surface_reacher as surface_reacher
 import matlogger2.matlogger as matlog
-
+from centroidal_planner.srv import setStiffnessDamping
 from geometry_msgs.msg import *
 
 def get_robot() :
@@ -123,10 +123,15 @@ if __name__ == '__main__':
     robot.sense()
     model.syncFrom(robot)
 
+    robot.setControlMode(xbot.ControlMode.Position())
+
     # get cartesio ros client
     ci = pyci.CartesianInterfaceRos()
     mass = 70.0
 
+    print 'waiting for xbotcore_impedance...'
+    rospy.wait_for_service('xbotcore_impedance/set_stiffness_damping')
+    print 'done.'
     #height of ground
     world_odom_T_world = (ci.getPoseFromTf('ci/com', 'ci/world_odom').translation)[2]
     print('world_odom_T_world is :', world_odom_T_world)
@@ -225,12 +230,24 @@ if __name__ == '__main__':
 
     # TO AVOID THE HIP TO REACH JOINT LIMITS
     # default_stiffness_hip_pitch = 800
+    print 'setting default stiffness and damping ...'
+    set_stiffdamp = rospy.ServiceProxy('xbotcore_impedance/set_stiffness_damping', setStiffnessDamping)
 
-    xbotstiff.set_legs_default_stiffness(robot, [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
-    xbotdamp.set_legs_default_damping(robot, [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg])
+    set_stiffdamp('hands', [default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_wrist, default_stiffness_wrist, default_stiffness_wrist],
+                           [default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm])
+    set_stiffdamp('l_sole', [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg],
+                            [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg])
+    set_stiffdamp('r_sole', [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg],
+                            [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg])
+    print 'done'
 
-    xbotstiff.set_arms_default_stiffness(robot, [default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_wrist, default_stiffness_wrist, default_stiffness_wrist])
-    xbotdamp.set_arms_default_damping(robot, [default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm])
+    # xbotstiff.set_legs_default_stiffness(robot, [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+    # xbotdamp.set_legs_default_damping(robot, [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg])
+    #
+    # xbotstiff.set_arms_default_stiffness(robot, [default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_arm, default_stiffness_wrist, default_stiffness_wrist, default_stiffness_wrist])
+    # xbotdamp.set_arms_default_damping(robot, [default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm, default_damping_arm])
+
+
 
     raw_input("Press Enter to advance com.")
     advance_com(ci, 0.06, 5.)
@@ -252,6 +269,8 @@ if __name__ == '__main__':
     # waist_pos[2] += 0.1
     # waist_ci = Affine3(pos=waist_pos)
     # ci.setTargetPose('Waist', waist_ci, 5)
+
+    rospy.delete_param('ros_server_node/set_world_from_param')
 
     del logger
 

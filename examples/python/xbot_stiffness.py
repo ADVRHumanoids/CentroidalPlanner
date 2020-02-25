@@ -6,7 +6,7 @@ N_ITER = 50
 
 def set_legs_initial_stiffness(robot) :
 
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+    # robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
     # print robot.getEnabledJointNames
     print robot.leg(0).getJointNames()
@@ -34,7 +34,8 @@ def set_legs_initial_stiffness(robot) :
 
 def set_legs_default_stiffness(robot, K_end) :
 
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+    # robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+
     K_0 = robot.leg(0).getStiffness()
 
     global N_ITER
@@ -55,7 +56,7 @@ def set_legs_default_stiffness(robot, K_end) :
 
 def set_legs_low_stiffness(robot) :
 
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+    # robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
     K_0 = robot.leg(0).getStiffness()
     K_end = [50, 50, 50, 50, 50, 50]
@@ -78,7 +79,7 @@ def set_legs_low_stiffness(robot) :
 
 def set_arms_default_stiffness(robot, K_end) :
 
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+    # robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
     K_0 = robot.arm(0).getStiffness()
 
     global N_ITER
@@ -99,7 +100,7 @@ def set_arms_default_stiffness(robot, K_end) :
 
 def set_arms_low_stiffness(robot) :
 
-    robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+    # robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
     K_0 = robot.arm(0).getStiffness()
     K_end = [50, 50, 50, 50, 50, 50, 50]
@@ -129,13 +130,6 @@ def set_leg_stiffness(robot, ee, K_end) :
     elif ee == 'r_sole' :
         selected_leg = robot.leg(1)
 
-    robot_map = dict()
-
-    for i in selected_leg.getJointNames() :
-        if i not in robot_map :
-            robot_map[i] = xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping()
-
-    robot.setControlMode(robot_map)
     K_0 = selected_leg.getStiffness()
     #
     global N_ITER

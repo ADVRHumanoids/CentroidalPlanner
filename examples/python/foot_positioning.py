@@ -9,6 +9,7 @@ import cartesio_planner_1 as cp
 import rospy
 import xbot_interface.xbot_interface as xbot
 from sensor_msgs.msg import JointState
+from centroidal_planner.srv import setStiffnessDamping
 
 current_pos = None
 
@@ -29,7 +30,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
     distance_for_reaching = - 0.15
 
-    move_time_com = 2
+    move_time_com = 4
     lift_time = 10
     reach_time = 25
 
@@ -150,13 +151,22 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             default_stiffness_leg = 1500  # 1500
             default_damping_leg = 10
 
-            xbotstiff.set_leg_stiffness(robot, foot_i,
-                                        [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
-                                         default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+            print 'rising values of stiffness+damping ... '
+            set_stiffdamp = rospy.ServiceProxy('xbotcore_impedance/set_stiffness_damping', setStiffnessDamping)
 
-            xbotdamp.set_leg_damping(robot, foot_i,
-                                     [default_damping_leg, default_damping_leg, default_damping_leg,
-                                      default_damping_leg, default_damping_leg, default_damping_leg])
+            set_stiffdamp(foot_i,[default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,default_stiffness_leg, default_stiffness_leg],
+                          [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg,default_damping_leg, default_damping_leg])
+            set_stiffdamp(foot_i,[default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,default_stiffness_leg, default_stiffness_leg],
+                     [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg,default_damping_leg, default_damping_leg])
+            print 'done'
+
+            # xbotstiff.set_leg_stiffness(robot, foot_i,
+            #                             [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
+            #                              default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+            #
+            # xbotdamp.set_leg_damping(robot, foot_i,
+            #                          [default_damping_leg, default_damping_leg, default_damping_leg,
+            #                           default_damping_leg, default_damping_leg, default_damping_leg])
 
             # --------------------------------------------------------------------------------------------------------------
 
@@ -164,7 +174,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
             vect_map = dict()
             sizeMap = mapJointTraj[mapJointTraj.keys()[0]].size
-            robot.setControlMode(xbot.ControlMode.Position())
+
             for val in range(0, int(sizeMap)):
 
                 for key in mapJointTraj:
@@ -174,7 +184,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
                 robot.move()
                 rospy.sleep(0.05)
 
-        robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+        # robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
         if foot_i == 'r_sole':
             raw_input("Press Enter to get starting pose from cartesian solution.")
@@ -248,21 +258,29 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
             default_stiffness_leg = 1500  # 1500
             default_damping_leg = 10
+            print 'rising values of stiffness+damping ... '
+            set_stiffdamp = rospy.ServiceProxy('xbotcore_impedance/set_stiffness_damping', setStiffnessDamping)
 
-            xbotstiff.set_leg_stiffness(robot, foot_i,
-                                        [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
-                                         default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
-
-            xbotdamp.set_leg_damping(robot, foot_i,
-                                     [default_damping_leg, default_damping_leg, default_damping_leg,
-                                      default_damping_leg, default_damping_leg, default_damping_leg])
+            set_stiffdamp(foot_i, [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,default_stiffness_leg, default_stiffness_leg],
+                                  [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg,default_damping_leg, default_damping_leg])
+            set_stiffdamp(foot_i, [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,default_stiffness_leg, default_stiffness_leg],
+                                  [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg,default_damping_leg, default_damping_leg])
+            print 'done'
+            # xbotstiff.set_leg_stiffness(robot, foot_i,
+            #                             [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
+            #                              default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+            #
+            # xbotdamp.set_leg_damping(robot, foot_i,
+            #                          [default_damping_leg, default_damping_leg, default_damping_leg,
+            #                           default_damping_leg, default_damping_leg, default_damping_leg])
 
             # --------------------------------------------------------------------------------------------------------------
             raw_input("Press Enter to execute planning.")
 
             vect_map = dict()
             sizeMap = mapJointTraj[mapJointTraj.keys()[0]].size
-            robot.setControlMode(xbot.ControlMode.Position())
+
+
             for val in range(0, int(sizeMap)):
 
                 for key in mapJointTraj:
@@ -270,11 +288,11 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
                 robot.setPositionReference(vect_map)
                 robot.move()
-                rospy.sleep(0.01)
+                rospy.sleep(0.05)
 
-        robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
+        # robot.setControlMode(xbot.ControlMode.Stiffness() + xbot.ControlMode.Damping())
 
-        raw_input("Press Enter to start surface reacher. Restart Cartesio.")
+        raw_input("Restart Cartesio. Press Enter to start surface reacher. ")
 
 
         # PUT BACK STACK AS IT WAS
@@ -289,22 +307,35 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         surface_reacher.run_foot(ci, robot, ft_map, foot_i)
 
         # LOWER STIFFNESS AND DAMPING FOR FORCE CONTROL ---------------------------------------------------------------
-
+        print 'lowering values of stiffness+damping ... '
         default_stiffness_leg = 500  # 1500
         default_damping_leg = 10
 
-        xbotstiff.set_leg_stiffness(robot, foot_i,
-                                    [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
-                                     default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+        set_stiffdamp = rospy.ServiceProxy('xbotcore_impedance/set_stiffness_damping', setStiffnessDamping)
 
-        xbotdamp.set_leg_damping(robot, foot_i,
-                                 [default_damping_leg, default_damping_leg, default_damping_leg,
-                                  default_damping_leg, default_damping_leg, default_damping_leg])
+        set_stiffdamp(foot_i, [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg],
+                              [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg])
+        set_stiffdamp(foot_i, [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,default_stiffness_leg, default_stiffness_leg],
+                              [default_damping_leg, default_damping_leg, default_damping_leg, default_damping_leg,default_damping_leg, default_damping_leg])
+        print 'done'
+        # xbotstiff.set_leg_stiffness(robot, foot_i,
+        #                             [default_stiffness_leg, default_stiffness_leg, default_stiffness_leg,
+        #                              default_stiffness_leg, default_stiffness_leg, default_stiffness_leg])
+        #
+        # xbotdamp.set_leg_damping(robot, foot_i,
+        #                          [default_damping_leg, default_damping_leg, default_damping_leg,
+        #                           default_damping_leg, default_damping_leg, default_damping_leg])
 
         # --------------------------------------------------------------------------------------------------------------
+        set_stiffdamp = rospy.ServiceProxy('xbotcore_impedance/set_stiffness_damping', setStiffnessDamping)
 
-        lower_ankle_impedance.run(robot, foot_i)
-
+        print 'lowering stiffness and damping of ankle:'
+        if foot_i == 'l_sole':
+            set_stiffdamp('l_ankle', [], [])
+        if foot_i == 'r_sole':
+            set_stiffdamp('r_ankle', [], [])
+        # lower_ankle_impedance.run(robot, foot_i)
+        print 'done'
 
         # WAIST ENABLE
         # ci.setControlMode('Waist', pyci.ControlType.Position)

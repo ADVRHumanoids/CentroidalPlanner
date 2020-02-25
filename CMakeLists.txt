@@ -47,6 +47,7 @@ endif()
 add_service_files(
   FILES
   vectorStringLinks.srv
+  setStiffnessDamping.srv
 )
 
 
@@ -107,9 +108,13 @@ target_link_libraries(forza_giusta_node ${OpenSoT_LIBRARIES}
 install(TARGETS forza_giusta_node forza_giusta_node
                                   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
                                   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-                                  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-                                  )
+                                  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+catkin_install_python(PROGRAMS examples/python/XBotModeHandler.py
+                               examples/python/xbot_stiffness.py
+                               examples/python/xbot_damping.py
+                               examples/python/lower_ankle_impedance.py
+                               DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 INSTALL(TARGETS Cpl 
         DESTINATION lib)
@@ -136,7 +141,6 @@ option(BUILD_TESTS FALSE)
 if(${BUILD_TESTS})
     add_subdirectory(tests/)
 endif()
-
 
 
 add_subdirectory(bindings/python/)
