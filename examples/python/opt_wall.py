@@ -96,6 +96,9 @@ def compute(ci, contacts, hands_list, feet_list, mass, mu_feet) :
         print "Upper bound: ", upper_bound
         ctrl_pl.SetPositionBound(foot, lower_bound, upper_bound)
 
+    com_ref = ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+    ctrl_pl.SetCoMRef(com_ref)
+
     sol_centroidal = ctrl_pl.Solve()
 
     print sol_centroidal

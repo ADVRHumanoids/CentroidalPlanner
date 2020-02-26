@@ -1,4 +1,4 @@
-def send(forcepub, contacts, hands_list, feet_list, solution, logger) :
+def send(forcepub, contacts, hands_list, feet_list, solution, logger, last = 0)  :
 
     forces_sheep = [solution.contact_values_map[feet_list[0]].force[0],
                     solution.contact_values_map[feet_list[0]].force[1],
@@ -27,6 +27,8 @@ def send(forcepub, contacts, hands_list, feet_list, solution, logger) :
                     solution.contact_values_map[hands_list[1]].normal[1],
                     solution.contact_values_map[hands_list[1]].normal[2]]
 
+    if (last == 1):
+        normal_sheep = [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1]
 
     print "contact_joints: ", contacts
     print "Sent forces_sheep is: ", forces_sheep
