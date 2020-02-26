@@ -1,4 +1,4 @@
-def send(forcepub, contacts, hands_list, feet_list, solution) :
+def send(forcepub, contacts, hands_list, feet_list, solution, logger) :
 
     forces_sheep = [solution.contact_values_map[feet_list[0]].force[0],
                     solution.contact_values_map[feet_list[0]].force[1],
@@ -31,6 +31,9 @@ def send(forcepub, contacts, hands_list, feet_list, solution) :
     print "contact_joints: ", contacts
     print "Sent forces_sheep is: ", forces_sheep
     print "Sent normals are: ", normal_sheep
+
+    logger.add('contact_legs', forces_sheep)
+    logger.add('contact_legs', normal_sheep)
 
     forcepub.sendForce(contacts, forces_sheep)
     forcepub.sendNormal(contacts, normal_sheep)

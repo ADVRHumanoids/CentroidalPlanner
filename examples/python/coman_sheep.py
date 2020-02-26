@@ -18,6 +18,8 @@ import foot_positioning as foot_cmd
 import surface_reacher as surface_reacher
 import matlogger2.matlogger as matlog
 from centroidal_planner.srv import setStiffnessDamping
+
+
 from geometry_msgs.msg import *
 
 def get_robot() :
@@ -209,9 +211,13 @@ if __name__ == '__main__':
     print "forces are: ", forces_sheep
     print "normals are: ", normal_sheep
 
+    logger.add('contact_sheep', forces_sheep)
+    logger.add('contact_sheep', normal_sheep)
+
     # sending forces ..
     forcepub.sendForce(contact_joints, forces_sheep)
     forcepub.sendNormal(contact_joints, normal_sheep)
+
 
     # SWITCH ON FORZA GIUSTA
     raw_input("Press Enter to switch ON forza giusta and lower the impedance.")
@@ -271,7 +277,6 @@ if __name__ == '__main__':
     # ci.setTargetPose('Waist', waist_ci, 5)
 
     rospy.delete_param('ros_server_node/set_world_from_param')
-
     del logger
 
     exit(0)

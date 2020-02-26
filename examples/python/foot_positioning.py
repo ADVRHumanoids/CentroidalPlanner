@@ -17,6 +17,7 @@ def current_pos_callback(data):
     global current_pos
     current_pos = data
 
+
 def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_centroidal, com_pl, forcepub, world_odom_T_world, logger) :
 
 
@@ -87,7 +88,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
 
         # SEND FORCE ------
-        send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol)
+        send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol, logger)
         # -----------------
 
         raw_input("Press Enter to move CoM.")
@@ -100,6 +101,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         ci.waitReachCompleted('com')
         ci.update()
         print "Done: ", ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+
 
         if foot_i == 'r_sole':
             raw_input("Disable Cartesio and start Cartesio VISUAL.")
@@ -329,7 +331,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             # find solution
             sol = com_pl.Solve()
             print "sending force to ", foot_i
-            send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol)
+            send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol, logger)
 
     # # PUT BACK COM IN THE MIDDLE
     # for c_f in feet_list:
