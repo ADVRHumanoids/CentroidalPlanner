@@ -102,18 +102,6 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         ci.update()
         print "Done: ", ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
 
-
-        if foot_i == 'r_sole':
-            raw_input("Disable Cartesio and start Cartesio VISUAL.")
-
-            # PUT BACK STACK AS IT WAS
-            # disable Waist
-            ci.setControlMode('Waist', pyci.ControlType.Disabled)
-            # change back hands fixed in world
-            for hand_i in hands_list:
-                ci.setBaseLink(hand_i, 'world')
-
-
         if foot_i == 'l_sole':
 
             raw_input("Press Enter to get starting pose from cartesian solution.")
@@ -178,6 +166,28 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
                 rospy.sleep(0.05)
 
         if foot_i == 'r_sole':
+
+                # lift sole
+            print "lifting sole..."
+            lift_heigth = 0.08
+            sole_ci = ci.getPoseReference(foot_i)[0]
+            sole_ci.translation_ref()[2] += lift_heigth
+            # sole_ci.linear = rot_mat
+            ci.setTargetPose(foot_i, sole_ci, lift_time / 2.0)
+            ci.waitReachCompleted(foot_i)
+            ci.update()
+
+            raw_input("Disable Cartesio and start Cartesio VISUAL.")
+
+            # PUT BACK STACK AS IT WAS
+            # disable Waist
+            ci.setControlMode('Waist', pyci.ControlType.Disabled)
+            # change back hands fixed in world
+            for hand_i in hands_list:
+                ci.setBaseLink(hand_i, 'world')
+
+
+
             raw_input("Press Enter to get starting pose from cartesian solution.")
 
             rospy.Subscriber("/cartesian/solution", JointState, current_pos_callback)
@@ -247,7 +257,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
             # RISE STIFFNESS AND DAMPING FOR MOVEMENT IN AIR ---------------------------------------------------------------
 
-            default_stiffness_leg = 1500  # 1500
+            default_stiffness_leg = 2000 # 1500
             default_damping_leg = 10
             print 'rising values of stiffness+damping ... '
             set_stiffdamp = rospy.ServiceProxy('xbotcore_impedance/set_stiffness_damping', setStiffnessDamping)
@@ -271,7 +281,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
                 robot.setPositionReference(vect_map)
                 robot.move()
-                rospy.sleep(0.07)
+                rospy.sleep(0.05)
 
         raw_input("Restart Cartesio. Press Enter to start surface reacher. ")
 
@@ -331,7 +341,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             # find solution
             sol = com_pl.Solve()
             print "sending force to ", foot_i
-            send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol, logger)
+            send_F_n.send(forcepub, contacts_links, hands_list, feet_list, sol_centroidal, logger)
 
     # # PUT BACK COM IN THE MIDDLE
     # for c_f in feet_list:

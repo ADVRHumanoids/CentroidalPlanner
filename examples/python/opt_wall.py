@@ -45,7 +45,7 @@ def compute(ci, contacts, hands_list, feet_list, mass, mu_feet) :
 
     C = np.array([p[0] + C_translation[0], p[1] + C_translation[1], p[2] + C_translation[2]])  # center of superquadric
     R = np.array([d[0] + radius[0], d[1] + radius[1], d[2] + radius[2]]) # radius of superquadric
-    P = np.array([50.0, 50.0, 50.0])
+    P = np.array([50.0, 50.0, 50.0]) #
 
     superquadric_env.SetParameters(C,R,P)
 

@@ -169,7 +169,7 @@ if __name__ == '__main__':
     surface_reacher.run_hand(ci, robot, model, ft_map, hands_list, f_est, logger)
 
     #MOVE COM
-    position_com(ci, sol_centroidal_sheep.com[0] - 0.08, 15.)     #reach_time = 15.
+    position_com(ci, sol_centroidal_sheep.com[0] - 0.08, 10.)     #reach_time = 15.
 
     print "waiting for forza_giusta node ...."
     forcepub = fp.ForcePublisher(contact_joints)
