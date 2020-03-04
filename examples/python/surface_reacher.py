@@ -82,7 +82,7 @@ def run_foot(ci, robot, ft_map, end_effector):
     initial_pose_foot = ci.getPoseFromTf('ci/com', ci_end_effector).translation[direction]
     print "initial_pose_foot: ", initial_pose_foot
 
-    pos_treshold = 0.2#0.2
+    pos_treshold = 0.5#0.2
 
     while not contact_sensed :
 

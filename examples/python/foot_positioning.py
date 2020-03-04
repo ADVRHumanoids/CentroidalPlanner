@@ -68,7 +68,7 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
             com_ref[1] = initial_com[1] - 0.05  # MOVE COM ON THE SIDE!
 
         if foot_i == 'r_sole' :
-            com_ref[0] = com_ref[0] #+ 0.05
+            com_ref[0] = com_ref[0]
             com_ref[1] = initial_com[1]  # MOVE COM IN THE MIDDLE!
 
         print 'Setting com ref to: ', com_ref
@@ -101,6 +101,8 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
         ci.waitReachCompleted('com')
         ci.update()
         print "Done: ", ci.getPoseFromTf('ci/com', 'ci/world_odom').translation
+        print "l_foot: ", ci.getPoseFromTf('ci/l_sole', 'ci/world_odom').translation
+        print "r_foot: ", ci.getPoseFromTf('ci/r_sole', 'ci/world_odom').translation
 
         if foot_i == 'l_sole':
 
@@ -325,11 +327,12 @@ def run(robot, ft_map, ci, ctrl_pl, contacts_links, hands_list, feet_list, sol_c
 
         # SET NEW CONTACT POSITION AND NORMAL
         # get contacts references from cartesio and set them to the planner
-        contact_pos = ci.getPoseReference(foot_i)[0].translation
-        com_pl.SetContactPosition(foot_i, contact_pos)
+        print 'Current position of foot', foot_i, 'is: ', ci.getPoseReference(foot_i)[0].translation
+
+        com_pl.SetContactPosition(foot_i, ci.getPoseReference(foot_i)[0].translation)
         normal = [1, 0, 0]
         com_pl.SetContactNormal(foot_i, normal)
-        print("Setting contact position for ", foot_i, " to ", com_pl.GetContactPosition(foot_i))
+        print "Setting contact position for ", foot_i, " to ", com_pl.GetContactPosition(foot_i)
         print "Setting normal for ", foot_i, "to ", normal
 
         if foot_i == 'r_sole' :

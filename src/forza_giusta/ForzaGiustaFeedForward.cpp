@@ -473,7 +473,7 @@ int main(int argc, char ** argv)
 //            std::cout << "W_" + pair.first + ": " << w_world.transpose() << std::endl;
 
             geometry_msgs::WrenchStamped wrench_local_msg;
-            wrench_local_msg.header.frame_id = pair.first;
+            wrench_local_msg.header.frame_id = "ci/" + pair.first;
 //            w_world.tail(3) *= -1;
             tf::wrenchEigenToMsg( w_local, wrench_local_msg.wrench);
 
