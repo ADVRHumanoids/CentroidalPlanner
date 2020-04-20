@@ -5,12 +5,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include(MacroInstallLib)
 
 
-find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(ifopt REQUIRED)
-find_package(OpenSoT REQUIRED)
-find_package(ReflexxesTypeII REQUIRED)
-find_package(cartesian_interface REQUIRED)
 find_package(alglib QUIET)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
@@ -23,11 +19,8 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         tf tf_conversions)
 
 include_directories(include
-                    ${OpenSoT_INCLUDE_DIRS}
-                    ${XBotInterface_INCLUDE_DIRS}
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
-                    ${ReflexxesTypeII_INCLUDE_DIRS}
                     ${alglib_INCLUDE_DIRS}
                     ${XCM_INCLUDE_DIRS}
                     )
@@ -43,14 +36,6 @@ elseif(COMPILER_SUPPORTS_CXX0X)
 else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
-
-# Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  SetContactForce.srv
-  SetContactFrame.srv
-  SetManipWrench.srv
-)
 
 generate_messages(
   DEPENDENCIES
@@ -77,10 +62,6 @@ SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
                   
 SET(CPL_SOURCES src/CentroidalPlanner.cpp
                 src/CoMPlanner.cpp
-                src/Ros/Cpl_TorqueFeedforward.cpp
-                src/Utils/Cpl_ForceOptimization.cpp
-#                src/Utils/SurfaceReacher.cpp
-                src/Utils/Utils.cpp
                 ) 
                   
 ADD_LIBRARY(Cpl SHARED
@@ -92,46 +73,19 @@ ADD_LIBRARY(Cpl SHARED
 add_dependencies(Cpl ${PROJECT_NAME}_generate_messages)
                     
 TARGET_LINK_LIBRARIES(Cpl PUBLIC
-                                 ${OpenSoT_LIBRARIES}
-                                 ${XBotInterface_LIBRARIES}
                                  ${catkin_LIBRARIES}
-                                 ${ReflexxesTypeII_LIBRARIES}
-                                 ${cartesian_interface_LIBRARIES}  
                                  ifopt::ifopt_ipopt)
 
-# TorqueFeedforward executable
-add_executable(cpl_torque_feedforward_node src/Ros/Cpl_TorqueFeedforward.cpp)
-target_link_libraries(cpl_torque_feedforward_node Cpl)
-install(TARGETS cpl_torque_feedforward_node cpl_torque_feedforward_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-                             )
 
 
 INSTALL(TARGETS Cpl 
         DESTINATION lib)
-           
-## Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  FILES_MATCHING PATTERN "*.launch"
-)
-                                                      
-## Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY cartesio_stack/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cartesio_stack
-  FILES_MATCHING PATTERN "*.yaml"
-)        
+              
 
 option(BUILD_TESTS FALSE)
 if(${BUILD_TESTS})
     add_subdirectory(tests/)
 endif()
 
-#add_subdirectory(bindings/python/)
+add_subdirectory(bindings/python/)
 
-install(PROGRAMS
-   examples/python/centauro_DEMO.py
-   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)

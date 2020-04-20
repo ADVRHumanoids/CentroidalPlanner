@@ -1,5 +1,0 @@
-string link_name
-geometry_msgs/WrenchStamped contact_force
----
-bool success
-string message
