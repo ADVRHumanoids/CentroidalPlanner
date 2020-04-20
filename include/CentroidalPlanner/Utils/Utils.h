@@ -17,9 +17,9 @@
 #include <OpenSoT/constraints/force/CoP.h>
 #include <OpenSoT/tasks/force/Force.h>
 
-#include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/ros/RosServerClass.h>
-#include <cartesian_interface/ros/RosImpl.h>
+//#include <cartesian_interface/CartesianInterfaceImpl.h>
+//#include <cartesian_interface/ros/RosServerClass.h>
+//#include <cartesian_interface/ros/RosImpl.h>
 
 
 namespace cpl { namespace utils {
@@ -96,32 +96,32 @@ namespace cpl { namespace utils {
      * based on estimated contact forces.
      *
      */
-    class SurfaceReacher
-    {
+//    class SurfaceReacher
+//    {
 
-    public:
+//    public:
 
-        typedef std::shared_ptr<SurfaceReacher> Ptr;
+//        typedef std::shared_ptr<SurfaceReacher> Ptr;
 
-        /**
-         * @brief Constructor
-         *
-         * @param contact_names List of contact links
-         */
+//        /**
+//         * @brief Constructor
+//         *
+//         * @param contact_names List of contact links
+//         */
 
-        SurfaceReacher(std::vector<std::string> contact_names);
+//        SurfaceReacher(std::vector<std::string> contact_names);
 
-        bool ReachSurface(XBot::Cartesian::RosImpl& ci,
-                          std::string contact_name,
-                          const Eigen::Vector3d contact_lin_vel,
-                          double F_thr);
+//        bool ReachSurface(XBot::Cartesian::RosImpl& ci,
+//                          std::string contact_name,
+//                          const Eigen::Vector3d contact_lin_vel,
+//                          double F_thr);
 
-    private:
+//    private:
 
-        std::map<std::string, ros::Subscriber> _sub_force_map;
-        std::map<std::string, Eigen::Vector6d> _f_est_map;
+//        std::map<std::string, ros::Subscriber> _sub_force_map;
+//        std::map<std::string, Eigen::Vector6d> _f_est_map;
 
-    };
+//    };
 
 } }
 

@@ -79,7 +79,7 @@ SET(CPL_SOURCES src/CentroidalPlanner.cpp
                 src/CoMPlanner.cpp
                 src/Ros/Cpl_TorqueFeedforward.cpp
                 src/Utils/Cpl_ForceOptimization.cpp
-                src/Utils/SurfaceReacher.cpp
+#                src/Utils/SurfaceReacher.cpp
                 src/Utils/Utils.cpp
                 ) 
                   
@@ -129,7 +129,7 @@ if(${BUILD_TESTS})
     add_subdirectory(tests/)
 endif()
 
-add_subdirectory(bindings/python/)
+#add_subdirectory(bindings/python/)
 
 install(PROGRAMS
    examples/python/centauro_DEMO.py
