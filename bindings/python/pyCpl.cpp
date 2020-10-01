@@ -5,7 +5,7 @@
 #include <pybind11/operators.h>
 #include <CentroidalPlanner/CentroidalPlanner.h>
 #include <CentroidalPlanner/CoMPlanner.h>
-#include <CentroidalPlanner/Utils.h>
+
 
 namespace py = pybind11;
 using namespace cpl;
@@ -51,12 +51,14 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetPosWeight", &CentroidalPlanner::SetPosWeight)
     .def("SetForceWeight", &CentroidalPlanner::SetForceWeight)
     .def("SetCoMRef", &CentroidalPlanner::SetCoMRef)
-    .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold)
-    .def("GetForceThreshold", &CentroidalPlanner::GetForceThreshold)
-    .def("SetPositionBound", &CentroidalPlanner::SetPosBounds)
-    .def("GetPositionBound", &CentroidalPlanner::GetPosBounds)
     .def("SetPosRef", &CentroidalPlanner::SetPosRef)
-    .def("GetPosRef", &CentroidalPlanner::GetPosRef);
+    .def("SetForceThreshold", &CentroidalPlanner::SetForceThreshold)
+    .def("SetPosBounds", &CentroidalPlanner::SetPosBounds)
+    .def("GetPosBound", &CentroidalPlanner::GetPosBounds)
+    .def("SetForceBounds", &CentroidalPlanner::SetForceBounds)
+    .def("SetManipulationWrench", &CentroidalPlanner::SetManipulationWrench)
+    .def("GetForceThreshold", &CentroidalPlanner::GetForceThreshold);
+    
     
     py::class_<CoMPlanner>(m, "CoMPlanner", base)
     .def(py::init<std::vector<std::string>,

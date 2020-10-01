@@ -5,12 +5,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include(MacroInstallLib)
 
 
-find_package(XBotInterface REQUIRED)
 find_package(XCM QUIET)
 find_package(ifopt REQUIRED)
-find_package(OpenSoT REQUIRED)
-find_package(ReflexxesTypeII REQUIRED)
-find_package(cartesian_interface REQUIRED)
 find_package(alglib QUIET)
 find_package(catkin REQUIRED COMPONENTS roscpp
                                         std_msgs
@@ -22,12 +18,9 @@ find_package(catkin REQUIRED COMPONENTS roscpp
                                         interactive_markers
                                         tf tf_conversions)
 
-include_directories(include/
-                    ${OpenSoT_INCLUDE_DIRS}
-                    ${XBotInterface_INCLUDE_DIRS}
+include_directories(include
                     ${EIGEN3_INCLUDE_DIRS}
                     ${catkin_INCLUDE_DIRS}
-                    ${ReflexxesTypeII_INCLUDE_DIRS}
                     ${alglib_INCLUDE_DIRS}
                     ${XCM_INCLUDE_DIRS}
                     )
@@ -54,6 +47,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+  geometry_msgs
 )
 
 
@@ -76,71 +70,27 @@ SET(ENVIRONMENT_SOURCES src/Superquadric.cpp
                   
 SET(CPL_SOURCES src/CentroidalPlanner.cpp
                 src/CoMPlanner.cpp
-                src/Utils.cpp
                 ) 
-
-SET(FORZA_GIUSTA src/forza_giusta/ForzaGiustaFeedForward.cpp
-                )
-
+                  
 ADD_LIBRARY(Cpl SHARED
-            ${IFOPT_SOURCES}
-            ${ENVIRONMENT_SOURCES}
-            ${CPL_SOURCES}
-            )
+                       ${IFOPT_SOURCES}
+                       ${ENVIRONMENT_SOURCES}
+                       ${CPL_SOURCES}
+                       )
+
+add_dependencies(Cpl ${PROJECT_NAME}_generate_messages)
                     
 TARGET_LINK_LIBRARIES(Cpl PUBLIC
-                      ${OpenSoT_LIBRARIES}
-                      ${XBotInterface_LIBRARIES}
-                      ${catkin_LIBRARIES}
-                      ${ReflexxesTypeII_LIBRARIES}
-                      ${cartesian_interface_LIBRARIES}
-                      ifopt::ifopt_ipopt
-                      )
-
-add_executable(forza_giusta_node src/forza_giusta/ForzaGiustaFeedForward.cpp)
-
-target_link_libraries(forza_giusta_node ${OpenSoT_LIBRARIES}
-                                        ${XBotInterface_LIBRARIES}
-                                        ${catkin_LIBRARIES}
-                                        ${ReflexxesTypeII_LIBRARIES}
-                                        ${cartesian_interface_LIBRARIES})
-
-install(TARGETS forza_giusta_node forza_giusta_node
-                                  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-                                  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-                                  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-catkin_install_python(PROGRAMS examples/python/XBotModeHandler.py
-                               examples/python/xbot_stiffness.py
-                               examples/python/xbot_damping.py
-                               examples/python/lower_ankle_impedance.py
-                               DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+                                 ${catkin_LIBRARIES}
+                                 ifopt::ifopt_ipopt)
 
 INSTALL(TARGETS Cpl 
         DESTINATION lib)
            
-## Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  FILES_MATCHING PATTERN "*.launch"
-)
-                                                      
-## Mark other files for installation (e.g. launch and bag files, etc.)
-install(DIRECTORY cartesio_stack/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cartesio_stack
-  FILES_MATCHING PATTERN "*.yaml"
-)        
-
-install(DIRECTORY include/forza_giusta/
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-    FILES_MATCHING PATTERN "*.h"
-    PATTERN ".svn" EXCLUDE
-)
 
 option(BUILD_TESTS FALSE)
 if(${BUILD_TESTS})
     add_subdirectory(tests/)
 endif()
-
 
 add_subdirectory(bindings/python/)

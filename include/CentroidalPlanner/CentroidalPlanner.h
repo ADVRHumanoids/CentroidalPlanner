@@ -6,7 +6,6 @@
 #include <CentroidalPlanner/Ifopt/CplProblem.h>
 #include <CentroidalPlanner/Environment/Superquadric.h>
 #include <CentroidalPlanner/Environment/Ground.h>
-#include <CentroidalPlanner/Utils.h>
 #include <ifopt/ipopt_solver.h>
 #include <iostream>
 
