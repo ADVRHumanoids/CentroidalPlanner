@@ -70,11 +70,4 @@ PYBIND11_MODULE(pycpl, m) {
     .def("SetContactNormal", &CoMPlanner::SetContactNormal)
     .def("SetMu", &CoMPlanner::SetMu);
 
-
-    py::class_<utils::SurfaceReacher>(m, "SurfaceReacher")
-    .def(py::init<std::vector<std::string>>())
-    .def("ReachSurface", &utils::SurfaceReacher::ReachSurface);
-    
-    m.def("GetAffineFromNormal", &utils::GetAffineFromNormal);
-
 }
