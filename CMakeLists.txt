@@ -52,7 +52,8 @@ generate_messages(
 
 
 catkin_package(
-   INCLUDE_DIRS include 
+   INCLUDE_DIRS include
+   LIBRARIES Cpl 
 )
 
 SET(IFOPT_SOURCES src/Constraints/CentroidalStatics.cpp
@@ -84,9 +85,25 @@ TARGET_LINK_LIBRARIES(Cpl PUBLIC
                                  ${catkin_LIBRARIES}
                                  ifopt::ifopt_ipopt)
 
-INSTALL(TARGETS Cpl 
-        DESTINATION lib)
-           
+
+INSTALL(TARGETS Cpl
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+install(DIRECTORY include/
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h")
+     
+install(DIRECTORY cartesio_stack/
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cartesio_stack
+    FILES_MATCHING PATTERN "*.yaml"
+    )
+
+install(DIRECTORY configs/
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/configs
+    FILES_MATCHING PATTERN "*.yaml"
+    )
 
 option(BUILD_TESTS FALSE)
 if(${BUILD_TESTS})
