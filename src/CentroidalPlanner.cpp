@@ -19,17 +19,15 @@ CentroidalPlanner::CentroidalPlanner(std::vector< std::string > contact_names,
                                                          _env);
 }
 
-solver::Solution CentroidalPlanner::Solve()
+int CentroidalPlanner::Solve(solver::Solution& solution)
 {
-    solver::Solution sol;
-    
     _cpl_solver.SetOption("derivative_test", "first-order");
     _cpl_solver.SetOption("print_timing_statistics", "no");
    
     _cpl_solver.Solve(*_cpl_problem);  
-    _cpl_problem->GetSolution(sol);
-    
-    return sol;
+    _cpl_problem->GetSolution(solution);
+
+    return _cpl_solver.GetReturnStatus();
      
 }
 

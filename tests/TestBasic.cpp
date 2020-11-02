@@ -40,9 +40,11 @@ TEST_F(TestBasic, testSimpleProblem)
     
     auto cpl = std::make_shared<cpl::CentroidalPlanner>(contact_name, robot_mass, ground_env);
     
-    auto sol = cpl->Solve();
+    cpl::solver::Solution sol;
+    int status = cpl->Solve(sol);
     
-    std::cout << sol << std::endl;
+    std::cout<< "sol:" << sol << std::endl;
+    std::cout<< "status:" << status << std::endl;
     
     double Fz_tot = 0.0;
     
@@ -98,10 +100,12 @@ TEST_F(TestBasic, testGroundEnv)
     manip_wrench[5] = 100.0;
     cpl->SetManipulationWrench(manip_wrench);
     
-    auto sol = cpl->Solve();
-    
-    std::cout << sol << std::endl;
-    
+    cpl::solver::Solution sol;
+    int status = cpl->Solve(sol);
+
+    std::cout<< "sol:" << sol << std::endl;
+    std::cout<< "status:" << status << std::endl;
+
     Eigen::Vector3d F_sum, Torque_sum; 
     F_sum.setZero();
     Torque_sum.setZero();
@@ -174,10 +178,12 @@ TEST_F(TestBasic, testSuperquadricEnv)
     manip_wrench[5] = 100.0;
     cpl->SetManipulationWrench(manip_wrench);
     
-    auto sol = cpl->Solve();
-    
-    std::cout << sol << std::endl;
-    
+    cpl::solver::Solution sol;
+    int status = cpl->Solve(sol);
+
+    std::cout<< "sol:" << sol << std::endl;
+    std::cout<< "status:" << status << std::endl;
+
     Eigen::Vector3d F_sum, Torque_sum; 
     F_sum.setZero();
     Torque_sum.setZero();
@@ -260,10 +266,12 @@ TEST_F(TestBasic, testCoMPlanner)
         cpl->SetForceThreshold(c, 20.0);
     }
     
-    auto sol = cpl->Solve();
-    
-    std::cout << sol << std::endl;
-    
+    cpl::solver::Solution sol;
+    int status = cpl->Solve(sol);
+
+    std::cout<< "sol:" << sol << std::endl;
+    std::cout<< "status:" << status << std::endl;
+
     Eigen::Vector3d F_sum, Torque_sum; 
     F_sum.setZero();
     Torque_sum.setZero();
